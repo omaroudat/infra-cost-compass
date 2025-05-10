@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
 import { generateFinancialSummary } from '../utils/calculations';
@@ -20,9 +21,9 @@ const Dashboard = () => {
     amount: item.children ? item.children.reduce((sum, child) => sum + (child.quantity * child.unitRate), 0) : (item.quantity * item.unitRate)
   }));
   
-  const formatter = new Intl.NumberFormat('en-US', {
+  const formatter = new Intl.NumberFormat('ar-SA', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'SAR',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   });
@@ -71,7 +72,11 @@ const Dashboard = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
-                <Tooltip formatter={(value: any) => [formatter.format(Number(value)), 'Amount']} />
+                <Tooltip formatter={(value: any) => {
+                  // Ensure value is a number before formatting
+                  const numValue = typeof value === 'number' ? value : Number(value);
+                  return [formatter.format(numValue), 'Amount'];
+                }} />
                 <Legend />
                 <Bar name="Amount" dataKey="value" fill="#0a192f" />
               </BarChart>
@@ -87,7 +92,11 @@ const Dashboard = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis type="number" />
                 <YAxis dataKey="name" type="category" width={100} />
-                <Tooltip formatter={(value) => [formatter.format(value), 'Amount']} />
+                <Tooltip formatter={(value) => {
+                  // Ensure value is a number before formatting
+                  const numValue = typeof value === 'number' ? value : Number(value);
+                  return [formatter.format(numValue), 'Amount'];
+                }} />
                 <Bar dataKey="amount" fill="#0a192f" />
               </BarChart>
             </ResponsiveContainer>

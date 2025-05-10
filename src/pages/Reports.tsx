@@ -14,9 +14,9 @@ const Reports = () => {
   
   const financialSummary = generateFinancialSummary(wirs);
   
-  const formatter = new Intl.NumberFormat('en-US', {
+  const formatter = new Intl.NumberFormat('ar-SA', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'SAR',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   });
@@ -212,7 +212,10 @@ const Reports = () => {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" />
                       <YAxis />
-                      <Tooltip formatter={(value: any) => [formatter.format(Number(value)), 'Amount']} />
+                      <Tooltip formatter={(value: any) => {
+                        const numValue = typeof value === 'number' ? value : Number(value);
+                        return [formatter.format(numValue), 'Amount'];
+                      }} />
                       <Bar dataKey="amount" fill="#0a192f" />
                     </BarChart>
                   </ResponsiveContainer>
@@ -315,7 +318,10 @@ const Reports = () => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
                     <YAxis />
-                    <Tooltip formatter={(value: any) => [formatter.format(Number(value)), 'Amount']} />
+                    <Tooltip formatter={(value: any) => {
+                      const numValue = typeof value === 'number' ? value : Number(value);
+                      return [formatter.format(numValue), 'Amount'];
+                    }} />
                     <Legend />
                     <Bar dataKey="boqAmount" name="BOQ Amount" fill="#8884d8" />
                     <Bar dataKey="wirAmount" name="WIR Amount" fill="#82ca9d" />
