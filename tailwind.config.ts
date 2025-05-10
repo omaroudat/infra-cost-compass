@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,23 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Custom colors for our construction management system
+				navy: {
+					DEFAULT: '#0a192f',
+					light: '#172a45',
+					dark: '#020c1b'
+				},
+				slate: {
+					DEFAULT: '#8892b0',
+					light: '#a8b2d1',
+					dark: '#495670'
+				},
+				status: {
+					approved: '#10b981',      // Green for approved
+					conditional: '#f59e0b',   // Amber for approved with conditions
+					rejected: '#ef4444',      // Red for rejected
+					pending: '#6b7280'        // Gray for pending
 				}
 			},
 			borderRadius: {
