@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
 import { generateFinancialSummary } from '../utils/calculations';
 import StatCard from '../components/StatCard';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 
 const Dashboard = () => {
   const { wirs, boqItems } = useAppContext();
@@ -27,6 +26,11 @@ const Dashboard = () => {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   });
+  
+  const wirStatusData = wirs.map(wir => ({
+    name: wir.description,
+    value: wir.calculatedAmount || 0
+  }));
   
   return (
     <div className="space-y-6">
@@ -62,23 +66,15 @@ const Dashboard = () => {
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-lg font-semibold mb-4">WIR Status Overview</h3>
           <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={statusData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                >
-                  {statusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => [`Count: ${value}`, 'WIRs']} />
-              </PieChart>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={wirStatusData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip formatter={(value: any) => [formatter.format(Number(value)), 'Amount']} />
+                <Legend />
+                <Bar name="Amount" dataKey="value" fill="#0a192f" />
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </div>

@@ -1,15 +1,16 @@
 
 import { WIRStatus } from '../types';
+import { Check, CheckCheck, X } from 'lucide-react';
 
 type StatusInfo = {
   color: string;
-  label: string;
+  icon: React.ReactNode;
 };
 
 const statusMap: Record<WIRStatus, StatusInfo> = {
-  'A': { color: 'bg-status-approved', label: 'Approved' },
-  'B': { color: 'bg-status-conditional', label: 'Conditional' },
-  'C': { color: 'bg-status-rejected', label: 'Rejected' }
+  'A': { color: 'bg-status-approved', icon: <Check className="h-3.5 w-3.5" /> },
+  'B': { color: 'bg-status-conditional', icon: <CheckCheck className="h-3.5 w-3.5" /> },
+  'C': { color: 'bg-status-rejected', icon: <X className="h-3.5 w-3.5" /> }
 };
 
 type StatusBadgeProps = {
@@ -17,11 +18,11 @@ type StatusBadgeProps = {
 };
 
 const StatusBadge = ({ status }: StatusBadgeProps) => {
-  const { color, label } = statusMap[status];
+  const { color, icon } = statusMap[status];
   
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${color} text-white`}>
-      {label}
+      {status} {icon}
     </span>
   );
 };

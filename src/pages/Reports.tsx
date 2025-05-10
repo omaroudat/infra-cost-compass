@@ -193,7 +193,7 @@ const Reports = () => {
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value) => [`Count: ${value}`, 'WIRs']} />
+                      <Tooltip formatter={(value: any) => [`Count: ${value}`, 'WIRs']} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -212,7 +212,7 @@ const Reports = () => {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" />
                       <YAxis />
-                      <Tooltip formatter={(value) => [formatter.format(value), 'Amount']} />
+                      <Tooltip formatter={(value: any) => [formatter.format(Number(value)), 'Amount']} />
                       <Bar dataKey="amount" fill="#0a192f" />
                     </BarChart>
                   </ResponsiveContainer>
@@ -315,7 +315,7 @@ const Reports = () => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
                     <YAxis />
-                    <Tooltip formatter={(value) => [formatter.format(value), 'Amount']} />
+                    <Tooltip formatter={(value: any) => [formatter.format(Number(value)), 'Amount']} />
                     <Legend />
                     <Bar dataKey="boqAmount" name="BOQ Amount" fill="#8884d8" />
                     <Bar dataKey="wirAmount" name="WIR Amount" fill="#82ca9d" />
