@@ -2,7 +2,7 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import WIRTable from '@/components/wir/WIRTable';
 import WIRDialog from '@/components/wir/WIRDialog';
 import { useWIRManagement } from '@/hooks/useWIRManagement';
@@ -31,9 +31,11 @@ const WIRs = () => {
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold">Work Inspection Requests (WIRs)</h2>
         {canEdit && (
-          <DialogTrigger asChild>
-            <Button onClick={() => setIsAddDialogOpen(true)}>Add New WIR</Button>
-          </DialogTrigger>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button onClick={() => setIsAddDialogOpen(true)}>Add New WIR</Button>
+            </DialogTrigger>
+          </Dialog>
         )}
       </div>
       
