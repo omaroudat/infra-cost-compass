@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, AuthState, UserRole } from '../types/auth';
+import { User, AuthState, UserRole, UserManagement } from '../types/auth';
 import { toast } from 'sonner';
 
 // Mock users for demo purposes
@@ -20,7 +20,7 @@ const MOCK_USERS: User[] = [
   }
 ];
 
-interface AuthContextType extends AuthState {
+interface AuthContextType extends AuthState, UserManagement {
   login: (username: string, password: string) => boolean;
   logout: () => void;
   hasPermission: (roles: UserRole[]) => boolean;
@@ -50,6 +50,19 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     }
     return initialState;
   });
+  
+  const [users, setUsers] = useState<User[]>(() => {
+    // Load users from localStorage or use mock users
+    const savedUsers = localStorage.getItem('users');
+    if (savedUsers) {
+      try {
+        return JSON.parse(savedUsers);
+      } catch (e) {
+        return MOCK_USERS;
+      }
+    }
+    return MOCK_USERS;
+  });
 
   // Save auth state to localStorage when it changes
   useEffect(() => {
@@ -59,10 +72,15 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
       localStorage.removeItem('user');
     }
   }, [auth]);
+  
+  // Save users to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem('users', JSON.stringify(users));
+  }, [users]);
 
   const login = (username: string, password: string): boolean => {
     // Find user with matching credentials
-    const user = MOCK_USERS.find(
+    const user = users.find(
       (u) => u.username === username && u.password === password
     );
 
@@ -93,9 +111,39 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     }
     return roles.includes(auth.user.role);
   };
+  
+  const addUser = (username: string, password: string, role: UserRole): boolean => {
+    // Check if username already exists
+    if (users.some(u => u.username === username)) {
+      toast.error('Username already exists');
+      return false;
+    }
+    
+    const newUser: User = {
+      id: `${users.length + 1}`,
+      username,
+      password,
+      role
+    };
+    
+    setUsers(prevUsers => [...prevUsers, newUser]);
+    toast.success(`User ${username} added successfully`);
+    return true;
+  };
+  
+  const getAllUsers = (): User[] => {
+    return users;
+  };
 
   return (
-    <AuthContext.Provider value={{ ...auth, login, logout, hasPermission }}>
+    <AuthContext.Provider value={{ 
+      ...auth, 
+      login, 
+      logout, 
+      hasPermission, 
+      addUser, 
+      getAllUsers 
+    }}>
       {children}
     </AuthContext.Provider>
   );

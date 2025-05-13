@@ -12,3 +12,8 @@ export interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
 }
+
+export interface UserManagement {
+  addUser: (username: string, password: string, role: UserRole) => boolean;
+  getAllUsers: () => User[];
+}
