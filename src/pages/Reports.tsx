@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { generateFinancialSummary } from '../utils/calculations';
@@ -11,8 +10,22 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 const Reports = () => {
   const { wirs, boqItems } = useAppContext();
   const [reportType, setReportType] = useState('financial');
+  const [filterEntity, setFilterEntity] = useState<'all' | 'contractor' | 'engineer'>('all');
+  const [selectedEntity, setSelectedEntity] = useState<string>('');
   
   const financialSummary = generateFinancialSummary(wirs);
+  
+  // Get unique contractors and engineers
+  const contractors = Array.from(new Set(wirs.map(wir => wir.contractor))).filter(Boolean);
+  const engineers = Array.from(new Set(wirs.map(wir => wir.engineer))).filter(Boolean);
+  
+  // Filter WIRs based on selected criteria
+  const filteredWirs = wirs.filter(wir => {
+    if (filterEntity === 'all') return true;
+    if (filterEntity === 'contractor' && selectedEntity) return wir.contractor === selectedEntity;
+    if (filterEntity === 'engineer' && selectedEntity) return wir.engineer === selectedEntity;
+    return filterEntity === 'all';
+  });
   
   const formatter = new Intl.NumberFormat('ar-SA', {
     style: 'currency',
@@ -23,14 +36,14 @@ const Reports = () => {
   
   // Prepare data for charts
   const statusChartData = [
-    { name: 'Approved', value: financialSummary.totalApprovedWIRs, color: '#10b981' },
-    { name: 'Conditional', value: financialSummary.totalConditionalWIRs, color: '#f59e0b' },
-    { name: 'Rejected', value: financialSummary.totalRejectedWIRs, color: '#ef4444' },
+    { name: 'Approved', value: filteredWirs.filter(w => w.status === 'A').length, color: '#10b981' },
+    { name: 'Conditional', value: filteredWirs.filter(w => w.status === 'B').length, color: '#f59e0b' },
+    { name: 'Rejected', value: filteredWirs.filter(w => w.status === 'C').length, color: '#ef4444' },
   ];
   
   const amountChartData = [
-    { name: 'Approved', amount: financialSummary.totalApprovedAmount },
-    { name: 'Conditional', amount: financialSummary.totalConditionalAmount },
+    { name: 'Approved', amount: filteredWirs.filter(w => w.status === 'A').reduce((sum, w) => sum + (w.calculatedAmount || 0), 0) },
+    { name: 'Conditional', amount: filteredWirs.filter(w => w.status === 'B').reduce((sum, w) => sum + (w.calculatedAmount || 0), 0) },
   ];
   
   // Create BOQ category data
@@ -39,8 +52,8 @@ const Reports = () => {
       ? item.children.reduce((sum, child) => sum + (child.quantity * child.unitRate), 0)
       : (item.quantity * item.unitRate);
     
-    // Calculate WIR amounts for this BOQ item
-    const wirAmounts = wirs
+    // Calculate WIR amounts for this BOQ item in filtered WIRs
+    const wirAmounts = filteredWirs
       .filter(wir => {
         // Check if this WIR is for this BOQ item or any of its children
         if (wir.boqItemId === item.id) return true;
@@ -59,10 +72,38 @@ const Reports = () => {
     };
   });
   
+  // Contractor and Engineer comparison data
+  const contractorComparisonData = contractors.map(contractor => {
+    const contractorWirs = wirs.filter(w => w.contractor === contractor);
+    return {
+      name: contractor,
+      approved: contractorWirs.filter(w => w.status === 'A').length,
+      conditional: contractorWirs.filter(w => w.status === 'B').length,
+      rejected: contractorWirs.filter(w => w.status === 'C').length,
+      totalAmount: contractorWirs.reduce((sum, w) => sum + (w.calculatedAmount || 0), 0),
+    };
+  });
+  
+  const engineerComparisonData = engineers.map(engineer => {
+    const engineerWirs = wirs.filter(w => w.engineer === engineer);
+    return {
+      name: engineer,
+      approved: engineerWirs.filter(w => w.status === 'A').length,
+      conditional: engineerWirs.filter(w => w.status === 'B').length,
+      rejected: engineerWirs.filter(w => w.status === 'C').length,
+      totalAmount: engineerWirs.reduce((sum, w) => sum + (w.calculatedAmount || 0), 0),
+    };
+  });
+  
   // Function to export report
   const handleExport = () => {
     // In a real application, this would generate a PDF or Excel file
     alert('Export functionality would be implemented here in a real application.');
+  };
+  
+  const handleFilterChange = (value: 'all' | 'contractor' | 'engineer') => {
+    setFilterEntity(value);
+    setSelectedEntity('');
   };
   
   return (
@@ -78,18 +119,69 @@ const Reports = () => {
               <SelectItem value="financial">Financial Summary</SelectItem>
               <SelectItem value="status">Status Analysis</SelectItem>
               <SelectItem value="boq">BOQ Variance</SelectItem>
+              <SelectItem value="contractor">Contractor Analysis</SelectItem>
+              <SelectItem value="engineer">Engineer Analysis</SelectItem>
             </SelectContent>
           </Select>
           <Button onClick={handleExport}>Export Report</Button>
         </div>
       </div>
       
+      <div className="bg-white p-4 rounded-lg shadow mb-6">
+        <div className="flex items-center space-x-4">
+          <h3 className="text-lg font-medium">Filter Reports:</h3>
+          <div className="flex items-center space-x-2">
+            <Select value={filterEntity} onValueChange={(value: any) => handleFilterChange(value)}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All WIRs</SelectItem>
+                <SelectItem value="contractor">By Contractor</SelectItem>
+                <SelectItem value="engineer">By Engineer</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            {filterEntity === 'contractor' && (
+              <Select value={selectedEntity} onValueChange={setSelectedEntity}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Select Contractor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {contractors.map((contractor) => (
+                    <SelectItem key={contractor} value={contractor}>
+                      {contractor}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            
+            {filterEntity === 'engineer' && (
+              <Select value={selectedEntity} onValueChange={setSelectedEntity}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Select Engineer" />
+                </SelectTrigger>
+                <SelectContent>
+                  {engineers.map((engineer) => (
+                    <SelectItem key={engineer} value={engineer}>
+                      {engineer}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+        </div>
+      </div>
+      
       <Tabs defaultValue="summary" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="summary">Summary</TabsTrigger>
           <TabsTrigger value="charts">Charts</TabsTrigger>
           <TabsTrigger value="details">Details</TabsTrigger>
           <TabsTrigger value="variance">Variance Analysis</TabsTrigger>
+          <TabsTrigger value="personnel">Personnel Analysis</TabsTrigger>
         </TabsList>
         
         <TabsContent value="summary">
@@ -100,8 +192,10 @@ const Reports = () => {
                 <CardDescription>Total value of approved work</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">{formatter.format(financialSummary.totalApprovedAmount)}</div>
-                <p className="text-sm text-muted-foreground mt-2">Count: {financialSummary.totalApprovedWIRs}</p>
+                <div className="text-3xl font-bold">
+                  {formatter.format(filteredWirs.filter(w => w.status === 'A').reduce((sum, w) => sum + (w.calculatedAmount || 0), 0))}
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">Count: {filteredWirs.filter(w => w.status === 'A').length}</p>
               </CardContent>
             </Card>
             
@@ -111,8 +205,10 @@ const Reports = () => {
                 <CardDescription>Total value with conditions</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">{formatter.format(financialSummary.totalConditionalAmount)}</div>
-                <p className="text-sm text-muted-foreground mt-2">Count: {financialSummary.totalConditionalWIRs}</p>
+                <div className="text-3xl font-bold">
+                  {formatter.format(filteredWirs.filter(w => w.status === 'B').reduce((sum, w) => sum + (w.calculatedAmount || 0), 0))}
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">Count: {filteredWirs.filter(w => w.status === 'B').length}</p>
               </CardContent>
             </Card>
             
@@ -145,20 +241,45 @@ const Reports = () => {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">Total Approved + Conditional WIRs</span>
-                  <span className="font-semibold">{formatter.format(financialSummary.totalApprovedAmount + financialSummary.totalConditionalAmount)}</span>
+                  <span className="font-semibold">
+                    {formatter.format(
+                      filteredWirs
+                        .filter(w => w.status === 'A' || w.status === 'B')
+                        .reduce((sum, w) => sum + (w.calculatedAmount || 0), 0)
+                    )}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">Rejected WIRs Count</span>
-                  <span className="font-semibold">{financialSummary.totalRejectedWIRs}</span>
+                  <span className="font-semibold">{filteredWirs.filter(w => w.status === 'C').length}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">Average Adjustment Rate</span>
                   <span className="font-semibold">
-                    {wirs.filter(w => w.adjustmentApplied).length > 0 
-                      ? `+${(wirs.filter(w => w.adjustmentApplied).reduce((sum, w) => sum + (w.adjustmentApplied?.percentage || 0), 0) / wirs.filter(w => w.adjustmentApplied).length * 100).toFixed(1)}%` 
+                    {filteredWirs.filter(w => w.adjustmentApplied).length > 0 
+                      ? `+${(filteredWirs.filter(w => w.adjustmentApplied).reduce((sum, w) => sum + (w.adjustmentApplied?.percentage || 0), 0) / filteredWirs.filter(w => w.adjustmentApplied).length * 100).toFixed(1)}%` 
                       : 'N/A'}
                   </span>
                 </div>
+                {filterEntity !== 'all' && (
+                  <div className="border-t pt-4 mt-4">
+                    <div className="text-sm font-medium mb-2">
+                      {filterEntity === 'contractor' ? 'Contractor' : 'Engineer'} Performance
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Total WIRs</span>
+                      <span className="font-semibold">{filteredWirs.length}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Approval Rate</span>
+                      <span className="font-semibold">
+                        {filteredWirs.length > 0 
+                          ? `${((filteredWirs.filter(w => w.status === 'A').length / filteredWirs.length) * 100).toFixed(1)}%` 
+                          : 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
             <CardFooter>
@@ -243,13 +364,16 @@ const Reports = () => {
                         BOQ Item
                       </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Contractor
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Engineer
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Status
                       </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Submittal
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Adjustment
                       </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Amount
@@ -257,7 +381,7 @@ const Reports = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {wirs.map((wir) => {
+                    {filteredWirs.map((wir) => {
                       const boqItem = boqItems.flatMap(item => 
                         [item, ...(item.children || [])]
                       ).find(item => item.id === wir.boqItemId);
@@ -275,6 +399,12 @@ const Reports = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {boqItem ? `${boqItem.code} - ${boqItem.description}` : 'Unknown'}
                           </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {wir.contractor}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {wir.engineer}
+                          </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}`}>
                               {wir.status === 'A' ? 'Approved' : 
@@ -283,11 +413,6 @@ const Reports = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {new Date(wir.submittalDate).toLocaleDateString()}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {wir.adjustmentApplied ? 
-                              `+${(wir.adjustmentApplied.percentage * 100).toFixed(0)}%` : 
-                              'None'}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {wir.calculatedAmount ? formatter.format(wir.calculatedAmount) : '-'}
@@ -383,6 +508,188 @@ const Reports = () => {
               </table>
             </CardContent>
           </Card>
+        </TabsContent>
+        
+        <TabsContent value="personnel">
+          <div className="grid grid-cols-1 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Contractor Performance Analysis</CardTitle>
+                <CardDescription>Comparison of WIRs and amounts by contractor</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[400px] mb-6">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={contractorComparisonData}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 70 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" angle={-45} textAnchor="end" height={70} />
+                      <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
+                      <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
+                      <Tooltip formatter={(value: any, name) => {
+                        if (name === 'totalAmount') {
+                          return [formatter.format(value), 'Total Amount'];
+                        }
+                        return [value, name.charAt(0).toUpperCase() + name.slice(1) + ' WIRs'];
+                      }} />
+                      <Legend />
+                      <Bar yAxisId="left" dataKey="approved" name="Approved" fill="#10b981" />
+                      <Bar yAxisId="left" dataKey="conditional" name="Conditional" fill="#f59e0b" />
+                      <Bar yAxisId="left" dataKey="rejected" name="Rejected" fill="#ef4444" />
+                      <Bar yAxisId="right" dataKey="totalAmount" name="Total Amount" fill="#82ca9d" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Contractor
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Approved
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Conditional
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Rejected
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Total Amount
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Approval Rate
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {contractorComparisonData.map((item, index) => {
+                      const totalWirs = item.approved + item.conditional + item.rejected;
+                      const approvalRate = totalWirs > 0 ? 
+                        ((item.approved / totalWirs) * 100).toFixed(1) + '%' :
+                        'N/A';
+                      
+                      return (
+                        <tr key={index}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {item.name}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {item.approved}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {item.conditional}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {item.rejected}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {formatter.format(item.totalAmount)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {approvalRate}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </CardContent>
+            </Card>
+            
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>Engineer Performance Analysis</CardTitle>
+                <CardDescription>Comparison of WIRs and amounts by engineer</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[400px] mb-6">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={engineerComparisonData}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 70 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" angle={-45} textAnchor="end" height={70} />
+                      <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
+                      <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
+                      <Tooltip formatter={(value: any, name) => {
+                        if (name === 'totalAmount') {
+                          return [formatter.format(value), 'Total Amount'];
+                        }
+                        return [value, name.charAt(0).toUpperCase() + name.slice(1) + ' WIRs'];
+                      }} />
+                      <Legend />
+                      <Bar yAxisId="left" dataKey="approved" name="Approved" fill="#10b981" />
+                      <Bar yAxisId="left" dataKey="conditional" name="Conditional" fill="#f59e0b" />
+                      <Bar yAxisId="left" dataKey="rejected" name="Rejected" fill="#ef4444" />
+                      <Bar yAxisId="right" dataKey="totalAmount" name="Total Amount" fill="#82ca9d" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Engineer
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Approved
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Conditional
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Rejected
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Total Amount
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Approval Rate
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {engineerComparisonData.map((item, index) => {
+                      const totalWirs = item.approved + item.conditional + item.rejected;
+                      const approvalRate = totalWirs > 0 ? 
+                        ((item.approved / totalWirs) * 100).toFixed(1) + '%' :
+                        'N/A';
+                      
+                      return (
+                        <tr key={index}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {item.name}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {item.approved}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {item.conditional}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {item.rejected}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {formatter.format(item.totalAmount)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {approvalRate}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

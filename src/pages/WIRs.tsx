@@ -23,6 +23,8 @@ const WIRs = () => {
     receivedDate: null,
     status: 'A',
     statusConditions: '',
+    contractor: '',
+    engineer: '',
   });
   
   const canEdit = hasPermission(['admin', 'dataEntry']);
@@ -55,7 +57,7 @@ const WIRs = () => {
   };
   
   const handleAddWIR = () => {
-    if (!newWIR.boqItemId || !newWIR.description || !newWIR.submittalDate || !newWIR.status) {
+    if (!newWIR.boqItemId || !newWIR.description || !newWIR.submittalDate || !newWIR.status || !newWIR.contractor || !newWIR.engineer) {
       toast.error('Please fill in all required fields.');
       return;
     }
@@ -75,6 +77,8 @@ const WIRs = () => {
       receivedDate: null,
       status: 'A',
       statusConditions: '',
+      contractor: '',
+      engineer: '',
     });
     setEditingWIR(null);
     setIsAddDialogOpen(false);
@@ -88,6 +92,8 @@ const WIRs = () => {
       receivedDate: wir.receivedDate,
       status: wir.status,
       statusConditions: wir.statusConditions || '',
+      contractor: wir.contractor || '',
+      engineer: wir.engineer || '',
     });
     setEditingWIR(wir.id);
     setIsAddDialogOpen(true);
@@ -137,6 +143,35 @@ const WIRs = () => {
                     </Select>
                   </div>
                 </div>
+                
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="contractor" className="text-right">
+                    Contractor
+                  </Label>
+                  <Input
+                    id="contractor"
+                    name="contractor"
+                    value={newWIR.contractor || ''}
+                    onChange={handleInputChange}
+                    className="col-span-3"
+                    required
+                  />
+                </div>
+                
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="engineer" className="text-right">
+                    Engineer
+                  </Label>
+                  <Input
+                    id="engineer"
+                    name="engineer"
+                    value={newWIR.engineer || ''}
+                    onChange={handleInputChange}
+                    className="col-span-3"
+                    required
+                  />
+                </div>
+                
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="description" className="text-right">
                     Description
@@ -150,6 +185,7 @@ const WIRs = () => {
                     required
                   />
                 </div>
+                
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="submittalDate" className="text-right">
                     Submittal Date
@@ -164,6 +200,7 @@ const WIRs = () => {
                     required
                   />
                 </div>
+                
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="receivedDate" className="text-right">
                     Received Date
@@ -177,6 +214,7 @@ const WIRs = () => {
                     className="col-span-3"
                   />
                 </div>
+                
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="status" className="text-right">
                     Status
@@ -199,6 +237,7 @@ const WIRs = () => {
                     </Select>
                   </div>
                 </div>
+                
                 {(newWIR.status === 'B') && (
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="statusConditions" className="text-right">
@@ -225,6 +264,8 @@ const WIRs = () => {
                     receivedDate: null,
                     status: 'A',
                     statusConditions: '',
+                    contractor: '',
+                    engineer: '',
                   });
                 }}>
                   Cancel
@@ -247,6 +288,12 @@ const WIRs = () => {
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 BOQ Item
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Contractor
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Engineer
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Description
@@ -275,6 +322,12 @@ const WIRs = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {getBOQItemByIdWithLabel(wir.boqItemId)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {wir.contractor}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {wir.engineer}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-500">
                   <div>{wir.description}</div>

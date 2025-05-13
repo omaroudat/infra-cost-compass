@@ -35,6 +35,8 @@ export type WIR = {
   statusConditions?: string;
   calculatedAmount: number | null;
   adjustmentApplied: PercentageAdjustment | null;
+  contractor: string;
+  engineer: string;
 };
 
 export type FinancialSummary = {
