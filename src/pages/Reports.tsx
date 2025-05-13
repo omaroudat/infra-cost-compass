@@ -7,10 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 
+type FilterEntity = 'all' | 'contractor' | 'engineer';
+
 const Reports = () => {
   const { wirs, boqItems } = useAppContext();
   const [reportType, setReportType] = useState('financial');
-  const [filterEntity, setFilterEntity] = useState<'all' | 'contractor' | 'engineer'>('all');
+  const [filterEntity, setFilterEntity] = useState<FilterEntity>('all');
   const [selectedEntity, setSelectedEntity] = useState<string>('');
   
   const financialSummary = generateFinancialSummary(wirs);
@@ -24,7 +26,7 @@ const Reports = () => {
     if (filterEntity === 'all') return true;
     if (filterEntity === 'contractor' && selectedEntity) return wir.contractor === selectedEntity;
     if (filterEntity === 'engineer' && selectedEntity) return wir.engineer === selectedEntity;
-    return filterEntity === 'all';
+    return true;
   });
   
   const formatter = new Intl.NumberFormat('ar-SA', {
@@ -101,7 +103,7 @@ const Reports = () => {
     alert('Export functionality would be implemented here in a real application.');
   };
   
-  const handleFilterChange = (value: 'all' | 'contractor' | 'engineer') => {
+  const handleFilterChange = (value: FilterEntity) => {
     setFilterEntity(value);
     setSelectedEntity('');
   };
@@ -131,7 +133,7 @@ const Reports = () => {
         <div className="flex items-center space-x-4">
           <h3 className="text-lg font-medium">Filter Reports:</h3>
           <div className="flex items-center space-x-2">
-            <Select value={filterEntity} onValueChange={(value: any) => handleFilterChange(value)}>
+            <Select value={filterEntity} onValueChange={(value: FilterEntity) => handleFilterChange(value)}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filter by..." />
               </SelectTrigger>
@@ -532,7 +534,8 @@ const Reports = () => {
                         if (name === 'totalAmount') {
                           return [formatter.format(value), 'Total Amount'];
                         }
-                        return [value, name.charAt(0).toUpperCase() + name.slice(1) + ' WIRs'];
+                        const nameStr = name ? name.toString() : '';
+                        return [value, nameStr.charAt(0).toUpperCase() + nameStr.slice(1) + ' WIRs'];
                       }} />
                       <Legend />
                       <Bar yAxisId="left" dataKey="approved" name="Approved" fill="#10b981" />
@@ -621,7 +624,8 @@ const Reports = () => {
                         if (name === 'totalAmount') {
                           return [formatter.format(value), 'Total Amount'];
                         }
-                        return [value, name.charAt(0).toUpperCase() + name.slice(1) + ' WIRs'];
+                        const nameStr = name ? name.toString() : '';
+                        return [value, nameStr.charAt(0).toUpperCase() + nameStr.slice(1) + ' WIRs'];
                       }} />
                       <Legend />
                       <Bar yAxisId="left" dataKey="approved" name="Approved" fill="#10b981" />

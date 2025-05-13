@@ -7,9 +7,11 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+type FilterCriteria = 'all' | 'contractor' | 'engineer';
+
 const Dashboard = () => {
   const { wirs, boqItems } = useAppContext();
-  const [filterCriteria, setFilterCriteria] = useState<'all' | 'contractor' | 'engineer'>('all');
+  const [filterCriteria, setFilterCriteria] = useState<FilterCriteria>('all');
   const [selectedValue, setSelectedValue] = useState<string>('');
   
   const financialSummary = generateFinancialSummary(wirs);
@@ -23,7 +25,7 @@ const Dashboard = () => {
     if (filterCriteria === 'all') return true;
     if (filterCriteria === 'contractor' && selectedValue) return wir.contractor === selectedValue;
     if (filterCriteria === 'engineer' && selectedValue) return wir.engineer === selectedValue;
-    return filterCriteria === 'all';
+    return true;
   });
   
   const statusData = [
@@ -74,7 +76,7 @@ const Dashboard = () => {
     };
   });
   
-  const handleFilterChange = (value: 'all' | 'contractor' | 'engineer') => {
+  const handleFilterChange = (value: FilterCriteria) => {
     setFilterCriteria(value);
     setSelectedValue('');
   };
@@ -85,7 +87,7 @@ const Dashboard = () => {
         <div className="flex items-center space-x-4">
           <h3 className="text-lg font-medium">Filter Dashboard:</h3>
           <div className="flex items-center space-x-2">
-            <Select value={filterCriteria} onValueChange={(value: any) => handleFilterChange(value)}>
+            <Select value={filterCriteria} onValueChange={(value: FilterCriteria) => handleFilterChange(value)}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filter by..." />
               </SelectTrigger>
@@ -217,7 +219,8 @@ const Dashboard = () => {
                     if (name === 'total') {
                       return [formatter.format(value as number), 'Total Amount'];
                     }
-                    return [value, name.charAt(0).toUpperCase() + name.slice(1) + ' WIRs'];
+                    const nameStr = name ? name.toString() : '';
+                    return [value, nameStr.charAt(0).toUpperCase() + nameStr.slice(1) + ' WIRs'];
                   }} />
                   <Legend />
                   <Bar yAxisId="left" dataKey="approved" name="Approved" fill="#10b981" />
@@ -244,7 +247,8 @@ const Dashboard = () => {
                     if (name === 'total') {
                       return [formatter.format(value as number), 'Total Amount'];
                     }
-                    return [value, name.charAt(0).toUpperCase() + name.slice(1) + ' WIRs'];
+                    const nameStr = name ? name.toString() : '';
+                    return [value, nameStr.charAt(0).toUpperCase() + nameStr.slice(1) + ' WIRs'];
                   }} />
                   <Legend />
                   <Bar yAxisId="left" dataKey="approved" name="Approved" fill="#10b981" />
