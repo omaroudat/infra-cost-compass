@@ -47,3 +47,6 @@ export type FinancialSummary = {
   totalConditionalAmount: number;
   costVarianceAgainstBOQ: number;
 };
+
+export type FilterType = 'contractor' | 'engineer' | 'all';
+export type NameType = string;

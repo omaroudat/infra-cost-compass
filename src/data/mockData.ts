@@ -124,7 +124,9 @@ export const mockWIRs: WIR[] = [
     receivedDate: "2025-04-03",
     status: "A",
     calculatedAmount: 17500,
-    adjustmentApplied: null
+    adjustmentApplied: null,
+    contractor: "ABC Contractors",
+    engineer: "John Smith"
   },
   {
     id: "wir-2",
@@ -135,7 +137,9 @@ export const mockWIRs: WIR[] = [
     status: "B",
     statusConditions: "Subject to additional drainage inspection",
     calculatedAmount: 45900,
-    adjustmentApplied: mockPercentageAdjustments[0]
+    adjustmentApplied: mockPercentageAdjustments[0],
+    contractor: "Foundation Masters Ltd",
+    engineer: "Emily Chen"
   },
   {
     id: "wir-3",
@@ -146,6 +150,8 @@ export const mockWIRs: WIR[] = [
     status: "C",
     statusConditions: "Concrete mix does not meet specifications",
     calculatedAmount: null,
-    adjustmentApplied: null
+    adjustmentApplied: null,
+    contractor: "Concrete Solutions Inc",
+    engineer: "Mohammed Al-Faisal"
   }
 ];
