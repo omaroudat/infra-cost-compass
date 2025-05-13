@@ -1,6 +1,6 @@
-
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import { BOQItem, WIR, WIRStatus } from '../types';
 import StatusBadge from '../components/StatusBadge';
 import { Button } from '@/components/ui/button';
@@ -10,10 +10,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { calculateWIRAmount, findApplicableAdjustment } from '../utils/calculations';
 
 const WIRs = () => {
   const { wirs, boqItems, addWIR, updateWIR, deleteWIR } = useAppContext();
+  const { hasPermission } = useAuth();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingWIR, setEditingWIR] = useState<string | null>(null);
   const [newWIR, setNewWIR] = useState<Partial<WIR>>({
@@ -25,15 +25,18 @@ const WIRs = () => {
     statusConditions: '',
   });
   
+  const canEdit = hasPermission(['admin', 'dataEntry']);
+  const canDelete = hasPermission(['admin']);
+  
   const statusOptions: { value: WIRStatus, label: string }[] = [
-    { value: 'A', label: 'Approved' },
-    { value: 'B', label: 'Approved with Conditions' },
-    { value: 'C', label: 'Rejected' },
+    { value: 'A', label: 'A' },
+    { value: 'B', label: 'B' },
+    { value: 'C', label: 'C' },
   ];
   
-  const formatter = new Intl.NumberFormat('en-US', {
+  const formatter = new Intl.NumberFormat('ar-SA', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'SAR',
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   });
@@ -99,138 +102,140 @@ const WIRs = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold">Work Inspection Requests (WIRs)</h2>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>Add New WIR</Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[550px]">
-            <DialogHeader>
-              <DialogTitle>{editingWIR ? 'Edit' : 'Add'} Work Inspection Request</DialogTitle>
-              <DialogDescription>
-                Fill in the details for the work inspection request.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="boqItemId" className="text-right">
-                  BOQ Item
-                </Label>
-                <div className="col-span-3">
-                  <Select
-                    value={newWIR.boqItemId}
-                    onValueChange={(value) => handleSelectChange('boqItemId', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select BOQ Item" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {flattenedBOQItems.map((item) => (
-                        <SelectItem key={item.id} value={item.id}>
-                          {item.code} - {item.description}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="description" className="text-right">
-                  Description
-                </Label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  value={newWIR.description}
-                  onChange={handleInputChange}
-                  className="col-span-3 min-h-[80px]"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="submittalDate" className="text-right">
-                  Submittal Date
-                </Label>
-                <Input
-                  id="submittalDate"
-                  name="submittalDate"
-                  type="date"
-                  value={newWIR.submittalDate}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="receivedDate" className="text-right">
-                  Received Date
-                </Label>
-                <Input
-                  id="receivedDate"
-                  name="receivedDate"
-                  type="date"
-                  value={newWIR.receivedDate || ''}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="status" className="text-right">
-                  Status
-                </Label>
-                <div className="col-span-3">
-                  <Select
-                    value={newWIR.status}
-                    onValueChange={(value) => handleSelectChange('status', value as WIRStatus)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {statusOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              {(newWIR.status === 'B') && (
+        {canEdit && (
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>Add New WIR</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[550px]">
+              <DialogHeader>
+                <DialogTitle>{editingWIR ? 'Edit' : 'Add'} Work Inspection Request</DialogTitle>
+                <DialogDescription>
+                  Fill in the details for the work inspection request.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="statusConditions" className="text-right">
-                    Conditions
+                  <Label htmlFor="boqItemId" className="text-right">
+                    BOQ Item
+                  </Label>
+                  <div className="col-span-3">
+                    <Select
+                      value={newWIR.boqItemId}
+                      onValueChange={(value) => handleSelectChange('boqItemId', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select BOQ Item" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {flattenedBOQItems.map((item) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.code} - {item.description}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="description" className="text-right">
+                    Description
                   </Label>
                   <Textarea
-                    id="statusConditions"
-                    name="statusConditions"
-                    value={newWIR.statusConditions || ''}
+                    id="description"
+                    name="description"
+                    value={newWIR.description}
                     onChange={handleInputChange}
-                    className="col-span-3 min-h-[60px]"
+                    className="col-span-3 min-h-[80px]"
+                    required
                   />
                 </div>
-              )}
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => {
-                setIsAddDialogOpen(false);
-                setEditingWIR(null);
-                setNewWIR({
-                  boqItemId: '',
-                  description: '',
-                  submittalDate: new Date().toISOString().split('T')[0],
-                  receivedDate: null,
-                  status: 'A',
-                  statusConditions: '',
-                });
-              }}>
-                Cancel
-              </Button>
-              <Button type="button" onClick={handleAddWIR}>
-                {editingWIR ? 'Save Changes' : 'Add WIR'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="submittalDate" className="text-right">
+                    Submittal Date
+                  </Label>
+                  <Input
+                    id="submittalDate"
+                    name="submittalDate"
+                    type="date"
+                    value={newWIR.submittalDate}
+                    onChange={handleInputChange}
+                    className="col-span-3"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="receivedDate" className="text-right">
+                    Received Date
+                  </Label>
+                  <Input
+                    id="receivedDate"
+                    name="receivedDate"
+                    type="date"
+                    value={newWIR.receivedDate || ''}
+                    onChange={handleInputChange}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="status" className="text-right">
+                    Status
+                  </Label>
+                  <div className="col-span-3">
+                    <Select
+                      value={newWIR.status}
+                      onValueChange={(value) => handleSelectChange('status', value as WIRStatus)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {statusOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                {(newWIR.status === 'B') && (
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="statusConditions" className="text-right">
+                      Conditions
+                    </Label>
+                    <Textarea
+                      id="statusConditions"
+                      name="statusConditions"
+                      value={newWIR.statusConditions || ''}
+                      onChange={handleInputChange}
+                      className="col-span-3 min-h-[60px]"
+                    />
+                  </div>
+                )}
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => {
+                  setIsAddDialogOpen(false);
+                  setEditingWIR(null);
+                  setNewWIR({
+                    boqItemId: '',
+                    description: '',
+                    submittalDate: new Date().toISOString().split('T')[0],
+                    receivedDate: null,
+                    status: 'A',
+                    statusConditions: '',
+                  });
+                }}>
+                  Cancel
+                </Button>
+                <Button type="button" onClick={handleAddWIR}>
+                  {editingWIR ? 'Save Changes' : 'Add WIR'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
       
       <div className="bg-white shadow overflow-hidden sm:rounded-lg">
@@ -255,9 +260,11 @@ const WIRs = () => {
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Amount
               </th>
-              <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
+              {(canEdit || canDelete) && (
+                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -296,27 +303,33 @@ const WIRs = () => {
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   {wir.calculatedAmount ? formatter.format(wir.calculatedAmount) : '-'}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex space-x-2 justify-end">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleEditWIR(wir)}
-                    >
-                      Edit
-                    </Button>
-                    <Button 
-                      variant="destructive" 
-                      size="sm"
-                      onClick={() => {
-                        deleteWIR(wir.id);
-                        toast.success('WIR deleted successfully.');
-                      }}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </td>
+                {(canEdit || canDelete) && (
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex space-x-2 justify-end">
+                      {canEdit && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEditWIR(wir)}
+                        >
+                          Edit
+                        </Button>
+                      )}
+                      {canDelete && (
+                        <Button 
+                          variant="destructive" 
+                          size="sm"
+                          onClick={() => {
+                            deleteWIR(wir.id);
+                            toast.success('WIR deleted successfully.');
+                          }}
+                        >
+                          Delete
+                        </Button>
+                      )}
+                    </div>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
