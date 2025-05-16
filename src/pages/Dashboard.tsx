@@ -6,6 +6,7 @@ import StatCard from '../components/StatCard';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card } from '@/components/ui/card';
 
 type FilterCriteria = 'all' | 'contractor' | 'engineer';
 
@@ -156,7 +157,7 @@ const Dashboard = () => {
       </div>
       
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList>
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="contractors">Contractors</TabsTrigger>
           <TabsTrigger value="engineers">Engineers</TabsTrigger>
@@ -164,7 +165,7 @@ const Dashboard = () => {
         
         <TabsContent value="overview">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white p-6 rounded-lg shadow">
+            <Card className="p-6">
               <h3 className="text-lg font-semibold mb-4">WIR Status Overview</h3>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height={300}>
@@ -182,9 +183,9 @@ const Dashboard = () => {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-            </div>
+            </Card>
             
-            <div className="bg-white p-6 rounded-lg shadow">
+            <Card className="p-6">
               <h3 className="text-lg font-semibold mb-4">BOQ Categories</h3>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
@@ -201,13 +202,53 @@ const Dashboard = () => {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-            </div>
+            </Card>
           </div>
         </TabsContent>
         
         <TabsContent value="contractors">
-          <div className="bg-white p-6 rounded-lg shadow">
+          <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4">Contractor Performance</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-medium mb-2">Top Contractors by Value</h4>
+                <ul className="space-y-2">
+                  {contractorData
+                    .sort((a, b) => b.total - a.total)
+                    .slice(0, 3)
+                    .map((contractor) => (
+                      <li key={contractor.name} className="flex justify-between">
+                        <span className="font-medium">{contractor.name}</span>
+                        <span>{formatter.format(contractor.total)}</span>
+                      </li>
+                    ))
+                  }
+                </ul>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-medium mb-2">Approval Rate</h4>
+                <ul className="space-y-2">
+                  {contractorData
+                    .map((contractor) => {
+                      const total = contractor.approved + contractor.conditional + contractor.rejected;
+                      const rate = total > 0 ? ((contractor.approved / total) * 100).toFixed(1) : '0';
+                      return {
+                        name: contractor.name,
+                        rate: rate
+                      };
+                    })
+                    .sort((a, b) => parseFloat(b.rate) - parseFloat(a.rate))
+                    .slice(0, 3)
+                    .map((item) => (
+                      <li key={item.name} className="flex justify-between">
+                        <span className="font-medium">{item.name}</span>
+                        <span>{item.rate}%</span>
+                      </li>
+                    ))
+                  }
+                </ul>
+              </div>
+            </div>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={contractorData} margin={{ top: 20, right: 30, left: 20, bottom: 70 }}>
@@ -230,12 +271,52 @@ const Dashboard = () => {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          </div>
+          </Card>
         </TabsContent>
         
         <TabsContent value="engineers">
-          <div className="bg-white p-6 rounded-lg shadow">
+          <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4">Engineer Performance</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-medium mb-2">Top Engineers by Inspections</h4>
+                <ul className="space-y-2">
+                  {engineerData
+                    .sort((a, b) => (b.approved + b.conditional + b.rejected) - (a.approved + a.conditional + a.rejected))
+                    .slice(0, 3)
+                    .map((engineer) => (
+                      <li key={engineer.name} className="flex justify-between">
+                        <span className="font-medium">{engineer.name}</span>
+                        <span>{engineer.approved + engineer.conditional + engineer.rejected} WIRs</span>
+                      </li>
+                    ))
+                  }
+                </ul>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-medium mb-2">Rejection Rate</h4>
+                <ul className="space-y-2">
+                  {engineerData
+                    .map((engineer) => {
+                      const total = engineer.approved + engineer.conditional + engineer.rejected;
+                      const rate = total > 0 ? ((engineer.rejected / total) * 100).toFixed(1) : '0';
+                      return {
+                        name: engineer.name,
+                        rate: rate
+                      };
+                    })
+                    .sort((a, b) => parseFloat(a.rate) - parseFloat(b.rate))
+                    .slice(0, 3)
+                    .map((item) => (
+                      <li key={item.name} className="flex justify-between">
+                        <span className="font-medium">{item.name}</span>
+                        <span>{item.rate}%</span>
+                      </li>
+                    ))
+                  }
+                </ul>
+              </div>
+            </div>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={engineerData} margin={{ top: 20, right: 30, left: 20, bottom: 70 }}>
@@ -258,11 +339,11 @@ const Dashboard = () => {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          </div>
+          </Card>
         </TabsContent>
       </Tabs>
       
-      <div className="bg-white p-6 rounded-lg shadow">
+      <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Recent Work Inspection Requests</h3>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -309,7 +390,7 @@ const Dashboard = () => {
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };
