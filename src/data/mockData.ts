@@ -1,4 +1,3 @@
-
 import { BOQItem, PercentageAdjustment, WIR } from "../types";
 
 export const mockBOQItems: BOQItem[] = [
@@ -93,25 +92,29 @@ export const mockPercentageAdjustments: PercentageAdjustment[] = [
     id: "adj-1",
     keyword: "holes",
     description: "Additional work for drilling holes",
-    percentage: 0.2 // 20%
+    percentage: 0.2, // 20%
+    value: 1000
   },
   {
     id: "adj-2",
     keyword: "extension",
     description: "Extension of existing structure",
-    percentage: 0.35 // 35%
+    percentage: 0.35, // 35%
+    value: 2000
   },
   {
     id: "adj-3",
     keyword: "night",
     description: "Night work premium",
-    percentage: 0.25 // 25%
+    percentage: 0.25, // 25%
+    value: 1500
   },
   {
     id: "adj-4",
     keyword: "emergency",
     description: "Emergency response",
-    percentage: 0.5 // 50%
+    percentage: 0.5, // 50%
+    value: 3000
   }
 ];
 
