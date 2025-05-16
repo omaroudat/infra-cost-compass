@@ -74,8 +74,15 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       {/* Sidebar */}
       <div className="w-64 bg-navy text-white flex flex-col">
         <div className="p-4 border-b border-navy-light">
-          <h1 className="text-2xl font-bold">ConstructFin</h1>
-          <p className="text-sm text-slate-light">Construction Financial Manager</p>
+          <div className="flex items-center justify-center mb-4">
+            <img 
+              src="/lovable-uploads/347d6d69-5c66-41a1-8075-e83bbb9ca016.png" 
+              alt="WIR Management Logo" 
+              className="h-16 object-contain" 
+            />
+          </div>
+          <h1 className="text-2xl font-bold text-center">WIR Management</h1>
+          <p className="text-sm text-slate-light text-center">Construction Financial Manager</p>
         </div>
         <nav className="flex-1 p-4">
           <ul className="space-y-2">
@@ -97,7 +104,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           </ul>
         </nav>
         <div className="p-4 border-t border-navy-light">
-          <p className="text-sm text-slate-light">© 2025 ConstructFin</p>
+          <p className="text-sm text-slate-light text-center">© 2025 WIR Management</p>
         </div>
       </div>
 
