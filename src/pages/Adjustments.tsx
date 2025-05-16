@@ -16,13 +16,15 @@ const Adjustments = () => {
     keyword: '',
     description: '',
     percentage: 0,
+    value: 0,
   });
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setNewAdjustment(prev => ({ 
       ...prev, 
-      [name]: name === 'percentage' ? parseFloat(value) / 100 || 0 : value 
+      [name]: name === 'percentage' ? parseFloat(value) / 100 || 0 : 
+              name === 'value' ? parseFloat(value) || 0 : value 
     }));
   };
   
@@ -44,6 +46,7 @@ const Adjustments = () => {
       keyword: '',
       description: '',
       percentage: 0,
+      value: 0,
     });
     setEditingAdjustment(null);
     setIsAddDialogOpen(false);
@@ -54,6 +57,7 @@ const Adjustments = () => {
       keyword: adjustment.keyword,
       description: adjustment.description,
       percentage: adjustment.percentage,
+      value: adjustment.value || 0,
     });
     setEditingAdjustment(adjustment.id);
     setIsAddDialogOpen(true);
@@ -102,6 +106,20 @@ const Adjustments = () => {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="value" className="text-right">
+                  Value (SAR)
+                </Label>
+                <Input
+                  id="value"
+                  name="value"
+                  type="number"
+                  value={newAdjustment.value || ''}
+                  onChange={handleInputChange}
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="percentage" className="text-right">
                   Percentage (%)
                 </Label>
@@ -124,6 +142,7 @@ const Adjustments = () => {
                   keyword: '',
                   description: '',
                   percentage: 0,
+                  value: 0,
                 });
               }}>
                 Cancel
@@ -147,6 +166,9 @@ const Adjustments = () => {
                 Description
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Value (SAR)
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Percentage Adjustment
               </th>
               <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -164,7 +186,10 @@ const Adjustments = () => {
                   {adjustment.description}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  +{(adjustment.percentage * 100).toFixed(0)}%
+                  {adjustment.value ? adjustment.value.toLocaleString('ar-SA') : '-'}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {(adjustment.percentage * 100).toFixed(0)}%
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex space-x-2 justify-end">
@@ -202,8 +227,8 @@ const Adjustments = () => {
         <div className="bg-white p-4 rounded border border-gray-200">
           <h4 className="font-medium mb-2">Example:</h4>
           <p className="text-sm text-gray-600">
-            If a WIR description contains the word "holes" and the BOQ item has a base value of $1,000, 
-            a +20% adjustment would be applied, resulting in a final amount of $1,200.
+            If a WIR description contains the word "holes" and the adjustment has a value of SAR 1,000 with a 20% adjustment, 
+            the result will be SAR 200 (value × percentage).
           </p>
         </div>
       </div>

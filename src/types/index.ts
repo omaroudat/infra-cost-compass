@@ -15,6 +15,7 @@ export type PercentageAdjustment = {
   keyword: string;
   description: string;
   percentage: number;
+  value: number; // Added value field
 };
 
 export type WIRStatus = 'A' | 'B' | 'C';

@@ -39,7 +39,9 @@ export function calculateWIRAmount(wir: WIR): number | null {
   let totalAmount = boqItem.quantity * boqItem.unitRate;
 
   if (adjustment) {
-    totalAmount *= (1 + adjustment.percentage);
+    // Apply the adjustment directly (multiply by percentage) instead of adding
+    // e.g., if percentage is 0.2 (20%), multiply by 0.2 to get 20% of the value
+    return parseFloat((adjustment.value * adjustment.percentage).toFixed(2));
   }
 
   return parseFloat(totalAmount.toFixed(2));
