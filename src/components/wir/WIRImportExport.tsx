@@ -2,9 +2,9 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { WIR } from '@/types';
+import { WIR, WIRStatus } from '@/types';
 import { useAppContext } from '@/context/AppContext';
-import { Export, Import } from 'lucide-react';
+import { FileSpreadsheet, Import } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 interface WIRImportExportProps {
@@ -12,7 +12,8 @@ interface WIRImportExportProps {
 }
 
 const WIRImportExport = ({ onImport }: WIRImportExportProps) => {
-  const { wirs, flattenedBOQItems } = useAppContext();
+  const { wirs, boqItems } = useAppContext();
+  const flattenedBOQItems = boqItems.flatMap(item => [item, ...(item.children || [])]);
   
   const handleExport = () => {
     // Format WIRs for export
@@ -74,7 +75,7 @@ const WIRImportExport = ({ onImport }: WIRImportExportProps) => {
         
         // Map the Excel data to WIR objects
         const importedWirs = jsonData.map((row: any) => {
-          let status = 'A';
+          let status: WIRStatus = 'A';
           if (row['Status'] === 'Conditional') status = 'B';
           if (row['Status'] === 'Rejected') status = 'C';
           
@@ -108,7 +109,7 @@ const WIRImportExport = ({ onImport }: WIRImportExportProps) => {
   return (
     <div className="flex items-center space-x-2">
       <Button onClick={handleExport} variant="outline" className="flex items-center gap-2">
-        <Export className="h-4 w-4" />
+        <FileSpreadsheet className="h-4 w-4" />
         <span>Export to Excel</span>
       </Button>
       <div className="relative">
