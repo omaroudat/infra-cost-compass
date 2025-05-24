@@ -1,20 +1,19 @@
 
-import React, { createContext, useContext, useState } from 'react';
-import { BOQItem, PercentageAdjustment, WIR } from '../types';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { BOQItem, BreakdownItem, WIR } from '../types';
 import { mockBOQItems, mockPercentageAdjustments, mockWIRs } from '../data/mockData';
-import { calculateWIRAmount, findApplicableAdjustment, findBOQItemById } from '../utils/calculations';
 
 interface AppContextType {
   boqItems: BOQItem[];
-  percentageAdjustments: PercentageAdjustment[];
+  breakdownItems: BreakdownItem[];
   wirs: WIR[];
   addBOQItem: (item: Omit<BOQItem, 'id'>, parentId?: string) => void;
   updateBOQItem: (id: string, updates: Partial<BOQItem>) => void;
   deleteBOQItem: (id: string) => void;
-  addPercentageAdjustment: (adjustment: Omit<PercentageAdjustment, 'id'>) => void;
-  updatePercentageAdjustment: (id: string, updates: Partial<PercentageAdjustment>) => void;
-  deletePercentageAdjustment: (id: string) => void;
-  addWIR: (wir: Omit<WIR, 'id' | 'calculatedAmount' | 'adjustmentApplied'>) => void;
+  addBreakdownItem: (item: Omit<BreakdownItem, 'id'>) => void;
+  updateBreakdownItem: (id: string, updates: Partial<BreakdownItem>) => void;
+  deleteBreakdownItem: (id: string) => void;
+  addWIR: (wir: Omit<WIR, 'id' | 'calculatedAmount' | 'breakdownApplied'>) => void;
   updateWIR: (id: string, updates: Partial<WIR>) => void;
   deleteWIR: (id: string) => void;
 }
@@ -22,15 +21,51 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [boqItems, setBoqItems] = useState<BOQItem[]>(mockBOQItems);
-  const [percentageAdjustments, setPercentageAdjustments] = useState<PercentageAdjustment[]>(mockPercentageAdjustments);
-  const [wirs, setWirs] = useState<WIR[]>(mockWIRs);
+  // Load data from localStorage or use mock data
+  const [boqItems, setBoqItems] = useState<BOQItem[]>(() => {
+    const saved = localStorage.getItem('wir-boq-items');
+    return saved ? JSON.parse(saved) : mockBOQItems;
+  });
+  
+  const [breakdownItems, setBreakdownItems] = useState<BreakdownItem[]>(() => {
+    const saved = localStorage.getItem('wir-breakdown-items');
+    return saved ? JSON.parse(saved) : mockPercentageAdjustments.map(adj => ({
+      ...adj,
+      boqItemId: mockBOQItems[0]?.id || ''
+    }));
+  });
+  
+  const [wirs, setWirs] = useState<WIR[]>(() => {
+    const saved = localStorage.getItem('wir-wirs');
+    return saved ? JSON.parse(saved) : mockWIRs.map(wir => ({
+      ...wir,
+      lengthOfLine: 100,
+      diameterOfLine: 200,
+      lineNo: 'L001',
+      region: 'Central',
+      linkedBOQItems: [wir.boqItemId]
+    }));
+  });
+
+  // Save to localStorage whenever data changes
+  useEffect(() => {
+    localStorage.setItem('wir-boq-items', JSON.stringify(boqItems));
+  }, [boqItems]);
+
+  useEffect(() => {
+    localStorage.setItem('wir-breakdown-items', JSON.stringify(breakdownItems));
+  }, [breakdownItems]);
+
+  useEffect(() => {
+    localStorage.setItem('wir-wirs', JSON.stringify(wirs));
+  }, [wirs]);
 
   // BOQ Item functions
   const addBOQItem = (item: Omit<BOQItem, 'id'>, parentId?: string) => {
     const newItem = {
       ...item,
-      id: `boq-${Date.now()}`
+      id: `boq-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      totalAmount: item.quantity * item.unitRate
     };
 
     if (parentId) {
@@ -42,6 +77,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               children: [...(item.children || []), { ...newItem, parentId }]
             };
           }
+          if (item.children) {
+            return {
+              ...item,
+              children: item.children.map(child => 
+                addToNestedItem(child, parentId, newItem)
+              )
+            };
+          }
           return item;
         });
       });
@@ -50,21 +93,54 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const addToNestedItem = (item: BOQItem, parentId: string, newItem: BOQItem): BOQItem => {
+    if (item.id === parentId) {
+      return {
+        ...item,
+        children: [...(item.children || []), { ...newItem, parentId }]
+      };
+    }
+    if (item.children) {
+      return {
+        ...item,
+        children: item.children.map(child => addToNestedItem(child, parentId, newItem))
+      };
+    }
+    return item;
+  };
+
   const updateBOQItem = (id: string, updates: Partial<BOQItem>) => {
     setBoqItems(prevItems => {
-      return prevItems.map(item => {
-        if (item.id === id) {
-          return { ...item, ...updates };
-        }
+      return prevItems.map(item => updateNestedBOQItem(item, id, updates));
+    });
+  };
+
+  const updateNestedBOQItem = (item: BOQItem, id: string, updates: Partial<BOQItem>): BOQItem => {
+    if (item.id === id) {
+      const updated = { ...item, ...updates };
+      if (updates.quantity !== undefined || updates.unitRate !== undefined) {
+        updated.totalAmount = updated.quantity * updated.unitRate;
+      }
+      return updated;
+    }
+    if (item.children) {
+      return {
+        ...item,
+        children: item.children.map(child => updateNestedBOQItem(child, id, updates))
+      };
+    }
+    return item;
+  };
+
+  const deleteBOQItem = (id: string) => {
+    setBoqItems(prevItems => {
+      return prevItems.filter(item => item.id !== id).map(item => {
         if (item.children) {
           return {
             ...item,
-            children: item.children.map(child => {
-              if (child.id === id) {
-                return { ...child, ...updates };
-              }
-              return child;
-            })
+            children: item.children.filter(child => child.id !== id).map(child => 
+              deleteFromNestedItem(child, id)
+            )
           };
         }
         return item;
@@ -72,67 +148,65 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const deleteBOQItem = (id: string) => {
-    setBoqItems(prevItems => {
-      // Filter out the item if it's a top-level item
-      const filteredItems = prevItems.filter(item => item.id !== id);
-      
-      // If the length is the same, the item wasn't a top-level item
-      if (filteredItems.length === prevItems.length) {
-        // Filter the item from children arrays
-        return filteredItems.map(item => {
-          if (item.children) {
-            return {
-              ...item,
-              children: item.children.filter(child => child.id !== id)
-            };
-          }
-          return item;
-        });
-      }
-      
-      return filteredItems;
-    });
+  const deleteFromNestedItem = (item: BOQItem, id: string): BOQItem => {
+    if (item.children) {
+      return {
+        ...item,
+        children: item.children.filter(child => child.id !== id).map(child => 
+          deleteFromNestedItem(child, id)
+        )
+      };
+    }
+    return item;
   };
 
-  // Percentage Adjustment functions
-  const addPercentageAdjustment = (adjustment: Omit<PercentageAdjustment, 'id'>) => {
-    const newAdjustment = {
-      ...adjustment,
-      id: `adj-${Date.now()}`
+  // Breakdown Item functions
+  const addBreakdownItem = (item: Omit<BreakdownItem, 'id'>) => {
+    const newItem = {
+      ...item,
+      id: `breakdown-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     };
-    setPercentageAdjustments(prev => [...prev, newAdjustment]);
+    setBreakdownItems(prev => [...prev, newItem]);
   };
 
-  const updatePercentageAdjustment = (id: string, updates: Partial<PercentageAdjustment>) => {
-    setPercentageAdjustments(prev => {
-      return prev.map(adjustment => {
-        if (adjustment.id === id) {
-          return { ...adjustment, ...updates };
+  const updateBreakdownItem = (id: string, updates: Partial<BreakdownItem>) => {
+    setBreakdownItems(prev => {
+      return prev.map(item => {
+        if (item.id === id) {
+          return { ...item, ...updates };
         }
-        return adjustment;
+        return item;
       });
     });
   };
 
-  const deletePercentageAdjustment = (id: string) => {
-    setPercentageAdjustments(prev => prev.filter(adjustment => adjustment.id !== id));
+  const deleteBreakdownItem = (id: string) => {
+    setBreakdownItems(prev => prev.filter(item => item.id !== id));
   };
 
   // WIR functions
-  const addWIR = (wir: Omit<WIR, 'id' | 'calculatedAmount' | 'adjustmentApplied'>) => {
-    const adjustment = findApplicableAdjustment(wir.description);
-    
+  const addWIR = (wir: Omit<WIR, 'id' | 'calculatedAmount' | 'breakdownApplied'>) => {
     const newWIR: WIR = {
       ...wir,
-      id: `wir-${Date.now()}`,
+      id: `wir-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       calculatedAmount: null,
-      adjustmentApplied: adjustment
+      breakdownApplied: null,
+      linkedBOQItems: wir.linkedBOQItems || [wir.boqItemId]
     };
 
-    // Calculate amount if status is A or B
-    if (wir.status === 'A' || wir.status === 'B') {
-      newWIR.calculatedAmount = calculateWIRAmount(newWIR);
+    // Calculate amount if result is A or B
+    if (wir.result === 'A' || wir.result === 'B') {
+      // Find applicable breakdown
+      const breakdown = breakdownItems.find(bd => 
+        wir.description.toLowerCase().includes(bd.keyword.toLowerCase())
+      );
+      
+      if (breakdown) {
+        newWIR.breakdownApplied = breakdown;
+        // Calculate: (percentage * value * length * diameter) / 1000000
+        newWIR.calculatedAmount = (breakdown.percentage / 100) * breakdown.value * 
+          (wir.lengthOfLine || 0) * (wir.diameterOfLine || 0) / 1000000;
+      }
     }
 
     setWirs(prev => [...prev, newWIR]);
@@ -148,20 +222,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           if (
             updates.boqItemId !== undefined ||
             updates.description !== undefined ||
-            updates.status !== undefined
+            updates.result !== undefined ||
+            updates.lengthOfLine !== undefined ||
+            updates.diameterOfLine !== undefined
           ) {
-            // Find applicable adjustment based on description
-            const adjustment = updates.description 
-              ? findApplicableAdjustment(updates.description) 
-              : wir.adjustmentApplied;
+            // Find applicable breakdown
+            const breakdown = breakdownItems.find(bd => 
+              (updates.description || wir.description).toLowerCase().includes(bd.keyword.toLowerCase())
+            );
             
-            updatedWIR.adjustmentApplied = adjustment;
+            updatedWIR.breakdownApplied = breakdown || null;
             
-            // Calculate amount if status is A or B
-            if ((updates.status === 'A' || updates.status === 'B') || 
-                ((wir.status === 'A' || wir.status === 'B') && updates.status === undefined)) {
-              updatedWIR.calculatedAmount = calculateWIRAmount(updatedWIR);
-            } else if (updates.status === 'C') {
+            // Calculate amount if result is A or B
+            if ((updates.result === 'A' || updates.result === 'B') || 
+                ((wir.result === 'A' || wir.result === 'B') && updates.result === undefined)) {
+              if (breakdown) {
+                updatedWIR.calculatedAmount = (breakdown.percentage / 100) * breakdown.value * 
+                  (updatedWIR.lengthOfLine || 0) * (updatedWIR.diameterOfLine || 0) / 1000000;
+              }
+            } else if (updates.result === 'C') {
               updatedWIR.calculatedAmount = null;
             }
           }
@@ -179,14 +258,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const value = {
     boqItems,
-    percentageAdjustments,
+    breakdownItems,
     wirs,
     addBOQItem,
     updateBOQItem,
     deleteBOQItem,
-    addPercentageAdjustment,
-    updatePercentageAdjustment,
-    deletePercentageAdjustment,
+    addBreakdownItem,
+    updateBreakdownItem,
+    deleteBreakdownItem,
     addWIR,
     updateWIR,
     deleteWIR

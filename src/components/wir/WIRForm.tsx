@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { WIR, WIRStatus, BOQItem } from '@/types';
+import { WIR, WIRStatus, WIRResult, BOQItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,15 +25,25 @@ const WIRForm: React.FC<WIRFormProps> = ({
   onCancel,
   onSubmit,
 }) => {
-  const statusOptions: { value: WIRStatus, label: string }[] = [
-    { value: 'A', label: 'A' },
-    { value: 'B', label: 'B' },
-    { value: 'C', label: 'C' },
+  const statusOptions: { value: WIRStatus, label: string, labelAr: string }[] = [
+    { value: 'submitted', label: 'Submitted', labelAr: 'مُقدم' },
+    { value: 'received', label: 'Received', labelAr: 'مُستلم' },
+    { value: 'revision', label: 'Revision', labelAr: 'مراجعة' },
+  ];
+
+  const resultOptions: { value: WIRResult, label: string, labelAr: string }[] = [
+    { value: 'A', label: 'A - Approved', labelAr: 'أ - موافق' },
+    { value: 'B', label: 'B - Approved with Conditions', labelAr: 'ب - موافق بشروط' },
+    { value: 'C', label: 'C - Rejected', labelAr: 'ج - مرفوض' },
   ];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setNewWIR(prev => ({ ...prev, [name]: value }));
+    const numericFields = ['lengthOfLine', 'diameterOfLine'];
+    setNewWIR(prev => ({ 
+      ...prev, 
+      [name]: numericFields.includes(name) ? parseFloat(value) || 0 : value 
+    }));
   };
   
   const handleSelectChange = (name: string, value: string) => {
@@ -41,7 +51,15 @@ const WIRForm: React.FC<WIRFormProps> = ({
   };
 
   const handleSubmit = () => {
-    if (!newWIR.boqItemId || !newWIR.description || !newWIR.submittalDate || !newWIR.status || !newWIR.contractor || !newWIR.engineer) {
+    const required = [
+      'boqItemId', 'description', 'submittalDate', 'status', 
+      'contractor', 'engineer', 'lengthOfLine', 'diameterOfLine', 
+      'lineNo', 'region'
+    ];
+    
+    const missing = required.filter(field => !newWIR[field as keyof typeof newWIR]);
+    
+    if (missing.length > 0) {
       toast.error('Please fill in all required fields.');
       return;
     }
@@ -50,7 +68,7 @@ const WIRForm: React.FC<WIRFormProps> = ({
   };
 
   return (
-    <div className="grid gap-4 py-4">
+    <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto">
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="boqItemId" className="text-right">
           BOQ Item
@@ -76,7 +94,7 @@ const WIRForm: React.FC<WIRFormProps> = ({
       
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="contractor" className="text-right">
-          Contractor
+          Contractor / المقاول
         </Label>
         <Input
           id="contractor"
@@ -90,7 +108,7 @@ const WIRForm: React.FC<WIRFormProps> = ({
       
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="engineer" className="text-right">
-          Engineer
+          Engineer / المهندس
         </Label>
         <Input
           id="engineer"
@@ -103,8 +121,66 @@ const WIRForm: React.FC<WIRFormProps> = ({
       </div>
       
       <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="lengthOfLine" className="text-right">
+          Length of Line (m) / طول الخط
+        </Label>
+        <Input
+          id="lengthOfLine"
+          name="lengthOfLine"
+          type="number"
+          value={newWIR.lengthOfLine || ''}
+          onChange={handleInputChange}
+          className="col-span-3"
+          required
+        />
+      </div>
+      
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="diameterOfLine" className="text-right">
+          Diameter (mm) / القطر
+        </Label>
+        <Input
+          id="diameterOfLine"
+          name="diameterOfLine"
+          type="number"
+          value={newWIR.diameterOfLine || ''}
+          onChange={handleInputChange}
+          className="col-span-3"
+          required
+        />
+      </div>
+      
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="lineNo" className="text-right">
+          Line No / رقم الخط
+        </Label>
+        <Input
+          id="lineNo"
+          name="lineNo"
+          value={newWIR.lineNo || ''}
+          onChange={handleInputChange}
+          className="col-span-3"
+          required
+        />
+      </div>
+      
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="region" className="text-right">
+          Region / المنطقة
+        </Label>
+        <Input
+          id="region"
+          name="region"
+          value={newWIR.region || ''}
+          onChange={handleInputChange}
+          className="col-span-3"
+          required
+        />
+      </div>
+      
+      <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="description" className="text-right">
-          Description
+          Description / الوصف
         </Label>
         <Textarea
           id="description"
@@ -118,7 +194,7 @@ const WIRForm: React.FC<WIRFormProps> = ({
       
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="submittalDate" className="text-right">
-          Submittal Date
+          Submittal Date / تاريخ التقديم
         </Label>
         <Input
           id="submittalDate"
@@ -133,7 +209,7 @@ const WIRForm: React.FC<WIRFormProps> = ({
       
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="receivedDate" className="text-right">
-          Received Date
+          Received Date / تاريخ الاستلام
         </Label>
         <Input
           id="receivedDate"
@@ -147,7 +223,7 @@ const WIRForm: React.FC<WIRFormProps> = ({
       
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="status" className="text-right">
-          Status
+          Status / الحالة
         </Label>
         <div className="col-span-3">
           <Select
@@ -160,7 +236,7 @@ const WIRForm: React.FC<WIRFormProps> = ({
             <SelectContent>
               {statusOptions.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
-                  {option.label}
+                  {option.label} / {option.labelAr}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -168,10 +244,35 @@ const WIRForm: React.FC<WIRFormProps> = ({
         </div>
       </div>
       
-      {(newWIR.status === 'B') && (
+      {(newWIR.status === 'received') && (
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="result" className="text-right">
+            Result / النتيجة
+          </Label>
+          <div className="col-span-3">
+            <Select
+              value={newWIR.result}
+              onValueChange={(value) => handleSelectChange('result', value as WIRResult)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select Result" />
+              </SelectTrigger>
+              <SelectContent>
+                {resultOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label} / {option.labelAr}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      )}
+      
+      {(newWIR.result === 'B') && (
         <div className="grid grid-cols-4 items-center gap-4">
           <Label htmlFor="statusConditions" className="text-right">
-            Conditions
+            Conditions / الشروط
           </Label>
           <Textarea
             id="statusConditions"
