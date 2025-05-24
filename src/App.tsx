@@ -15,6 +15,8 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Unauthorized from "./pages/Unauthorized";
 import UserManagement from "./pages/UserManagement";
+import Breakdown from "./pages/Breakdown";
+import ProgressTracking from "./pages/ProgressTracking";
 import { AppProvider } from "./context/AppContext";
 import { AuthProvider } from "./context/AuthContext";
 
@@ -48,6 +50,14 @@ const App = () => (
                 }
               />
               <Route
+                path="/breakdown"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <Layout><Breakdown /></Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/adjustments"
                 element={
                   <ProtectedRoute allowedRoles={['admin']}>
@@ -68,6 +78,14 @@ const App = () => (
                 element={
                   <ProtectedRoute allowedRoles={['admin']}>
                     <Layout><Reports /></Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/progress"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <Layout><ProgressTracking /></Layout>
                   </ProtectedRoute>
                 }
               />

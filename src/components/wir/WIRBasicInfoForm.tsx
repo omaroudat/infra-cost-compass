@@ -4,7 +4,7 @@ import { WIR, BOQItem } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import BOQItemSelector from './BOQItemSelector';
 
 interface WIRBasicInfoFormProps {
   newWIR: Partial<WIR>;
@@ -24,35 +24,23 @@ const WIRBasicInfoForm: React.FC<WIRBasicInfoFormProps> = ({
     setNewWIR(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSelectChange = (name: string, value: string) => {
-    setNewWIR(prev => ({ ...prev, [name]: value }));
+  const handleBOQItemsChange = (selectedItems: string[]) => {
+    setNewWIR(prev => ({ 
+      ...prev, 
+      linkedBOQItems: selectedItems,
+      // Set the first selected item as the main boqItemId for backward compatibility
+      boqItemId: selectedItems.length > 0 ? selectedItems[0] : ''
+    }));
   };
 
   return (
     <>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="boqItemId" className="text-right">
-          BOQ Item
-        </Label>
-        <div className="col-span-3">
-          <Select
-            value={newWIR.boqItemId}
-            onValueChange={(value) => handleSelectChange('boqItemId', value)}
-            disabled={isResultSubmission}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select BOQ Item" />
-            </SelectTrigger>
-            <SelectContent>
-              {flattenedBOQItems.map((item) => (
-                <SelectItem key={item.id} value={item.id}>
-                  {item.code} - {item.description}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <BOQItemSelector
+        flattenedBOQItems={flattenedBOQItems}
+        selectedItems={newWIR.linkedBOQItems || []}
+        onSelectionChange={handleBOQItemsChange}
+        isResultSubmission={isResultSubmission}
+      />
       
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="contractor" className="text-right">

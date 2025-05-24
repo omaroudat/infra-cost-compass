@@ -26,7 +26,7 @@ const WIRForm: React.FC<WIRFormProps> = ({
 }) => {
   const handleSubmit = () => {
     const required = [
-      'boqItemId', 'description', 'submittalDate', 'status', 
+      'description', 'submittalDate', 'status', 
       'contractor', 'engineer', 'lengthOfLine', 'diameterOfLine', 
       'lineNo', 'region'
     ];
@@ -35,6 +35,12 @@ const WIRForm: React.FC<WIRFormProps> = ({
     
     if (missing.length > 0) {
       toast.error('Please fill in all required fields.');
+      return;
+    }
+
+    // Check if at least one BOQ item is selected
+    if (!newWIR.linkedBOQItems || newWIR.linkedBOQItems.length === 0) {
+      toast.error('Please select at least one BOQ item.');
       return;
     }
     

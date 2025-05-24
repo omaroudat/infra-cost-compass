@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { WIR, BOQItem } from '@/types';
 import { useAppContext } from '@/context/AppContext';
@@ -44,7 +43,7 @@ export const useWIRManagement = () => {
       diameterOfLine: wir.diameterOfLine || 0,
       lineNo: wir.lineNo || '',
       region: wir.region || '',
-      linkedBOQItems: wir.linkedBOQItems || []
+      linkedBOQItems: wir.linkedBOQItems || [wir.boqItemId]
     });
     setEditingWIR(wir.id);
     setIsSubmittingResult(false);
@@ -66,7 +65,7 @@ export const useWIRManagement = () => {
       diameterOfLine: wir.diameterOfLine || 0,
       lineNo: wir.lineNo || '',
       region: wir.region || '',
-      linkedBOQItems: wir.linkedBOQItems || []
+      linkedBOQItems: wir.linkedBOQItems || [wir.boqItemId]
     });
     setEditingWIR(wir.id);
     setIsSubmittingResult(true);
