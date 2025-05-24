@@ -38,14 +38,14 @@ const Reports = () => {
   
   // Prepare data for charts
   const statusChartData = [
-    { name: 'Approved', value: filteredWirs.filter(w => w.status === 'A').length, color: '#10b981' },
-    { name: 'Conditional', value: filteredWirs.filter(w => w.status === 'B').length, color: '#f59e0b' },
-    { name: 'Rejected', value: filteredWirs.filter(w => w.status === 'C').length, color: '#ef4444' },
+    { name: 'Approved', value: filteredWirs.filter(w => w.result === 'A').length, color: '#10b981' },
+    { name: 'Conditional', value: filteredWirs.filter(w => w.result === 'B').length, color: '#f59e0b' },
+    { name: 'Rejected', value: filteredWirs.filter(w => w.result === 'C').length, color: '#ef4444' },
   ];
   
   const amountChartData = [
-    { name: 'Approved', amount: filteredWirs.filter(w => w.status === 'A').reduce((sum, w) => sum + (w.calculatedAmount || 0), 0) },
-    { name: 'Conditional', amount: filteredWirs.filter(w => w.status === 'B').reduce((sum, w) => sum + (w.calculatedAmount || 0), 0) },
+    { name: 'Approved', amount: filteredWirs.filter(w => w.result === 'A').reduce((sum, w) => sum + (w.calculatedAmount || 0), 0) },
+    { name: 'Conditional', amount: filteredWirs.filter(w => w.result === 'B').reduce((sum, w) => sum + (w.calculatedAmount || 0), 0) },
   ];
   
   // Create BOQ category data
@@ -79,9 +79,9 @@ const Reports = () => {
     const contractorWirs = wirs.filter(w => w.contractor === contractor);
     return {
       name: contractor,
-      approved: contractorWirs.filter(w => w.status === 'A').length,
-      conditional: contractorWirs.filter(w => w.status === 'B').length,
-      rejected: contractorWirs.filter(w => w.status === 'C').length,
+      approved: contractorWirs.filter(w => w.result === 'A').length,
+      conditional: contractorWirs.filter(w => w.result === 'B').length,
+      rejected: contractorWirs.filter(w => w.result === 'C').length,
       totalAmount: contractorWirs.reduce((sum, w) => sum + (w.calculatedAmount || 0), 0),
     };
   });
@@ -90,9 +90,9 @@ const Reports = () => {
     const engineerWirs = wirs.filter(w => w.engineer === engineer);
     return {
       name: engineer,
-      approved: engineerWirs.filter(w => w.status === 'A').length,
-      conditional: engineerWirs.filter(w => w.status === 'B').length,
-      rejected: engineerWirs.filter(w => w.status === 'C').length,
+      approved: engineerWirs.filter(w => w.result === 'A').length,
+      conditional: engineerWirs.filter(w => w.result === 'B').length,
+      rejected: engineerWirs.filter(w => w.result === 'C').length,
       totalAmount: engineerWirs.reduce((sum, w) => sum + (w.calculatedAmount || 0), 0),
     };
   });
@@ -195,9 +195,9 @@ const Reports = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">
-                  {formatter.format(filteredWirs.filter(w => w.status === 'A').reduce((sum, w) => sum + (w.calculatedAmount || 0), 0))}
+                  {formatter.format(filteredWirs.filter(w => w.result === 'A').reduce((sum, w) => sum + (w.calculatedAmount || 0), 0))}
                 </div>
-                <p className="text-sm text-muted-foreground mt-2">Count: {filteredWirs.filter(w => w.status === 'A').length}</p>
+                <p className="text-sm text-muted-foreground mt-2">Count: {filteredWirs.filter(w => w.result === 'A').length}</p>
               </CardContent>
             </Card>
             
@@ -208,9 +208,9 @@ const Reports = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">
-                  {formatter.format(filteredWirs.filter(w => w.status === 'B').reduce((sum, w) => sum + (w.calculatedAmount || 0), 0))}
+                  {formatter.format(filteredWirs.filter(w => w.result === 'B').reduce((sum, w) => sum + (w.calculatedAmount || 0), 0))}
                 </div>
-                <p className="text-sm text-muted-foreground mt-2">Count: {filteredWirs.filter(w => w.status === 'B').length}</p>
+                <p className="text-sm text-muted-foreground mt-2">Count: {filteredWirs.filter(w => w.result === 'B').length}</p>
               </CardContent>
             </Card>
             
@@ -246,14 +246,14 @@ const Reports = () => {
                   <span className="font-semibold">
                     {formatter.format(
                       filteredWirs
-                        .filter(w => w.status === 'A' || w.status === 'B')
+                        .filter(w => w.result === 'A' || w.result === 'B')
                         .reduce((sum, w) => sum + (w.calculatedAmount || 0), 0)
                     )}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">Rejected WIRs Count</span>
-                  <span className="font-semibold">{filteredWirs.filter(w => w.status === 'C').length}</span>
+                  <span className="font-semibold">{filteredWirs.filter(w => w.result === 'C').length}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">Average Adjustment Rate</span>
@@ -276,7 +276,7 @@ const Reports = () => {
                       <span className="text-sm">Approval Rate</span>
                       <span className="font-semibold">
                         {filteredWirs.length > 0 
-                          ? `${((filteredWirs.filter(w => w.status === 'A').length / filteredWirs.length) * 100).toFixed(1)}%` 
+                          ? `${((filteredWirs.filter(w => w.result === 'A').length / filteredWirs.length) * 100).toFixed(1)}%` 
                           : 'N/A'}
                       </span>
                     </div>
@@ -389,8 +389,8 @@ const Reports = () => {
                       ).find(item => item.id === wir.boqItemId);
                       
                       const statusClass = 
-                        wir.status === 'A' ? 'bg-green-100 text-green-800' : 
-                        wir.status === 'B' ? 'bg-yellow-100 text-yellow-800' : 
+                        wir.result === 'A' ? 'bg-green-100 text-green-800' : 
+                        wir.result === 'B' ? 'bg-yellow-100 text-yellow-800' : 
                         'bg-red-100 text-red-800';
                       
                       return (
@@ -409,8 +409,8 @@ const Reports = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}`}>
-                              {wir.status === 'A' ? 'Approved' : 
-                               wir.status === 'B' ? 'Conditional' : 'Rejected'}
+                              {wir.result === 'A' ? 'Approved' : 
+                               wir.result === 'B' ? 'Conditional' : 'Rejected'}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
