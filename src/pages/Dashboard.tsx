@@ -297,13 +297,13 @@ const Dashboard = () => {
                           wir.result === 'B' ? 'bg-yellow-100 text-yellow-800' : 
                           wir.result === 'C' ? 'bg-red-100 text-red-800' :
                           wir.status === 'submitted' ? 'bg-blue-100 text-blue-800' :
-                          wir.status === 'received' ? 'bg-purple-100 text-purple-800' :
+                          wir.status === 'completed' ? 'bg-purple-100 text-purple-800' :
                           'bg-gray-100 text-gray-800'}`}>
                         {wir.result === 'A' ? 'Approved' : 
                          wir.result === 'B' ? 'Conditional' : 
                          wir.result === 'C' ? 'Rejected' :
                          wir.status === 'submitted' ? 'Submitted' :
-                         wir.status === 'received' ? 'Received' : 'Revision'}
+                         wir.status === 'completed' ? 'Completed' : 'Unknown'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
