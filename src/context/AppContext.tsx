@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { BOQItem, BreakdownItem, WIR } from '../types';
 import { mockBOQItems, mockPercentageAdjustments, mockWIRs } from '../data/mockData';
@@ -6,6 +5,7 @@ import { mockBOQItems, mockPercentageAdjustments, mockWIRs } from '../data/mockD
 interface AppContextType {
   boqItems: BOQItem[];
   breakdownItems: BreakdownItem[];
+  percentageAdjustments: BreakdownItem[]; // Alias for backward compatibility
   wirs: WIR[];
   addBOQItem: (item: Omit<BOQItem, 'id'>, parentId?: string) => void;
   updateBOQItem: (id: string, updates: Partial<BOQItem>) => void;
@@ -13,6 +13,9 @@ interface AppContextType {
   addBreakdownItem: (item: Omit<BreakdownItem, 'id'>) => void;
   updateBreakdownItem: (id: string, updates: Partial<BreakdownItem>) => void;
   deleteBreakdownItem: (id: string) => void;
+  addPercentageAdjustment: (item: Omit<BreakdownItem, 'id'>) => void; // Alias
+  updatePercentageAdjustment: (id: string, updates: Partial<BreakdownItem>) => void; // Alias
+  deletePercentageAdjustment: (id: string) => void; // Alias
   addWIR: (wir: Omit<WIR, 'id' | 'calculatedAmount' | 'breakdownApplied'>) => void;
   updateWIR: (id: string, updates: Partial<WIR>) => void;
   deleteWIR: (id: string) => void;
@@ -259,6 +262,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const value = {
     boqItems,
     breakdownItems,
+    percentageAdjustments: breakdownItems, // Alias for backward compatibility
     wirs,
     addBOQItem,
     updateBOQItem,
@@ -266,6 +270,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     addBreakdownItem,
     updateBreakdownItem,
     deleteBreakdownItem,
+    addPercentageAdjustment: addBreakdownItem, // Alias
+    updatePercentageAdjustment: updateBreakdownItem, // Alias
+    deletePercentageAdjustment: deleteBreakdownItem, // Alias
     addWIR,
     updateWIR,
     deleteWIR

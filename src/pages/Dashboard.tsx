@@ -29,9 +29,9 @@ const Dashboard = () => {
   });
   
   const statusData = [
-    { name: 'Approved', value: filteredWirs.filter(w => w.status === 'A').length, color: '#10b981' },
-    { name: 'Conditional', value: filteredWirs.filter(w => w.status === 'B').length, color: '#f59e0b' },
-    { name: 'Rejected', value: filteredWirs.filter(w => w.status === 'C').length, color: '#ef4444' },
+    { name: 'Approved', value: filteredWirs.filter(w => w.result === 'A').length, color: '#10b981' },
+    { name: 'Conditional', value: filteredWirs.filter(w => w.result === 'B').length, color: '#f59e0b' },
+    { name: 'Rejected', value: filteredWirs.filter(w => w.result === 'C').length, color: '#ef4444' },
   ];
   
   const boqCategoryData = boqItems.map(item => ({
@@ -58,9 +58,9 @@ const Dashboard = () => {
     const contractorWirs = wirs.filter(w => w.contractor === contractor);
     return {
       name: contractor,
-      approved: contractorWirs.filter(w => w.status === 'A').length,
-      conditional: contractorWirs.filter(w => w.status === 'B').length,
-      rejected: contractorWirs.filter(w => w.status === 'C').length,
+      approved: contractorWirs.filter(w => w.result === 'A').length,
+      conditional: contractorWirs.filter(w => w.result === 'B').length,
+      rejected: contractorWirs.filter(w => w.result === 'C').length,
       total: contractorWirs.reduce((sum, w) => sum + (w.calculatedAmount || 0), 0),
     };
   });
@@ -69,9 +69,9 @@ const Dashboard = () => {
     const engineerWirs = wirs.filter(w => w.engineer === engineer);
     return {
       name: engineer,
-      approved: engineerWirs.filter(w => w.status === 'A').length,
-      conditional: engineerWirs.filter(w => w.status === 'B').length,
-      rejected: engineerWirs.filter(w => w.status === 'C').length,
+      approved: engineerWirs.filter(w => w.result === 'A').length,
+      conditional: engineerWirs.filter(w => w.result === 'B').length,
+      rejected: engineerWirs.filter(w => w.result === 'C').length,
       total: engineerWirs.reduce((sum, w) => sum + (w.calculatedAmount || 0), 0),
     };
   });
@@ -134,14 +134,14 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard 
           title="Approved WIRs Amount" 
-          value={formatter.format(filteredWirs.filter(w => w.status === 'A').reduce((sum, w) => sum + (w.calculatedAmount || 0), 0))}
+          value={formatter.format(filteredWirs.filter(w => w.result === 'A').reduce((sum, w) => sum + (w.calculatedAmount || 0), 0))}
           icon={
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-status-approved"><path d="M12 22V8"></path><path d="m5 12 7-4 7 4"></path><path d="M5 16l7-4 7 4"></path><path d="M5 20l7-4 7 4"></path></svg>
           }
         />
         <StatCard 
           title="Conditional WIRs Amount" 
-          value={formatter.format(filteredWirs.filter(w => w.status === 'B').reduce((sum, w) => sum + (w.calculatedAmount || 0), 0))}
+          value={formatter.format(filteredWirs.filter(w => w.result === 'B').reduce((sum, w) => sum + (w.calculatedAmount || 0), 0))}
           icon={
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-status-conditional"><path d="M12 22V8"></path><path d="m5 12 7-4 7 4"></path><path d="M5 16l7-4 7 4"></path><path d="M5 20l7-4 7 4"></path></svg>
           }
@@ -293,11 +293,17 @@ const Dashboard = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{wir.engineer}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                        ${wir.status === 'A' ? 'bg-green-100 text-green-800' : 
-                          wir.status === 'B' ? 'bg-yellow-100 text-yellow-800' : 
-                          'bg-red-100 text-red-800'}`}>
-                        {wir.status === 'A' ? 'Approved' : 
-                         wir.status === 'B' ? 'Conditional' : 'Rejected'}
+                        ${wir.result === 'A' ? 'bg-green-100 text-green-800' : 
+                          wir.result === 'B' ? 'bg-yellow-100 text-yellow-800' : 
+                          wir.result === 'C' ? 'bg-red-100 text-red-800' :
+                          wir.status === 'submitted' ? 'bg-blue-100 text-blue-800' :
+                          wir.status === 'received' ? 'bg-purple-100 text-purple-800' :
+                          'bg-gray-100 text-gray-800'}`}>
+                        {wir.result === 'A' ? 'Approved' : 
+                         wir.result === 'B' ? 'Conditional' : 
+                         wir.result === 'C' ? 'Rejected' :
+                         wir.status === 'submitted' ? 'Submitted' :
+                         wir.status === 'received' ? 'Received' : 'Revision'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
