@@ -13,10 +13,15 @@ export const useWIRManagement = () => {
     description: '',
     submittalDate: new Date().toISOString().split('T')[0],
     receivedDate: null,
-    status: 'A',
+    status: 'submitted',
     statusConditions: '',
     contractor: '',
     engineer: '',
+    lengthOfLine: 0,
+    diameterOfLine: 0,
+    lineNo: '',
+    region: '',
+    linkedBOQItems: []
   });
   
   const flattenedBOQItems = boqItems.flatMap(item => 
@@ -30,9 +35,15 @@ export const useWIRManagement = () => {
       submittalDate: wir.submittalDate,
       receivedDate: wir.receivedDate,
       status: wir.status,
+      result: wir.result,
       statusConditions: wir.statusConditions || '',
       contractor: wir.contractor || '',
       engineer: wir.engineer || '',
+      lengthOfLine: wir.lengthOfLine || 0,
+      diameterOfLine: wir.diameterOfLine || 0,
+      lineNo: wir.lineNo || '',
+      region: wir.region || '',
+      linkedBOQItems: wir.linkedBOQItems || []
     });
     setEditingWIR(wir.id);
     setIsAddDialogOpen(true);
@@ -43,7 +54,7 @@ export const useWIRManagement = () => {
       updateWIR(editingWIR, newWIR);
       toast.success('WIR updated successfully.');
     } else {
-      addWIR(newWIR as Omit<WIR, 'id' | 'calculatedAmount' | 'adjustmentApplied'>);
+      addWIR(newWIR as Omit<WIR, 'id' | 'calculatedAmount' | 'breakdownApplied'>);
       toast.success('WIR added successfully.');
     }
     
@@ -52,10 +63,15 @@ export const useWIRManagement = () => {
       description: '',
       submittalDate: new Date().toISOString().split('T')[0],
       receivedDate: null,
-      status: 'A',
+      status: 'submitted',
       statusConditions: '',
       contractor: '',
       engineer: '',
+      lengthOfLine: 0,
+      diameterOfLine: 0,
+      lineNo: '',
+      region: '',
+      linkedBOQItems: []
     });
     setEditingWIR(null);
     setIsAddDialogOpen(false);
@@ -74,10 +90,15 @@ export const useWIRManagement = () => {
       description: '',
       submittalDate: new Date().toISOString().split('T')[0],
       receivedDate: null,
-      status: 'A',
+      status: 'submitted',
       statusConditions: '',
       contractor: '',
       engineer: '',
+      lengthOfLine: 0,
+      diameterOfLine: 0,
+      lineNo: '',
+      region: '',
+      linkedBOQItems: []
     });
   };
   

@@ -86,12 +86,12 @@ const WIRTable: React.FC<WIRTableProps> = ({
               </td>
               <td className="px-6 py-4 text-sm text-gray-500">
                 <div>{wir.description}</div>
-                {wir.adjustmentApplied && (
+                {(wir.breakdownApplied || wir.adjustmentApplied) && (
                   <div className="mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    +{(wir.adjustmentApplied.percentage * 100).toFixed(0)}% ({wir.adjustmentApplied.keyword})
+                    +{((wir.breakdownApplied || wir.adjustmentApplied)!.percentage * 100).toFixed(0)}% ({(wir.breakdownApplied || wir.adjustmentApplied)!.keyword})
                   </div>
                 )}
-                {wir.status === 'B' && wir.statusConditions && (
+                {wir.result === 'B' && wir.statusConditions && (
                   <div className="mt-1 text-xs text-amber-600">
                     Conditions: {wir.statusConditions}
                   </div>
@@ -106,7 +106,17 @@ const WIRTable: React.FC<WIRTableProps> = ({
                 )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <StatusBadge status={wir.status} />
+                {wir.result ? (
+                  <StatusBadge status={wir.result} />
+                ) : (
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    wir.status === 'submitted' ? 'bg-yellow-100 text-yellow-800' :
+                    wir.status === 'received' ? 'bg-green-100 text-green-800' :
+                    'bg-blue-100 text-blue-800'
+                  }`}>
+                    {wir.status}
+                  </span>
+                )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 {wir.calculatedAmount ? formatter.format(wir.calculatedAmount) : '-'}

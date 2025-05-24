@@ -1,3 +1,4 @@
+
 import { BOQItem, PercentageAdjustment, WIR } from "../types";
 
 export const mockBOQItems: BOQItem[] = [
@@ -93,28 +94,32 @@ export const mockPercentageAdjustments: PercentageAdjustment[] = [
     keyword: "holes",
     description: "Additional work for drilling holes",
     percentage: 0.2, // 20%
-    value: 1000
+    value: 1000,
+    boqItemId: "boq-1-1"
   },
   {
     id: "adj-2",
     keyword: "extension",
     description: "Extension of existing structure",
     percentage: 0.35, // 35%
-    value: 2000
+    value: 2000,
+    boqItemId: "boq-2-1"
   },
   {
     id: "adj-3",
     keyword: "night",
     description: "Night work premium",
     percentage: 0.25, // 25%
-    value: 1500
+    value: 1500,
+    boqItemId: "boq-3-1"
   },
   {
     id: "adj-4",
     keyword: "emergency",
     description: "Emergency response",
     percentage: 0.5, // 50%
-    value: 3000
+    value: 3000,
+    boqItemId: "boq-3-2"
   }
 ];
 
@@ -125,11 +130,18 @@ export const mockWIRs: WIR[] = [
     description: "Removal of existing vegetation completed as per spec",
     submittalDate: "2025-04-01",
     receivedDate: "2025-04-03",
-    status: "A",
+    status: "received",
+    result: "A",
     calculatedAmount: 17500,
+    breakdownApplied: null,
     adjustmentApplied: null,
     contractor: "ABC Contractors",
-    engineer: "John Smith"
+    engineer: "John Smith",
+    lengthOfLine: 5000,
+    diameterOfLine: 150,
+    lineNo: "L-001",
+    region: "North",
+    linkedBOQItems: ["boq-1-1"]
   },
   {
     id: "wir-2",
@@ -137,12 +149,19 @@ export const mockWIRs: WIR[] = [
     description: "Excavation for foundations with additional holes for drainage",
     submittalDate: "2025-04-05",
     receivedDate: "2025-04-08",
-    status: "B",
+    status: "received",
+    result: "B",
     statusConditions: "Subject to additional drainage inspection",
     calculatedAmount: 45900,
+    breakdownApplied: mockPercentageAdjustments[0],
     adjustmentApplied: mockPercentageAdjustments[0],
     contractor: "Foundation Masters Ltd",
-    engineer: "Emily Chen"
+    engineer: "Emily Chen",
+    lengthOfLine: 850,
+    diameterOfLine: 200,
+    lineNo: "L-002",
+    region: "South",
+    linkedBOQItems: ["boq-2-1"]
   },
   {
     id: "wir-3",
@@ -150,11 +169,18 @@ export const mockWIRs: WIR[] = [
     description: "Column concrete work completed",
     submittalDate: "2025-04-10",
     receivedDate: "2025-04-12",
-    status: "C",
+    status: "received",
+    result: "C",
     statusConditions: "Concrete mix does not meet specifications",
     calculatedAmount: null,
+    breakdownApplied: null,
     adjustmentApplied: null,
     contractor: "Concrete Solutions Inc",
-    engineer: "Mohammed Al-Faisal"
+    engineer: "Mohammed Al-Faisal",
+    lengthOfLine: 150,
+    diameterOfLine: 300,
+    lineNo: "L-003",
+    region: "East",
+    linkedBOQItems: ["boq-3-2"]
   }
 ];

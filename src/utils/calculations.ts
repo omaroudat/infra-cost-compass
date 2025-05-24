@@ -1,5 +1,5 @@
 
-import { BOQItem, PercentageAdjustment, WIR, WIRStatus } from "../types";
+import { BOQItem, PercentageAdjustment, WIR, WIRResult } from "../types";
 import { mockBOQItems, mockPercentageAdjustments } from "../data/mockData";
 
 export function findBOQItemById(id: string): BOQItem | undefined {
@@ -28,7 +28,7 @@ export function findApplicableAdjustment(description: string): PercentageAdjustm
 
 export function calculateWIRAmount(wir: WIR): number | null {
   // Only calculate for approved or conditionally approved WIRs
-  if (wir.status !== 'A' && wir.status !== 'B') {
+  if (wir.result !== 'A' && wir.result !== 'B') {
     return null;
   }
 
@@ -71,14 +71,14 @@ export function generateFinancialSummary(wirs: WIR[]): {
       const boqAmount = boqItem.quantity * boqItem.unitRate;
       totalBOQAmount += boqAmount;
       
-      // Calculate WIR amounts based on status
-      if (wir.status === 'A') {
+      // Calculate WIR amounts based on result
+      if (wir.result === 'A') {
         totalApprovedWIRs++;
         totalApprovedAmount += wir.calculatedAmount || 0;
-      } else if (wir.status === 'B') {
+      } else if (wir.result === 'B') {
         totalConditionalWIRs++;
         totalConditionalAmount += wir.calculatedAmount || 0;
-      } else if (wir.status === 'C') {
+      } else if (wir.result === 'C') {
         totalRejectedWIRs++;
       }
     }

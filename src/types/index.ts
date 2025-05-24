@@ -1,4 +1,3 @@
-
 export type BOQItem = {
   id: string;
   code: string;
@@ -25,6 +24,9 @@ export type BreakdownItem = {
   boqItemId: string;
 };
 
+// Keep PercentageAdjustment as an alias for backward compatibility
+export type PercentageAdjustment = BreakdownItem;
+
 export type WIRStatus = 'submitted' | 'received' | 'revision';
 
 export type WIRResult = 'A' | 'B' | 'C';
@@ -41,6 +43,7 @@ export type WIR = {
   statusConditions?: string;
   calculatedAmount: number | null;
   breakdownApplied: BreakdownItem | null;
+  adjustmentApplied?: BreakdownItem | null; // For backward compatibility
   contractor: string;
   engineer: string;
   lengthOfLine: number; // meters
