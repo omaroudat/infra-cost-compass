@@ -20,7 +20,9 @@ const WIRs = () => {
     handleAddWIR,
     handleEditWIR,
     handleDeleteWIR,
-    handleCancelForm
+    handleCancelForm,
+    handleSubmitResult,
+    handleRevisionRequest
   } = useWIRManagement();
   
   const canEdit = hasPermission(['admin', 'dataEntry']);
@@ -59,6 +61,8 @@ const WIRs = () => {
         canDelete={canDelete}
         onEdit={handleEditWIR}
         onDelete={handleDeleteWIR}
+        onSubmitResult={canEdit ? handleSubmitResult : undefined}
+        onRevisionRequest={canEdit ? handleRevisionRequest : undefined}
       />
     </div>
   );

@@ -27,13 +27,12 @@ const WIRForm: React.FC<WIRFormProps> = ({
 }) => {
   const statusOptions: { value: WIRStatus, label: string, labelAr: string }[] = [
     { value: 'submitted', label: 'Submitted', labelAr: 'مُقدم' },
-    { value: 'received', label: 'Received', labelAr: 'مُستلم' },
-    { value: 'revision', label: 'Revision', labelAr: 'مراجعة' },
+    { value: 'completed', label: 'Completed', labelAr: 'مكتمل' },
   ];
 
   const resultOptions: { value: WIRResult, label: string, labelAr: string }[] = [
     { value: 'A', label: 'A - Approved', labelAr: 'أ - موافق' },
-    { value: 'B', label: 'B - Approved with Conditions', labelAr: 'ب - موافق بشروط' },
+    { value: 'B', label: 'B - Conditional Approved', labelAr: 'ب - موافق بشروط' },
     { value: 'C', label: 'C - Rejected', labelAr: 'ج - مرفوض' },
   ];
 
@@ -67,6 +66,9 @@ const WIRForm: React.FC<WIRFormProps> = ({
     onSubmit();
   };
 
+  // Check if this is a result submission (editing an existing submitted WIR)
+  const isResultSubmission = editingWIR && newWIR.status === 'submitted';
+
   return (
     <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto">
       <div className="grid grid-cols-4 items-center gap-4">
@@ -77,6 +79,7 @@ const WIRForm: React.FC<WIRFormProps> = ({
           <Select
             value={newWIR.boqItemId}
             onValueChange={(value) => handleSelectChange('boqItemId', value)}
+            disabled={isResultSubmission}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select BOQ Item" />
@@ -102,6 +105,7 @@ const WIRForm: React.FC<WIRFormProps> = ({
           value={newWIR.contractor || ''}
           onChange={handleInputChange}
           className="col-span-3"
+          disabled={isResultSubmission}
           required
         />
       </div>
@@ -116,6 +120,7 @@ const WIRForm: React.FC<WIRFormProps> = ({
           value={newWIR.engineer || ''}
           onChange={handleInputChange}
           className="col-span-3"
+          disabled={isResultSubmission}
           required
         />
       </div>
@@ -131,6 +136,7 @@ const WIRForm: React.FC<WIRFormProps> = ({
           value={newWIR.lengthOfLine || ''}
           onChange={handleInputChange}
           className="col-span-3"
+          disabled={isResultSubmission}
           required
         />
       </div>
@@ -146,6 +152,7 @@ const WIRForm: React.FC<WIRFormProps> = ({
           value={newWIR.diameterOfLine || ''}
           onChange={handleInputChange}
           className="col-span-3"
+          disabled={isResultSubmission}
           required
         />
       </div>
@@ -160,6 +167,7 @@ const WIRForm: React.FC<WIRFormProps> = ({
           value={newWIR.lineNo || ''}
           onChange={handleInputChange}
           className="col-span-3"
+          disabled={isResultSubmission}
           required
         />
       </div>
@@ -174,6 +182,7 @@ const WIRForm: React.FC<WIRFormProps> = ({
           value={newWIR.region || ''}
           onChange={handleInputChange}
           className="col-span-3"
+          disabled={isResultSubmission}
           required
         />
       </div>
@@ -188,6 +197,7 @@ const WIRForm: React.FC<WIRFormProps> = ({
           value={newWIR.description}
           onChange={handleInputChange}
           className="col-span-3 min-h-[80px]"
+          disabled={isResultSubmission}
           required
         />
       </div>
@@ -203,62 +213,82 @@ const WIRForm: React.FC<WIRFormProps> = ({
           value={newWIR.submittalDate}
           onChange={handleInputChange}
           className="col-span-3"
+          disabled={isResultSubmission}
           required
         />
       </div>
       
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="receivedDate" className="text-right">
-          Received Date / تاريخ الاستلام
-        </Label>
-        <Input
-          id="receivedDate"
-          name="receivedDate"
-          type="date"
-          value={newWIR.receivedDate || ''}
-          onChange={handleInputChange}
-          className="col-span-3"
-        />
-      </div>
+      {isResultSubmission && (
+        <>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="receivedDate" className="text-right">
+              Received Date / تاريخ الاستلام
+            </Label>
+            <Input
+              id="receivedDate"
+              name="receivedDate"
+              type="date"
+              value={newWIR.receivedDate || new Date().toISOString().split('T')[0]}
+              onChange={handleInputChange}
+              className="col-span-3"
+            />
+          </div>
+          
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="result" className="text-right">
+              Result / النتيجة
+            </Label>
+            <div className="col-span-3">
+              <Select
+                value={newWIR.result}
+                onValueChange={(value) => handleSelectChange('result', value as WIRResult)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Result" />
+                </SelectTrigger>
+                <SelectContent>
+                  {resultOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label} / {option.labelAr}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          {(newWIR.result === 'B') && (
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="statusConditions" className="text-right">
+                Conditions / الشروط
+              </Label>
+              <Textarea
+                id="statusConditions"
+                name="statusConditions"
+                value={newWIR.statusConditions || ''}
+                onChange={handleInputChange}
+                className="col-span-3 min-h-[60px]"
+              />
+            </div>
+          )}
+        </>
+      )}
       
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="status" className="text-right">
-          Status / الحالة
-        </Label>
-        <div className="col-span-3">
-          <Select
-            value={newWIR.status}
-            onValueChange={(value) => handleSelectChange('status', value as WIRStatus)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select Status" />
-            </SelectTrigger>
-            <SelectContent>
-              {statusOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label} / {option.labelAr}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      
-      {(newWIR.status === 'received') && (
+      {!isResultSubmission && (
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="result" className="text-right">
-            Result / النتيجة
+          <Label htmlFor="status" className="text-right">
+            Status / الحالة
           </Label>
           <div className="col-span-3">
             <Select
-              value={newWIR.result}
-              onValueChange={(value) => handleSelectChange('result', value as WIRResult)}
+              value={newWIR.status}
+              onValueChange={(value) => handleSelectChange('status', value as WIRStatus)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select Result" />
+                <SelectValue placeholder="Select Status" />
               </SelectTrigger>
               <SelectContent>
-                {resultOptions.map((option) => (
+                {statusOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label} / {option.labelAr}
                   </SelectItem>
@@ -269,27 +299,12 @@ const WIRForm: React.FC<WIRFormProps> = ({
         </div>
       )}
       
-      {(newWIR.result === 'B') && (
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="statusConditions" className="text-right">
-            Conditions / الشروط
-          </Label>
-          <Textarea
-            id="statusConditions"
-            name="statusConditions"
-            value={newWIR.statusConditions || ''}
-            onChange={handleInputChange}
-            className="col-span-3 min-h-[60px]"
-          />
-        </div>
-      )}
-      
       <div className="flex justify-end gap-2 mt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="button" onClick={handleSubmit}>
-          {editingWIR ? 'Save Changes' : 'Add WIR'}
+          {isResultSubmission ? 'Submit Result' : editingWIR ? 'Save Changes' : 'Add WIR'}
         </Button>
       </div>
     </div>

@@ -27,7 +27,7 @@ export type BreakdownItem = {
 // Keep PercentageAdjustment as an alias for backward compatibility
 export type PercentageAdjustment = BreakdownItem;
 
-export type WIRStatus = 'submitted' | 'received' | 'revision';
+export type WIRStatus = 'submitted' | 'completed';
 
 export type WIRResult = 'A' | 'B' | 'C';
 
@@ -53,6 +53,7 @@ export type WIR = {
   parentWIRId?: string; // for revisions
   revisionNumber?: number;
   linkedBOQItems: string[]; // multiple sub items
+  originalWIRId?: string; // original WIR ID for revisions
 };
 
 export type FinancialSummary = {

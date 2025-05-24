@@ -189,9 +189,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // WIR functions
   const addWIR = (wir: Omit<WIR, 'id' | 'calculatedAmount' | 'breakdownApplied'>) => {
+    const baseId = wir.originalWIRId || `wir-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const newWIR: WIR = {
       ...wir,
-      id: `wir-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: baseId,
       calculatedAmount: null,
       breakdownApplied: null,
       linkedBOQItems: wir.linkedBOQItems || [wir.boqItemId]
@@ -227,7 +228,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             updates.description !== undefined ||
             updates.result !== undefined ||
             updates.lengthOfLine !== undefined ||
-            updates.diameterOfLine !== undefined
+            updates.diameterOfLine !== undefined ||
+            updates.status !== undefined
           ) {
             // Find applicable breakdown
             const breakdown = breakdownItems.find(bd => 
@@ -236,14 +238,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             
             updatedWIR.breakdownApplied = breakdown || null;
             
-            // Calculate amount if result is A or B
-            if ((updates.result === 'A' || updates.result === 'B') || 
-                ((wir.result === 'A' || wir.result === 'B') && updates.result === undefined)) {
+            // Calculate amount if result is A or B and status is completed
+            if ((updates.result === 'A' || updates.result === 'B') && 
+                (updates.status === 'completed' || (wir.status === 'completed' && updates.status === undefined))) {
               if (breakdown) {
                 updatedWIR.calculatedAmount = (breakdown.percentage / 100) * breakdown.value * 
                   (updatedWIR.lengthOfLine || 0) * (updatedWIR.diameterOfLine || 0) / 1000000;
               }
-            } else if (updates.result === 'C') {
+            } else if (updates.result === 'C' || updates.status === 'submitted') {
               updatedWIR.calculatedAmount = null;
             }
           }

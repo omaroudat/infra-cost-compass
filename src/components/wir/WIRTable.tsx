@@ -11,6 +11,8 @@ interface WIRTableProps {
   canDelete: boolean;
   onEdit: (wir: WIR) => void;
   onDelete: (id: string) => void;
+  onSubmitResult?: (wir: WIR) => void;
+  onRevisionRequest?: (wir: WIR) => void;
 }
 
 const WIRTable: React.FC<WIRTableProps> = ({
@@ -19,7 +21,9 @@ const WIRTable: React.FC<WIRTableProps> = ({
   canEdit,
   canDelete,
   onEdit,
-  onDelete
+  onDelete,
+  onSubmitResult,
+  onRevisionRequest
 }) => {
   const formatter = new Intl.NumberFormat('ar-SA', {
     style: 'currency',
@@ -33,13 +37,20 @@ const WIRTable: React.FC<WIRTableProps> = ({
     return item ? `${item.code} - ${item.description}` : 'Unknown';
   };
 
+  const getWIRDisplayId = (wir: WIR): string => {
+    if (wir.revisionNumber && wir.revisionNumber > 0) {
+      return `${wir.originalWIRId || wir.id}_R${wir.revisionNumber}`;
+    }
+    return wir.id;
+  };
+
   return (
     <div className="bg-white shadow overflow-hidden sm:rounded-lg">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              ID
+              WIR ID
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               BOQ Item
@@ -73,7 +84,7 @@ const WIRTable: React.FC<WIRTableProps> = ({
           {wirs.map((wir) => (
             <tr key={wir.id}>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {wir.id}
+                {getWIRDisplayId(wir)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {getBOQItemByIdWithLabel(wir.boqItemId)}
@@ -86,9 +97,9 @@ const WIRTable: React.FC<WIRTableProps> = ({
               </td>
               <td className="px-6 py-4 text-sm text-gray-500">
                 <div>{wir.description}</div>
-                {(wir.breakdownApplied || wir.adjustmentApplied) && (
+                {wir.breakdownApplied && (
                   <div className="mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    +{((wir.breakdownApplied || wir.adjustmentApplied)!.percentage * 100).toFixed(0)}% ({(wir.breakdownApplied || wir.adjustmentApplied)!.keyword})
+                    +{(wir.breakdownApplied.percentage * 100).toFixed(0)}% ({wir.breakdownApplied.keyword})
                   </div>
                 )}
                 {wir.result === 'B' && wir.statusConditions && (
@@ -106,15 +117,14 @@ const WIRTable: React.FC<WIRTableProps> = ({
                 )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                {wir.result ? (
+                {wir.result && wir.status === 'completed' ? (
                   <StatusBadge status={wir.result} />
                 ) : (
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                     wir.status === 'submitted' ? 'bg-yellow-100 text-yellow-800' :
-                    wir.status === 'received' ? 'bg-green-100 text-green-800' :
                     'bg-blue-100 text-blue-800'
                   }`}>
-                    {wir.status}
+                    {wir.status === 'submitted' ? 'Submitted' : 'Completed'}
                   </span>
                 )}
               </td>
@@ -124,6 +134,24 @@ const WIRTable: React.FC<WIRTableProps> = ({
               {(canEdit || canDelete) && (
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex space-x-2 justify-end">
+                    {wir.status === 'submitted' && !wir.result && onSubmitResult && (
+                      <Button 
+                        variant="default" 
+                        size="sm"
+                        onClick={() => onSubmitResult(wir)}
+                      >
+                        Submit Result
+                      </Button>
+                    )}
+                    {wir.status === 'completed' && wir.result === 'C' && onRevisionRequest && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => onRevisionRequest(wir)}
+                      >
+                        Revision Request
+                      </Button>
+                    )}
                     {canEdit && (
                       <Button 
                         variant="outline" 
