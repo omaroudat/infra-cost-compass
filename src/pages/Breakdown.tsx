@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { BreakdownItem, BOQItem } from '../types';
 import { Button } from '@/components/ui/button';
@@ -34,12 +33,37 @@ const Breakdown = () => {
       if (codeLevel === 6) {
         result.push(item);
       }
-      if (item.children) {
+      if (item.children && item.children.length > 0) {
         result.push(...flattenedBOQItems(item.children));
       }
     });
     return result;
   };
+
+  // Auto-create breakdown items for Level 6 BOQ items
+  useEffect(() => {
+    const level6Items = flattenedBOQItems(boqItems);
+    
+    level6Items.forEach(boqItem => {
+      // Check if breakdown item already exists for this BOQ item
+      const existingBreakdown = breakdownItems?.find(bd => bd.boqItemId === boqItem.id);
+      
+      if (!existingBreakdown) {
+        // Create automatic breakdown item
+        const autoBreakdownItem = {
+          keyword: '',
+          keywordAr: '',
+          description: '',
+          descriptionAr: '',
+          percentage: 0,
+          value: 0,
+          boqItemId: boqItem.id,
+        };
+        
+        addBreakdownItem(autoBreakdownItem);
+      }
+    });
+  }, [boqItems, breakdownItems, addBreakdownItem]);
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -54,8 +78,8 @@ const Breakdown = () => {
   };
   
   const handleSave = () => {
-    if (!newItem.keyword || !newItem.description || !newItem.boqItemId) {
-      toast.error('Please fill in all required fields.');
+    if (!newItem.boqItemId) {
+      toast.error('Please select a BOQ item.');
       return;
     }
     
@@ -171,7 +195,6 @@ const Breakdown = () => {
                   value={newItem.keyword}
                   onChange={handleInputChange}
                   className="col-span-3"
-                  required
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -197,7 +220,6 @@ const Breakdown = () => {
                   value={newItem.description}
                   onChange={handleInputChange}
                   className="col-span-3"
-                  required
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -226,7 +248,6 @@ const Breakdown = () => {
                   value={newItem.percentage}
                   onChange={handleInputChange}
                   className="col-span-3"
-                  required
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -240,7 +261,6 @@ const Breakdown = () => {
                   value={newItem.value}
                   onChange={handleInputChange}
                   className="col-span-3"
-                  required
                 />
               </div>
             </div>

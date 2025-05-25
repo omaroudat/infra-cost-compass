@@ -15,12 +15,12 @@ export type BOQItem = {
 
 export type BreakdownItem = {
   id: string;
-  keyword: string;
+  keyword?: string;
   keywordAr?: string;
-  description: string;
+  description?: string;
   descriptionAr?: string;
-  percentage: number;
-  value: number;
+  percentage?: number;
+  value?: number;
   boqItemId: string;
 };
 
