@@ -29,7 +29,11 @@ const Breakdown = () => {
   const flattenedBOQItems = (items: BOQItem[]): BOQItem[] => {
     const result: BOQItem[] = [];
     items.forEach(item => {
-      result.push(item);
+      // Check if this item is at level 6 (code has 5 dots, meaning 6 levels)
+      const codeLevel = (item.code.match(/\./g) || []).length + 1;
+      if (codeLevel === 6) {
+        result.push(item);
+      }
       if (item.children) {
         result.push(...flattenedBOQItems(item.children));
       }
@@ -105,7 +109,7 @@ const Breakdown = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <h2 className="text-xl font-bold">Break-Down Items / وصف البنود الفرعية</h2>
+          <h2 className="text-xl font-bold">Break-Down Items / وصف البنود الفرعية (Level 6 Only)</h2>
           <div className="flex gap-2">
             <Button
               variant={language === 'en' ? 'default' : 'outline'}
@@ -131,13 +135,13 @@ const Breakdown = () => {
             <DialogHeader>
               <DialogTitle>{editingItem ? 'Edit' : 'Add'} Break-Down Item</DialogTitle>
               <DialogDescription>
-                Define breakdown items with their associated percentages for BOQ items.
+                Define breakdown items with their associated percentages for Level 6 BOQ items only.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="boqItemId" className="text-right">
-                  BOQ Item
+                  BOQ Item (Level 6)
                 </Label>
                 <div className="col-span-3">
                   <Select
@@ -145,7 +149,7 @@ const Breakdown = () => {
                     onValueChange={(value) => handleSelectChange('boqItemId', value)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select BOQ Item" />
+                      <SelectValue placeholder="Select Level 6 BOQ Item" />
                     </SelectTrigger>
                     <SelectContent>
                       {flattenedBOQItems(boqItems).map((item) => (
