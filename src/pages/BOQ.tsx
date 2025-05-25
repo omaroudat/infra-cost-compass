@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { BOQItem } from '../types';
@@ -8,11 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Download, Upload, Plus } from 'lucide-react';
+import { Download, Upload, Plus, Edit } from 'lucide-react';
 
 const BOQ = () => {
   const { boqItems, addBOQItem, updateBOQItem, deleteBOQItem } = useAppContext();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<string | null>(null);
   const [newItem, setNewItem] = useState<Partial<BOQItem>>({
     code: '',
     description: '',
@@ -77,14 +77,27 @@ const BOQ = () => {
       return;
     }
     
-    const totalAmount = (newItem.quantity || 0) * (newItem.unitRate || 0);
-    const itemToAdd = {
-      ...newItem,
-      totalAmount,
-      level: parentId ? (getItemLevel(parentId) + 1) : 0
-    };
+    if (editingItem) {
+      // Update existing item
+      updateBOQItem(editingItem, newItem);
+      toast.success('BOQ item updated successfully.');
+    } else {
+      // Add new item
+      const totalAmount = (newItem.quantity || 0) * (newItem.unitRate || 0);
+      const itemToAdd = {
+        ...newItem,
+        totalAmount,
+        level: parentId ? (getItemLevel(parentId) + 1) : 0
+      };
+      
+      addBOQItem(itemToAdd as Omit<BOQItem, 'id'>, parentId);
+      toast.success('BOQ item added successfully.');
+    }
     
-    addBOQItem(itemToAdd as Omit<BOQItem, 'id'>, parentId);
+    resetForm();
+  };
+  
+  const resetForm = () => {
     setNewItem({
       code: '',
       description: '',
@@ -95,8 +108,23 @@ const BOQ = () => {
       unitRate: 0,
     });
     setParentId(undefined);
+    setEditingItem(null);
     setIsAddDialogOpen(false);
-    toast.success('BOQ item added successfully.');
+  };
+  
+  const handleEditItem = (item: BOQItem) => {
+    setNewItem({
+      code: item.code,
+      description: item.description,
+      descriptionAr: item.descriptionAr,
+      quantity: item.quantity,
+      unit: item.unit,
+      unitAr: item.unitAr,
+      unitRate: item.unitRate,
+    });
+    setEditingItem(item.id);
+    setParentId(undefined);
+    setIsAddDialogOpen(true);
   };
   
   const getItemLevel = (itemId: string): number => {
@@ -140,6 +168,14 @@ const BOQ = () => {
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
             <div className="flex space-x-2 justify-end">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => handleEditItem(item)}
+              >
+                <Edit className="w-4 h-4" />
+                Edit
+              </Button>
               <Button 
                 variant="outline" 
                 size="sm"
@@ -222,13 +258,20 @@ const BOQ = () => {
           </Button>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button>Add New Item</Button>
+              <Button onClick={resetForm}>Add New Item</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
-                <DialogTitle>Add BOQ Item / إضافة بند كميات</DialogTitle>
+                <DialogTitle>
+                  {editingItem ? 'Edit BOQ Item / تعديل بند كميات' : 'Add BOQ Item / إضافة بند كميات'}
+                </DialogTitle>
                 <DialogDescription>
-                  {parentId ? 'Add a sub-item to the selected BOQ item.' : 'Create a new top-level BOQ item.'}
+                  {editingItem 
+                    ? 'Edit the BOQ item details.'
+                    : parentId 
+                      ? 'Add a sub-item to the selected BOQ item.' 
+                      : 'Create a new top-level BOQ item.'
+                  }
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
@@ -327,11 +370,11 @@ const BOQ = () => {
                 </div>
               </div>
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                <Button type="button" variant="outline" onClick={resetForm}>
                   Cancel
                 </Button>
                 <Button type="button" onClick={handleAddItem}>
-                  Add Item
+                  {editingItem ? 'Save Changes' : 'Add Item'}
                 </Button>
               </DialogFooter>
             </DialogContent>
