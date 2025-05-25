@@ -32,6 +32,17 @@ const BOQ = () => {
     maximumFractionDigits: 2,
   });
   
+  // Calculate total amount for an item (sum of children if parent, or own calculation if leaf)
+  const calculateItemTotal = (item: BOQItem): number => {
+    if (item.children && item.children.length > 0) {
+      // Parent item: sum of all children's totals
+      return item.children.reduce((sum, child) => sum + calculateItemTotal(child), 0);
+    } else {
+      // Leaf item: quantity * unitRate
+      return item.quantity * item.unitRate;
+    }
+  };
+  
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setNewItem(prev => ({ 
@@ -105,8 +116,9 @@ const BOQ = () => {
   };
   
   const renderBOQItem = (item: BOQItem, level: number = 0) => {
-    const totalValue = item.quantity * item.unitRate;
+    const totalValue = calculateItemTotal(item);
     const indentLevel = level * 30;
+    const isParent = item.children && item.children.length > 0;
     
     return (
       <React.Fragment key={item.id}>
@@ -118,10 +130,10 @@ const BOQ = () => {
             <div>{language === 'en' ? item.description : (item.descriptionAr || item.description)}</div>
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {item.quantity} {language === 'en' ? item.unit : (item.unitAr || item.unit)}
+            {isParent ? '-' : `${item.quantity} ${language === 'en' ? item.unit : (item.unitAr || item.unit)}`}
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {formatter.format(item.unitRate)}
+            {isParent ? '-' : formatter.format(item.unitRate)}
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
             {formatter.format(totalValue)}
