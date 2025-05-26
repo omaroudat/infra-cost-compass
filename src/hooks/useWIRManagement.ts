@@ -24,9 +24,23 @@ export const useWIRManagement = () => {
     linkedBOQItems: []
   });
   
-  const flattenedBOQItems = boqItems.flatMap(item => 
-    [item, ...(item.children || [])]
-  );
+  // Filter to only show Level 5 BOQ items
+  const flattenedBOQItems = (() => {
+    const result: BOQItem[] = [];
+    const flattenItems = (items: BOQItem[]) => {
+      items.forEach(item => {
+        const codeLevel = (item.code.match(/\./g) || []).length + 1;
+        if (codeLevel === 5) {
+          result.push(item);
+        }
+        if (item.children && item.children.length > 0) {
+          flattenItems(item.children);
+        }
+      });
+    };
+    flattenItems(boqItems);
+    return result;
+  })();
   
   const handleEditWIR = (wir: WIR) => {
     setNewWIR({

@@ -22,20 +22,23 @@ const BOQItemSelector: React.FC<BOQItemSelectorProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Filter to only show leaf nodes (items without children)
-  const leafItems = useMemo(() => {
-    return flattenedBOQItems.filter(item => !item.children || item.children.length === 0);
+  // Filter to only show Level 5 items (items with 4 dots in code = level 5)
+  const level5Items = useMemo(() => {
+    return flattenedBOQItems.filter(item => {
+      const codeLevel = (item.code.match(/\./g) || []).length + 1;
+      return codeLevel === 5;
+    });
   }, [flattenedBOQItems]);
 
   // Filter items based on search term (code or description)
   const filteredItems = useMemo(() => {
-    if (!searchTerm) return leafItems;
+    if (!searchTerm) return level5Items;
     
-    return leafItems.filter(item => 
+    return level5Items.filter(item => 
       item.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [leafItems, searchTerm]);
+  }, [level5Items, searchTerm]);
 
   const handleItemToggle = (itemId: string) => {
     if (isResultSubmission) return;
@@ -50,7 +53,7 @@ const BOQItemSelector: React.FC<BOQItemSelectorProps> = ({
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label className="text-right">BOQ Items</Label>
+        <Label className="text-right">BOQ Items (Level 5)</Label>
         <div className="col-span-3 space-y-3">
           {/* Search Input */}
           <div className="relative">
@@ -94,7 +97,7 @@ const BOQItemSelector: React.FC<BOQItemSelectorProps> = ({
               
               {filteredItems.length === 0 && (
                 <div className="text-sm text-gray-500 text-center py-4">
-                  {searchTerm ? 'No items match your search' : 'No leaf items available'}
+                  {searchTerm ? 'No Level 5 items match your search' : 'No Level 5 items available'}
                 </div>
               )}
             </div>
