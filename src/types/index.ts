@@ -79,3 +79,22 @@ export type BOQProgress = {
     completedPercentage: number;
   }[];
 };
+
+export type Contractor = {
+  id: string;
+  name: string;
+  company?: string;
+  email?: string;
+  phone?: string;
+  createdAt: string;
+};
+
+export type Engineer = {
+  id: string;
+  name: string;
+  department?: string;
+  email?: string;
+  phone?: string;
+  specialization?: string;
+  createdAt: string;
+};

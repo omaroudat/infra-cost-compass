@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { BOQItem, BreakdownItem, WIR } from '../types';
+import { BOQItem, BreakdownItem, WIR, Contractor, Engineer } from '../types';
 import { mockBOQItems, mockPercentageAdjustments, mockWIRs } from '../data/mockData';
 
 interface AppContextType {
@@ -7,6 +7,8 @@ interface AppContextType {
   breakdownItems: BreakdownItem[];
   percentageAdjustments: BreakdownItem[]; // Alias for backward compatibility
   wirs: WIR[];
+  contractors: Contractor[];
+  engineers: Engineer[];
   addBOQItem: (item: Omit<BOQItem, 'id'>, parentId?: string) => void;
   updateBOQItem: (id: string, updates: Partial<BOQItem>) => void;
   deleteBOQItem: (id: string) => void;
@@ -19,6 +21,12 @@ interface AppContextType {
   addWIR: (wir: Omit<WIR, 'id' | 'calculatedAmount' | 'breakdownApplied'>) => void;
   updateWIR: (id: string, updates: Partial<WIR>) => void;
   deleteWIR: (id: string) => void;
+  addContractor: (contractor: Omit<Contractor, 'id' | 'createdAt'>) => void;
+  updateContractor: (id: string, updates: Partial<Contractor>) => void;
+  deleteContractor: (id: string) => void;
+  addEngineer: (engineer: Omit<Engineer, 'id' | 'createdAt'>) => void;
+  updateEngineer: (id: string, updates: Partial<Engineer>) => void;
+  deleteEngineer: (id: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -50,6 +58,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }));
   });
 
+  const [contractors, setContractors] = useState<Contractor[]>(() => {
+    const saved = localStorage.getItem('wir-contractors');
+    return saved ? JSON.parse(saved) : [];
+  });
+  
+  const [engineers, setEngineers] = useState<Engineer[]>(() => {
+    const saved = localStorage.getItem('wir-engineers');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   // Save to localStorage whenever data changes
   useEffect(() => {
     localStorage.setItem('wir-boq-items', JSON.stringify(boqItems));
@@ -62,6 +80,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     localStorage.setItem('wir-wirs', JSON.stringify(wirs));
   }, [wirs]);
+
+  useEffect(() => {
+    localStorage.setItem('wir-contractors', JSON.stringify(contractors));
+  }, [contractors]);
+
+  useEffect(() => {
+    localStorage.setItem('wir-engineers', JSON.stringify(engineers));
+  }, [engineers]);
 
   // BOQ Item functions
   const addBOQItem = (item: Omit<BOQItem, 'id'>, parentId?: string) => {
@@ -261,11 +287,53 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setWirs(prev => prev.filter(wir => wir.id !== id));
   };
 
+  // Contractor functions
+  const addContractor = (contractor: Omit<Contractor, 'id' | 'createdAt'>) => {
+    const newContractor: Contractor = {
+      ...contractor,
+      id: `contractor-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      createdAt: new Date().toISOString()
+    };
+    setContractors(prev => [...prev, newContractor]);
+  };
+
+  const updateContractor = (id: string, updates: Partial<Contractor>) => {
+    setContractors(prev => prev.map(contractor => 
+      contractor.id === id ? { ...contractor, ...updates } : contractor
+    ));
+  };
+
+  const deleteContractor = (id: string) => {
+    setContractors(prev => prev.filter(contractor => contractor.id !== id));
+  };
+
+  // Engineer functions
+  const addEngineer = (engineer: Omit<Engineer, 'id' | 'createdAt'>) => {
+    const newEngineer: Engineer = {
+      ...engineer,
+      id: `engineer-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      createdAt: new Date().toISOString()
+    };
+    setEngineers(prev => [...prev, newEngineer]);
+  };
+
+  const updateEngineer = (id: string, updates: Partial<Engineer>) => {
+    setEngineers(prev => prev.map(engineer => 
+      engineer.id === id ? { ...engineer, ...updates } : engineer
+    ));
+  };
+
+  const deleteEngineer = (id: string) => {
+    setEngineers(prev => prev.filter(engineer => engineer.id !== id));
+  };
+
   const value = {
     boqItems,
     breakdownItems,
     percentageAdjustments: breakdownItems, // Alias for backward compatibility
     wirs,
+    contractors,
+    engineers,
     addBOQItem,
     updateBOQItem,
     deleteBOQItem,
@@ -277,7 +345,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     deletePercentageAdjustment: deleteBreakdownItem, // Alias
     addWIR,
     updateWIR,
-    deleteWIR
+    deleteWIR,
+    addContractor,
+    updateContractor,
+    deleteContractor,
+    addEngineer,
+    updateEngineer,
+    deleteEngineer
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

@@ -4,6 +4,8 @@ import { WIR, BOQItem } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAppContext } from '@/context/AppContext';
 import BOQItemSelector from './BOQItemSelector';
 
 interface WIRBasicInfoFormProps {
@@ -19,8 +21,14 @@ const WIRBasicInfoForm: React.FC<WIRBasicInfoFormProps> = ({
   flattenedBOQItems,
   isResultSubmission,
 }) => {
+  const { contractors, engineers } = useAppContext();
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    setNewWIR(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
     setNewWIR(prev => ({ ...prev, [name]: value }));
   };
 
@@ -46,30 +54,44 @@ const WIRBasicInfoForm: React.FC<WIRBasicInfoFormProps> = ({
         <Label htmlFor="contractor" className="text-right">
           Contractor / المقاول
         </Label>
-        <Input
-          id="contractor"
-          name="contractor"
+        <Select
           value={newWIR.contractor || ''}
-          onChange={handleInputChange}
-          className="col-span-3"
+          onValueChange={(value) => handleSelectChange('contractor', value)}
           disabled={isResultSubmission}
-          required
-        />
+        >
+          <SelectTrigger className="col-span-3">
+            <SelectValue placeholder="Select a contractor" />
+          </SelectTrigger>
+          <SelectContent>
+            {contractors.map((contractor) => (
+              <SelectItem key={contractor.id} value={contractor.name}>
+                {contractor.name} {contractor.company && `(${contractor.company})`}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="engineer" className="text-right">
           Engineer / المهندس
         </Label>
-        <Input
-          id="engineer"
-          name="engineer"
+        <Select
           value={newWIR.engineer || ''}
-          onChange={handleInputChange}
-          className="col-span-3"
+          onValueChange={(value) => handleSelectChange('engineer', value)}
           disabled={isResultSubmission}
-          required
-        />
+        >
+          <SelectTrigger className="col-span-3">
+            <SelectValue placeholder="Select an engineer" />
+          </SelectTrigger>
+          <SelectContent>
+            {engineers.map((engineer) => (
+              <SelectItem key={engineer.id} value={engineer.name}>
+                {engineer.name} {engineer.department && `(${engineer.department})`}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       
       <div className="grid grid-cols-4 items-center gap-4">
