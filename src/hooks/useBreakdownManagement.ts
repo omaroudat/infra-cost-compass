@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { BreakdownItem } from '../types';
@@ -22,7 +21,7 @@ export const useBreakdownManagement = () => {
     const result: any[] = [];
     items.forEach(item => {
       const codeLevel = (item.code.match(/\./g) || []).length + 1;
-      if (codeLevel === 6) {
+      if (codeLevel === 5) {
         result.push(item);
       }
       if (item.children && item.children.length > 0) {
@@ -32,11 +31,11 @@ export const useBreakdownManagement = () => {
     return result;
   };
 
-  // Auto-create breakdown items for Level 6 BOQ items
+  // Auto-create breakdown items for Level 5 BOQ items
   useEffect(() => {
-    const level6Items = flattenedBOQItems(boqItems);
+    const level5Items = flattenedBOQItems(boqItems);
     
-    level6Items.forEach(boqItem => {
+    level5Items.forEach(boqItem => {
       const existingBreakdown = breakdownItems?.find(bd => bd.boqItemId === boqItem.id);
       
       if (!existingBreakdown) {

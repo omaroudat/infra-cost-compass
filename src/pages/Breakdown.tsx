@@ -27,7 +27,7 @@ const Breakdown = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <h2 className="text-xl font-bold">Break-Down Items / وصف البنود الفرعية (Level 6 Only)</h2>
+          <h2 className="text-xl font-bold">Break-Down Items / وصف البنود الفرعية (Level 5 Only)</h2>
           <div className="flex gap-2">
             <Button
               variant={language === 'en' ? 'default' : 'outline'}

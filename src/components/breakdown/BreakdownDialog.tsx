@@ -37,7 +37,7 @@ const BreakdownDialog: React.FC<BreakdownDialogProps> = ({
         <DialogHeader>
           <DialogTitle>{editingItem ? 'Edit' : 'Add'} Break-Down Item</DialogTitle>
           <DialogDescription>
-            Define breakdown items with their associated percentages for Level 6 BOQ items only.
+            Define breakdown items with their associated percentages for Level 5 BOQ items only.
           </DialogDescription>
         </DialogHeader>
         <BreakdownForm

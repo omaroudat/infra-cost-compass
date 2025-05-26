@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,7 +22,7 @@ const BreakdownForm: React.FC<BreakdownFormProps> = ({
     const result: BOQItem[] = [];
     items.forEach(item => {
       const codeLevel = (item.code.match(/\./g) || []).length + 1;
-      if (codeLevel === 6) {
+      if (codeLevel === 5) {
         result.push(item);
       }
       if (item.children && item.children.length > 0) {
@@ -41,7 +40,7 @@ const BreakdownForm: React.FC<BreakdownFormProps> = ({
     <div className="grid gap-4 py-4">
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="boqItemId" className="text-right">
-          BOQ Item (Level 6)
+          BOQ Item (Level 5)
         </Label>
         <div className="col-span-3">
           <Select
@@ -49,7 +48,7 @@ const BreakdownForm: React.FC<BreakdownFormProps> = ({
             onValueChange={(value) => onSelectChange('boqItemId', value)}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select Level 6 BOQ Item" />
+              <SelectValue placeholder="Select Level 5 BOQ Item" />
             </SelectTrigger>
             <SelectContent>
               {flattenedBOQItems(boqItems).map((item) => (

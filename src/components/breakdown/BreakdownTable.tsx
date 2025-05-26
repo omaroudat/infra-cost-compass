@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -24,7 +23,7 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
     const result: BOQItem[] = [];
     items.forEach(item => {
       const codeLevel = (item.code.match(/\./g) || []).length + 1;
-      if (codeLevel === 6) {
+      if (codeLevel === 5) {
         result.push(item);
       }
       if (item.children && item.children.length > 0) {
