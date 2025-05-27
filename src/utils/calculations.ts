@@ -22,8 +22,11 @@ export function findBreakdownItemByBOQId(boqItemId: string, breakdownItems: Brea
 }
 
 export function calculateWIRAmount(wir: WIR, breakdownItems: BreakdownItem[]): { amount: number | null, equation: string } {
+  console.log('calculateWIRAmount called with:', { wir, breakdownItems });
+  
   // Only calculate for approved or conditionally approved WIRs
   if (wir.result !== 'A' && wir.result !== 'B') {
+    console.log('WIR result is not A or B, returning null amount');
     return { amount: null, equation: '' };
   }
 
@@ -31,31 +34,45 @@ export function calculateWIRAmount(wir: WIR, breakdownItems: BreakdownItem[]): {
   let equations: string[] = [];
 
   // Calculate for each linked BOQ item
-  for (const boqItemId of wir.linkedBOQItems || [wir.boqItemId]) {
+  const boqItemIds = wir.linkedBOQItems && wir.linkedBOQItems.length > 0 ? wir.linkedBOQItems : [wir.boqItemId];
+  
+  for (const boqItemId of boqItemIds) {
     const boqItem = findBOQItemById(boqItemId);
-    if (!boqItem) continue;
+    if (!boqItem) {
+      console.log('BOQ item not found for ID:', boqItemId);
+      continue;
+    }
 
     const breakdown = findBreakdownItemByBOQId(boqItemId, breakdownItems);
+    console.log('Found breakdown for BOQ item:', { boqItemId, breakdown });
+    
     // Use breakdown percentage as decimal (e.g., 0.4 for 40%)
-    const breakdownPercentage = breakdown ? breakdown.percentage / 100 : 0;
+    const breakdownPercentage = breakdown && breakdown.percentage ? breakdown.percentage / 100 : 0;
     const wirValue = wir.value || 0;
+    const unitRate = boqItem.unitRate || 0;
 
-    // New Formula: WIR Value × BOQ Unit Rate × Breakdown Percentage (as decimal)
-    const itemAmount = wirValue * boqItem.unitRate * breakdownPercentage;
+    console.log('Calculation values:', { wirValue, unitRate, breakdownPercentage });
+
+    // Formula: WIR Value × BOQ Unit Rate × Breakdown Percentage (as decimal)
+    const itemAmount = wirValue * unitRate * breakdownPercentage;
     totalAmount += itemAmount;
 
+    console.log('Calculated item amount:', itemAmount);
+
     // Create equation string with proper formatting
-    const percentageDisplay = breakdown ? `${breakdown.percentage}%` : '0%';
-    const equation = `${wirValue.toLocaleString('ar-SA')} × ${boqItem.unitRate.toLocaleString('ar-SA')} × ${percentageDisplay} = ${itemAmount.toLocaleString('ar-SA')}`;
+    const percentageDisplay = breakdown && breakdown.percentage ? `${breakdown.percentage}%` : '0%';
+    const equation = `${wirValue.toLocaleString('ar-SA')} × ${unitRate.toLocaleString('ar-SA')} × ${percentageDisplay} = ${itemAmount.toLocaleString('ar-SA')}`;
     equations.push(`${boqItem.code}: ${equation}`);
   }
 
   const finalEquation = equations.length > 1 
     ? `${equations.join(' + ')} = ${totalAmount.toLocaleString('ar-SA')} SAR`
-    : `${equations[0]} SAR`;
+    : equations.length > 0 ? `${equations[0]} SAR` : '';
+
+  console.log('Final calculation result:', { amount: totalAmount, equation: finalEquation });
 
   return { 
-    amount: parseFloat(totalAmount.toFixed(2)), 
+    amount: totalAmount > 0 ? parseFloat(totalAmount.toFixed(2)) : null, 
     equation: finalEquation 
   };
 }

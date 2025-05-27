@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { BOQItem, BreakdownItem, WIR, Contractor, Engineer } from '../types';
 import { mockBOQItems, mockPercentageAdjustments, mockWIRs } from '../data/mockData';
+import { calculateWIRAmount } from '../utils/calculations';
 
 interface AppContextType {
   boqItems: BOQItem[];
@@ -50,9 +51,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const saved = localStorage.getItem('wir-wirs');
     return saved ? JSON.parse(saved) : mockWIRs.map(wir => ({
       ...wir,
-      lengthOfLine: 100,
-      diameterOfLine: 200,
-      lineNo: 'L001',
       region: 'Central',
       linkedBOQItems: [wir.boqItemId]
     }));
@@ -224,58 +222,33 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       linkedBOQItems: wir.linkedBOQItems || [wir.boqItemId]
     };
 
-    // Calculate amount if result is A or B
-    if (wir.result === 'A' || wir.result === 'B') {
-      // Find applicable breakdown
-      const breakdown = breakdownItems.find(bd => 
-        wir.description.toLowerCase().includes(bd.keyword.toLowerCase())
-      );
-      
-      if (breakdown) {
-        newWIR.breakdownApplied = breakdown;
-        // Calculate: (percentage * value * length * diameter) / 1000000
-        newWIR.calculatedAmount = (breakdown.percentage / 100) * breakdown.value * 
-          (wir.lengthOfLine || 0) * (wir.diameterOfLine || 0) / 1000000;
-      }
-    }
-
+    console.log('Adding new WIR:', newWIR);
     setWirs(prev => [...prev, newWIR]);
   };
 
   const updateWIR = (id: string, updates: Partial<WIR>) => {
+    console.log('Updating WIR:', id, updates);
     setWirs(prev => {
       return prev.map(wir => {
         if (wir.id === id) {
           const updatedWIR = { ...wir, ...updates };
           
-          // Recalculate amount if relevant fields changed
-          if (
-            updates.boqItemId !== undefined ||
-            updates.description !== undefined ||
-            updates.result !== undefined ||
-            updates.lengthOfLine !== undefined ||
-            updates.diameterOfLine !== undefined ||
-            updates.status !== undefined
-          ) {
-            // Find applicable breakdown
-            const breakdown = breakdownItems.find(bd => 
-              (updates.description || wir.description).toLowerCase().includes(bd.keyword.toLowerCase())
-            );
-            
-            updatedWIR.breakdownApplied = breakdown || null;
-            
-            // Calculate amount if result is A or B and status is completed
-            if ((updates.result === 'A' || updates.result === 'B') && 
-                (updates.status === 'completed' || (wir.status === 'completed' && updates.status === undefined))) {
-              if (breakdown) {
-                updatedWIR.calculatedAmount = (breakdown.percentage / 100) * breakdown.value * 
-                  (updatedWIR.lengthOfLine || 0) * (updatedWIR.diameterOfLine || 0) / 1000000;
-              }
-            } else if (updates.result === 'C' || updates.status === 'submitted') {
-              updatedWIR.calculatedAmount = null;
-            }
+          console.log('Updated WIR before calculation:', updatedWIR);
+          
+          // Calculate amount if result is A or B and status is completed
+          if ((updatedWIR.result === 'A' || updatedWIR.result === 'B') && 
+              updatedWIR.status === 'completed') {
+            console.log('Calculating amount for WIR:', updatedWIR);
+            const calculation = calculateWIRAmount(updatedWIR, breakdownItems);
+            console.log('Calculation result:', calculation);
+            updatedWIR.calculatedAmount = calculation.amount;
+            updatedWIR.calculationEquation = calculation.equation;
+          } else if (updatedWIR.result === 'C' || updatedWIR.status === 'submitted') {
+            updatedWIR.calculatedAmount = null;
+            updatedWIR.calculationEquation = '';
           }
           
+          console.log('Final updated WIR:', updatedWIR);
           return updatedWIR;
         }
         return wir;
