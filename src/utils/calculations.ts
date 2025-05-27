@@ -39,12 +39,12 @@ export function calculateWIRAmount(wir: WIR, breakdownItems: BreakdownItem[]): {
     const breakdownPercentage = breakdown?.percentage || 0;
     const wirValue = wir.value || 0;
 
-    // Corrected Formula: WIR Value × BOQ Unit Rate × Breakdown Percentage / 100
-    const itemAmount = wirValue * boqItem.unitRate * (breakdownPercentage / 100);
+    // Updated Formula: WIR Value × BOQ Unit Rate × Breakdown Percentage (without /100)
+    const itemAmount = wirValue * boqItem.unitRate * breakdownPercentage;
     totalAmount += itemAmount;
 
     // Create equation string
-    const equation = `${wirValue.toLocaleString('ar-SA')} × ${boqItem.unitRate.toLocaleString('ar-SA')} × ${breakdownPercentage}% = ${itemAmount.toLocaleString('ar-SA')}`;
+    const equation = `${wirValue.toLocaleString('ar-SA')} × ${boqItem.unitRate.toLocaleString('ar-SA')} × ${breakdownPercentage} = ${itemAmount.toLocaleString('ar-SA')}`;
     equations.push(`${boqItem.code}: ${equation}`);
   }
 
