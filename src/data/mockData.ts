@@ -141,6 +141,7 @@ export const mockWIRs: WIR[] = [
     diameterOfLine: 150,
     lineNo: "L-001",
     region: "North",
+    value: 1000,
     linkedBOQItems: ["boq-1-1"]
   },
   {
@@ -161,6 +162,7 @@ export const mockWIRs: WIR[] = [
     diameterOfLine: 200,
     lineNo: "L-002",
     region: "South",
+    value: 500,
     linkedBOQItems: ["boq-2-1"]
   },
   {
@@ -181,6 +183,7 @@ export const mockWIRs: WIR[] = [
     diameterOfLine: 300,
     lineNo: "L-003",
     region: "East",
+    value: 750,
     linkedBOQItems: ["boq-3-2"]
   }
 ];
