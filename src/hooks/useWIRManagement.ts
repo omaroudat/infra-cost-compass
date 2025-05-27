@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { WIR, BOQItem } from '@/types';
 import { useAppContext } from '@/context/AppContext';
@@ -19,9 +18,6 @@ export const useWIRManagement = () => {
     statusConditions: '',
     contractor: '',
     engineer: '',
-    lengthOfLine: 0,
-    diameterOfLine: 0,
-    lineNo: '',
     region: '',
     value: 0,
     linkedBOQItems: []
@@ -56,9 +52,6 @@ export const useWIRManagement = () => {
       statusConditions: wir.statusConditions || '',
       contractor: wir.contractor || '',
       engineer: wir.engineer || '',
-      lengthOfLine: wir.lengthOfLine || 0,
-      diameterOfLine: wir.diameterOfLine || 0,
-      lineNo: wir.lineNo || '',
       region: wir.region || '',
       value: wir.value || 0,
       linkedBOQItems: wir.linkedBOQItems || [wir.boqItemId]
@@ -79,9 +72,6 @@ export const useWIRManagement = () => {
       statusConditions: wir.statusConditions || '',
       contractor: wir.contractor || '',
       engineer: wir.engineer || '',
-      lengthOfLine: wir.lengthOfLine || 0,
-      diameterOfLine: wir.diameterOfLine || 0,
-      lineNo: wir.lineNo || '',
       region: wir.region || '',
       value: wir.value || 0,
       linkedBOQItems: wir.linkedBOQItems || [wir.boqItemId]
@@ -105,9 +95,6 @@ export const useWIRManagement = () => {
       statusConditions: '',
       contractor: wir.contractor,
       engineer: wir.engineer,
-      lengthOfLine: wir.lengthOfLine,
-      diameterOfLine: wir.diameterOfLine,
-      lineNo: wir.lineNo,
       region: wir.region,
       value: wir.value,
       linkedBOQItems: wir.linkedBOQItems,
@@ -153,9 +140,6 @@ export const useWIRManagement = () => {
       statusConditions: '',
       contractor: '',
       engineer: '',
-      lengthOfLine: 0,
-      diameterOfLine: 0,
-      lineNo: '',
       region: '',
       value: 0,
       linkedBOQItems: []
@@ -183,9 +167,6 @@ export const useWIRManagement = () => {
       statusConditions: '',
       contractor: '',
       engineer: '',
-      lengthOfLine: 0,
-      diameterOfLine: 0,
-      lineNo: '',
       region: '',
       value: 0,
       linkedBOQItems: []

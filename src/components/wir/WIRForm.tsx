@@ -27,8 +27,7 @@ const WIRForm: React.FC<WIRFormProps> = ({
   const handleSubmit = () => {
     const required = [
       'description', 'submittalDate', 'status', 
-      'contractor', 'engineer', 'lengthOfLine', 'diameterOfLine', 
-      'lineNo', 'region', 'value'
+      'contractor', 'engineer', 'region', 'value'
     ];
     
     const missing = required.filter(field => !newWIR[field as keyof typeof newWIR]);

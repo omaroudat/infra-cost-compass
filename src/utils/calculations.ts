@@ -40,7 +40,7 @@ export function calculateWIRAmount(wir: WIR, breakdownItems: BreakdownItem[]): {
     const breakdownPercentage = breakdown ? breakdown.percentage / 100 : 0;
     const wirValue = wir.value || 0;
 
-    // Formula: WIR Value × BOQ Unit Rate × Breakdown Percentage (as decimal)
+    // New Formula: WIR Value × BOQ Unit Rate × Breakdown Percentage (as decimal)
     const itemAmount = wirValue * boqItem.unitRate * breakdownPercentage;
     totalAmount += itemAmount;
 
