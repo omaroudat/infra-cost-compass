@@ -2,6 +2,7 @@
 import React from 'react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { WIR } from '@/types';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface RelatedWIRsTableProps {
   wirs: WIR[];
@@ -18,23 +19,25 @@ export const RelatedWIRsTable: React.FC<RelatedWIRsTableProps> = ({
   formatter,
   getWIRAmountForBOQ
 }) => {
+  const { t } = useLanguage();
+  
   if (wirs.length === 0) return null;
 
   return (
     <div>
       <h4 className="font-medium mb-3">
-        {language === 'en' ? 'Related WIRs' : 'طلبات المعاينة المرتبطة'}
+        {t('progress.relatedWirs')}
       </h4>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>{language === 'en' ? 'WIR ID' : 'رقم طلب المعاينة'}</TableHead>
-            <TableHead>{language === 'en' ? 'Contractor' : 'المقاول'}</TableHead>
-            <TableHead>{language === 'en' ? 'Engineer' : 'المهندس'}</TableHead>
-            <TableHead>{language === 'en' ? 'WIR Value' : 'قيمة الطلب'}</TableHead>
-            <TableHead>{language === 'en' ? 'Status' : 'الحالة'}</TableHead>
-            <TableHead>{language === 'en' ? 'Result' : 'النتيجة'}</TableHead>
-            <TableHead>{language === 'en' ? 'Amount for this Item' : 'المبلغ لهذا البند'}</TableHead>
+            <TableHead>{t('progress.wirId')}</TableHead>
+            <TableHead>{t('progress.contractor')}</TableHead>
+            <TableHead>{t('progress.engineer')}</TableHead>
+            <TableHead>{t('progress.wirValue')}</TableHead>
+            <TableHead>{t('progress.status')}</TableHead>
+            <TableHead>{t('progress.result')}</TableHead>
+            <TableHead>{t('progress.amountForItem')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

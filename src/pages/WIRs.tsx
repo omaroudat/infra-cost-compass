@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -16,6 +17,7 @@ import { useStaffManagement } from '@/hooks/useStaffManagement';
 
 const WIRs = () => {
   const { hasPermission } = useAuth();
+  const { t } = useLanguage();
   const {
     wirs,
     flattenedBOQItems,
@@ -61,23 +63,23 @@ const WIRs = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold">Work Inspection Requests (WIRs)</h2>
+        <h2 className="text-xl font-bold">{t('wirs.title')}</h2>
       </div>
       
       <Tabs defaultValue="wirs" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="wirs">WIRs</TabsTrigger>
-          <TabsTrigger value="contractors">Contractors</TabsTrigger>
-          <TabsTrigger value="engineers">Engineers</TabsTrigger>
+          <TabsTrigger value="wirs">{t('nav.wirs')}</TabsTrigger>
+          <TabsTrigger value="contractors">{t('wirs.contractors')}</TabsTrigger>
+          <TabsTrigger value="engineers">{t('wirs.engineers')}</TabsTrigger>
         </TabsList>
         
         <TabsContent value="wirs" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">WIR Management</h3>
+            <h3 className="text-lg font-semibold">{t('wirs.management')}</h3>
             {canEdit && (
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button onClick={() => setIsAddDialogOpen(true)}>Add New WIR</Button>
+                  <Button onClick={() => setIsAddDialogOpen(true)}>{t('wirs.addNew')}</Button>
                 </DialogTrigger>
               </Dialog>
             )}
@@ -110,18 +112,18 @@ const WIRs = () => {
         
         <TabsContent value="contractors" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Contractors</h3>
+            <h3 className="text-lg font-semibold">{t('wirs.contractors')}</h3>
             {canEdit && (
               <Dialog open={isContractorDialogOpen} onOpenChange={setIsContractorDialogOpen}>
                 <DialogTrigger asChild>
                   <Button onClick={() => setIsContractorDialogOpen(true)}>
-                    Add New Contractor
+                    {t('wirs.addContractor')}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
                   <DialogHeader>
                     <DialogTitle>
-                      {editingContractor ? 'Edit' : 'Add'} Contractor
+                      {editingContractor ? t('wirs.edit') : t('wirs.add')} {t('wirs.contractors')}
                     </DialogTitle>
                     <DialogDescription>
                       Fill in the contractor details below.
@@ -150,18 +152,18 @@ const WIRs = () => {
         
         <TabsContent value="engineers" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Engineers</h3>
+            <h3 className="text-lg font-semibold">{t('wirs.engineers')}</h3>
             {canEdit && (
               <Dialog open={isEngineerDialogOpen} onOpenChange={setIsEngineerDialogOpen}>
                 <DialogTrigger asChild>
                   <Button onClick={() => setIsEngineerDialogOpen(true)}>
-                    Add New Engineer
+                    {t('wirs.addEngineer')}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
                   <DialogHeader>
                     <DialogTitle>
-                      {editingEngineer ? 'Edit' : 'Add'} Engineer
+                      {editingEngineer ? t('wirs.edit') : t('wirs.add')} {t('wirs.engineers')}
                     </DialogTitle>
                     <DialogDescription>
                       Fill in the engineer details below.

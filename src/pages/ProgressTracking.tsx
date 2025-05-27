@@ -1,15 +1,15 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useAppContext } from '../context/AppContext';
-import { LanguageSelector } from '../components/progress/LanguageSelector';
+import { useLanguage } from '../context/LanguageContext';
 import { ProgressCard } from '../components/progress/ProgressCard';
 import { useProgressCalculations } from '../hooks/useProgressCalculations';
 
 const ProgressTracking = () => {
   const { wirs, boqItems, breakdownItems } = useAppContext();
-  const [language, setLanguage] = useState<'en' | 'ar'>('en');
+  const { t, language } = useLanguage();
   
-  const formatter = new Intl.NumberFormat('ar-SA', {
+  const formatter = new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
     style: 'currency',
     currency: 'SAR',
     minimumFractionDigits: 0,
@@ -28,10 +28,7 @@ const ProgressTracking = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <h2 className="text-xl font-bold">Progress Tracking / سجل المتابعة</h2>
-          <LanguageSelector language={language} onLanguageChange={setLanguage} />
-        </div>
+        <h2 className="text-xl font-bold">{t('progress.title')}</h2>
       </div>
       
       <div className="grid gap-6">

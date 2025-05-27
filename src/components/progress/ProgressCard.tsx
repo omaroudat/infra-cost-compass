@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { BOQItem, BOQProgress, BreakdownItem, WIR } from '@/types';
+import { useLanguage } from '../../context/LanguageContext';
 import { BreakdownProgress } from './BreakdownProgress';
 import { RelatedWIRsTable } from './RelatedWIRsTable';
 
@@ -25,6 +26,7 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({
   formatter,
   getWIRAmountForBOQ
 }) => {
+  const { t } = useLanguage();
   const boqTotalAmount = boqItem.quantity * boqItem.unitRate;
 
   return (
@@ -37,9 +39,9 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({
               {language === 'en' ? boqItem.description : (boqItem.descriptionAr || boqItem.description)}
             </h3>
             <div className="text-sm text-gray-600 mt-1">
-              {language === 'en' ? 'Quantity:' : 'الكمية:'} {boqItem.quantity.toLocaleString()} {language === 'en' ? boqItem.unit : (boqItem.unitAr || boqItem.unit)} | 
-              {language === 'en' ? ' Unit Rate:' : ' سعر الوحدة:'} {formatter.format(boqItem.unitRate)} | 
-              {language === 'en' ? ' Total Value:' : ' القيمة الإجمالية:'} {formatter.format(boqTotalAmount)}
+              {t('progress.quantity')}: {boqItem.quantity.toLocaleString()} {language === 'en' ? boqItem.unit : (boqItem.unitAr || boqItem.unit)} | 
+              {' '}{t('progress.unitRate')}: {formatter.format(boqItem.unitRate)} | 
+              {' '}{t('progress.totalValue')}: {formatter.format(boqTotalAmount)}
             </div>
           </div>
           <div className="text-right">

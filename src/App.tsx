@@ -19,90 +19,93 @@ import Breakdown from "./pages/Breakdown";
 import ProgressTracking from "./pages/ProgressTracking";
 import { AppProvider } from "./context/AppContext";
 import { AuthProvider } from "./context/AuthContext";
+import { LanguageProvider } from "./context/LanguageContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <AppProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/unauthorized" element={<Unauthorized />} />
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <Layout><Dashboard /></Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/boq"
-                element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <Layout><BOQ /></Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/breakdown"
-                element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <Layout><Breakdown /></Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/adjustments"
-                element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <Layout><Adjustments /></Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/wirs"
-                element={
-                  <ProtectedRoute allowedRoles={['admin', 'dataEntry']}>
-                    <Layout><WIRs /></Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/reports"
-                element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <Layout><Reports /></Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/progress"
-                element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <Layout><ProgressTracking /></Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/users"
-                element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <Layout><UserManagement /></Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AppProvider>
-    </AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <AppProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/unauthorized" element={<Unauthorized />} />
+                <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute>
+                      <Layout><Dashboard /></Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/boq"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <Layout><BOQ /></Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/breakdown"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <Layout><Breakdown /></Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/adjustments"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <Layout><Adjustments /></Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/wirs"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin', 'dataEntry']}>
+                      <Layout><WIRs /></Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/reports"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <Layout><Reports /></Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/progress"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <Layout><ProgressTracking /></Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/users"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <Layout><UserManagement /></Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AppProvider>
+      </AuthProvider>
+    </LanguageProvider>
   </QueryClientProvider>
 );
 

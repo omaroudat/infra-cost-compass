@@ -2,6 +2,7 @@
 import React from 'react';
 import { Progress } from '@/components/ui/progress';
 import { BreakdownItem } from '@/types';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface BreakdownProgressProps {
   breakdownProgress: {
@@ -18,6 +19,7 @@ export const BreakdownProgress: React.FC<BreakdownProgressProps> = ({
   breakdownItems,
   language
 }) => {
+  const { t } = useLanguage();
   const getBreakdownItem = (id: string) => breakdownItems?.find(item => item.id === id);
 
   if (breakdownProgress.length === 0) return null;
@@ -25,7 +27,7 @@ export const BreakdownProgress: React.FC<BreakdownProgressProps> = ({
   return (
     <div>
       <h4 className="font-medium mb-3">
-        {language === 'en' ? 'Breakdown Progress' : 'تقدم البنود الفرعية'}
+        {t('progress.breakdownProgress')}
       </h4>
       <div className="grid gap-2">
         {breakdownProgress.map((breakdown) => {
