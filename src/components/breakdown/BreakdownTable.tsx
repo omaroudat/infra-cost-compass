@@ -55,6 +55,9 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
     toast.info('Breakdown items cannot be deleted. They are automatically managed based on BOQ items.');
   };
 
+  // Always use English number formatting
+  const numberFormatter = new Intl.NumberFormat('en-US');
+
   return (
     <div className="bg-white shadow overflow-hidden sm:rounded-lg">
       <Table>
@@ -75,14 +78,14 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
                 {getBOQItemLabel(item.boqItemId)}
               </TableCell>
               <TableCell className="text-sm">
-                {getBOQItemUnitRate(item.boqItemId).toLocaleString('ar-SA')}
+                {numberFormatter.format(getBOQItemUnitRate(item.boqItemId))}
               </TableCell>
               <TableCell>
                 {language === 'en' ? item.description : (item.descriptionAr || item.description)}
               </TableCell>
               <TableCell>{item.percentage}%</TableCell>
               <TableCell className="font-medium">
-                {calculateValue(item).toLocaleString('ar-SA')}
+                {numberFormatter.format(calculateValue(item))}
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex space-x-2 justify-end">

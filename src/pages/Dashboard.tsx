@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { generateFinancialSummary } from '../utils/calculations';
@@ -15,6 +14,14 @@ const Dashboard = () => {
   const [selectedValue, setSelectedValue] = useState<string>('');
   
   const financialSummary = generateFinancialSummary(wirs);
+  
+  // Always use English number formatting
+  const formatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'SAR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
   
   // Get unique contractors and engineers
   const contractors = Array.from(new Set(wirs.map(wir => wir.contractor))).filter(Boolean);
@@ -38,13 +45,6 @@ const Dashboard = () => {
     name: item.description,
     amount: item.children ? item.children.reduce((sum, child) => sum + (child.quantity * child.unitRate), 0) : (item.quantity * item.unitRate)
   }));
-  
-  const formatter = new Intl.NumberFormat('ar-SA', {
-    style: 'currency',
-    currency: 'SAR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  });
   
   const wirStatusData = filteredWirs
     .filter(wir => wir.calculatedAmount !== null)

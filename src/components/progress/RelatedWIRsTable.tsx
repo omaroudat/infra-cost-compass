@@ -21,7 +21,8 @@ export const RelatedWIRsTable: React.FC<RelatedWIRsTableProps> = ({
 }) => {
   const { t } = useLanguage();
   
-  const numberFormatter = new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US');
+  // Always use English number formatting
+  const numberFormatter = new Intl.NumberFormat('en-US');
   
   if (wirs.length === 0) return null;
 

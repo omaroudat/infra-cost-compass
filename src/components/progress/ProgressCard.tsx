@@ -29,6 +29,9 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({
   const { t } = useLanguage();
   const boqTotalAmount = boqItem.quantity * boqItem.unitRate;
 
+  // Always use English number formatting for quantities
+  const numberFormatter = new Intl.NumberFormat('en-US');
+
   return (
     <Card>
       <CardHeader>
@@ -39,7 +42,7 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({
               {language === 'en' ? boqItem.description : (boqItem.descriptionAr || boqItem.description)}
             </h3>
             <div className="text-sm text-gray-600 mt-1">
-              {t('progress.quantity')}: {boqItem.quantity.toLocaleString()} {language === 'en' ? boqItem.unit : (boqItem.unitAr || boqItem.unit)} | 
+              {t('progress.quantity')}: {numberFormatter.format(boqItem.quantity)} {language === 'en' ? boqItem.unit : (boqItem.unitAr || boqItem.unit)} | 
               {' '}{t('progress.unitRate')}: {formatter.format(boqItem.unitRate)} | 
               {' '}{t('progress.totalValue')}: {formatter.format(boqTotalAmount)}
             </div>

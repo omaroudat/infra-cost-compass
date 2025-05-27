@@ -28,14 +28,15 @@ const WIRTable: React.FC<WIRTableProps> = ({
 }) => {
   const { language } = useLanguage();
   
-  const formatter = new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
+  // Always use English number formatting
+  const formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'SAR',
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   });
 
-  const numberFormatter = new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US');
+  const numberFormatter = new Intl.NumberFormat('en-US');
 
   const getBOQItemByIdWithLabel = (id: string): string => {
     const item = flattenedBOQItems.find(item => item.id === id);

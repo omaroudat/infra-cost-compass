@@ -25,7 +25,8 @@ const BOQ = () => {
   const [parentId, setParentId] = useState<string | undefined>(undefined);
   const [language, setLanguage] = useState<'en' | 'ar'>('en');
   
-  const formatter = new Intl.NumberFormat('ar-SA', {
+  // Always use English number formatting
+  const formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'SAR',
     minimumFractionDigits: 0,
@@ -158,7 +159,7 @@ const BOQ = () => {
             <div>{language === 'en' ? item.description : (item.descriptionAr || item.description)}</div>
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {isParent ? '-' : `${item.quantity} ${language === 'en' ? item.unit : (item.unitAr || item.unit)}`}
+            {isParent ? '-' : `${item.quantity.toLocaleString('en-US')} ${language === 'en' ? item.unit : (item.unitAr || item.unit)}`}
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
             {isParent ? '-' : formatter.format(item.unitRate)}
