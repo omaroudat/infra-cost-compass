@@ -46,11 +46,6 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
     return item?.unitRate || 0;
   };
 
-  const calculateValue = (item: BreakdownItem) => {
-    const unitRate = getBOQItemUnitRate(item.boqItemId);
-    return (unitRate * (item.percentage || 0)) / 100;
-  };
-
   const handleDeleteClick = () => {
     toast.info('Breakdown items cannot be deleted. They are automatically managed based on BOQ items.');
   };
@@ -67,7 +62,6 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
             <TableHead>{language === 'en' ? 'BOQ Unit Rate' : 'السعر الافرادي'}</TableHead>
             <TableHead>{language === 'en' ? 'Description' : 'الوصف'}</TableHead>
             <TableHead>{language === 'en' ? 'Percentage' : 'النسبة المئوية'}</TableHead>
-            <TableHead>{language === 'en' ? 'Calculated Value (SAR)' : 'القيمة المحسوبة (ريال)'}</TableHead>
             <TableHead className="text-right">{language === 'en' ? 'Actions' : 'الإجراءات'}</TableHead>
           </TableRow>
         </TableHeader>
@@ -84,9 +78,6 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
                 {language === 'en' ? item.description : (item.descriptionAr || item.description)}
               </TableCell>
               <TableCell>{item.percentage}%</TableCell>
-              <TableCell className="font-medium">
-                {numberFormatter.format(calculateValue(item))}
-              </TableCell>
               <TableCell className="text-right">
                 <div className="flex space-x-2 justify-end">
                   <Button 
