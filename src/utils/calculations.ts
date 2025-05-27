@@ -3,22 +3,54 @@ import { BOQItem, PercentageAdjustment, WIR, WIRResult, BreakdownItem } from "..
 import { mockBOQItems, mockPercentageAdjustments } from "../data/mockData";
 
 export function findBOQItemById(id: string): BOQItem | undefined {
+  console.log('Searching for BOQ item with ID:', id);
+  
   // First, check top-level items
   for (const item of mockBOQItems) {
-    if (item.id === id) return item;
+    if (item.id === id) {
+      console.log('Found BOQ item at top level:', item);
+      return item;
+    }
     
-    // Then check children
+    // Then check children recursively
     if (item.children) {
-      for (const child of item.children) {
-        if (child.id === id) return child;
+      const found = findInChildren(item.children, id);
+      if (found) {
+        console.log('Found BOQ item in children:', found);
+        return found;
       }
+    }
+  }
+  
+  console.log('BOQ item not found for ID:', id);
+  return undefined;
+}
+
+function findInChildren(children: BOQItem[], id: string): BOQItem | undefined {
+  for (const child of children) {
+    if (child.id === id) {
+      return child;
+    }
+    if (child.children) {
+      const found = findInChildren(child.children, id);
+      if (found) return found;
     }
   }
   return undefined;
 }
 
+export function findBreakdownItemByBOQCode(boqCode: string, breakdownItems: BreakdownItem[]): BreakdownItem | null {
+  console.log('Searching for breakdown item with BOQ code:', boqCode);
+  const found = breakdownItems.find(item => item.keyword === boqCode) || null;
+  console.log('Found breakdown item:', found);
+  return found;
+}
+
 export function findBreakdownItemByBOQId(boqItemId: string, breakdownItems: BreakdownItem[]): BreakdownItem | null {
-  return breakdownItems.find(item => item.boqItemId === boqItemId) || null;
+  console.log('Searching for breakdown item with BOQ ID:', boqItemId);
+  const found = breakdownItems.find(item => item.boqItemId === boqItemId) || null;
+  console.log('Found breakdown item by ID:', found);
+  return found;
 }
 
 export function calculateWIRAmount(wir: WIR, breakdownItems: BreakdownItem[]): { amount: number | null, equation: string } {
@@ -35,19 +67,34 @@ export function calculateWIRAmount(wir: WIR, breakdownItems: BreakdownItem[]): {
 
   // Calculate for each linked BOQ item
   const boqItemIds = wir.linkedBOQItems && wir.linkedBOQItems.length > 0 ? wir.linkedBOQItems : [wir.boqItemId];
+  console.log('Processing BOQ item IDs:', boqItemIds);
   
   for (const boqItemId of boqItemIds) {
+    console.log('Processing BOQ item ID:', boqItemId);
+    
     const boqItem = findBOQItemById(boqItemId);
     if (!boqItem) {
       console.log('BOQ item not found for ID:', boqItemId);
       continue;
     }
 
-    const breakdown = findBreakdownItemByBOQId(boqItemId, breakdownItems);
+    console.log('Found BOQ item:', boqItem);
+
+    // Try to find breakdown item by BOQ ID first, then by code
+    let breakdown = findBreakdownItemByBOQId(boqItemId, breakdownItems);
+    if (!breakdown) {
+      breakdown = findBreakdownItemByBOQCode(boqItem.code, breakdownItems);
+    }
+    
     console.log('Found breakdown for BOQ item:', { boqItemId, breakdown });
     
+    if (!breakdown || !breakdown.percentage) {
+      console.log('No breakdown found or percentage is 0 for BOQ item:', boqItemId);
+      continue;
+    }
+    
     // Use breakdown percentage as decimal (e.g., 0.4 for 40%)
-    const breakdownPercentage = breakdown && breakdown.percentage ? breakdown.percentage / 100 : 0;
+    const breakdownPercentage = breakdown.percentage / 100;
     const wirValue = wir.value || 0;
     const unitRate = boqItem.unitRate || 0;
 
@@ -60,7 +107,7 @@ export function calculateWIRAmount(wir: WIR, breakdownItems: BreakdownItem[]): {
     console.log('Calculated item amount:', itemAmount);
 
     // Create equation string with proper formatting
-    const percentageDisplay = breakdown && breakdown.percentage ? `${breakdown.percentage}%` : '0%';
+    const percentageDisplay = `${breakdown.percentage}%`;
     const equation = `${wirValue.toLocaleString('ar-SA')} × ${unitRate.toLocaleString('ar-SA')} × ${percentageDisplay} = ${itemAmount.toLocaleString('ar-SA')}`;
     equations.push(`${boqItem.code}: ${equation}`);
   }
