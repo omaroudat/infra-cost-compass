@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -40,9 +41,18 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
     return `${item.code} - ${desc}`;
   };
 
-  const handleDelete = (id: string) => {
-    onDelete(id);
-    toast.success('Break-down item deleted successfully.');
+  const getBOQItemUnitRate = (id: string) => {
+    const item = flattenedBOQItems(boqItems).find(item => item.id === id);
+    return item?.unitRate || 0;
+  };
+
+  const calculateValue = (item: BreakdownItem) => {
+    const unitRate = getBOQItemUnitRate(item.boqItemId);
+    return (unitRate * (item.percentage || 0)) / 100;
+  };
+
+  const handleDeleteClick = () => {
+    toast.info('Breakdown items cannot be deleted. They are automatically managed based on BOQ items.');
   };
 
   return (
@@ -51,25 +61,29 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
         <TableHeader>
           <TableRow>
             <TableHead>{language === 'en' ? 'BOQ Item' : 'بند الكميات'}</TableHead>
-            <TableHead>{language === 'en' ? 'Keyword' : 'الكلمة المفتاحية'}</TableHead>
+            <TableHead>{language === 'en' ? 'BOQ Unit Rate' : 'السعر الافرادي'}</TableHead>
             <TableHead>{language === 'en' ? 'Description' : 'الوصف'}</TableHead>
             <TableHead>{language === 'en' ? 'Percentage' : 'النسبة المئوية'}</TableHead>
-            <TableHead>{language === 'en' ? 'Value (SAR)' : 'القيمة (ريال)'}</TableHead>
+            <TableHead>{language === 'en' ? 'Calculated Value (SAR)' : 'القيمة المحسوبة (ريال)'}</TableHead>
             <TableHead className="text-right">{language === 'en' ? 'Actions' : 'الإجراءات'}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {breakdownItems?.map((item) => (
             <TableRow key={item.id}>
-              <TableCell>{getBOQItemLabel(item.boqItemId)}</TableCell>
-              <TableCell>
-                {language === 'en' ? item.keyword : (item.keywordAr || item.keyword)}
+              <TableCell className="font-mono text-sm">
+                {getBOQItemLabel(item.boqItemId)}
+              </TableCell>
+              <TableCell className="text-sm">
+                {getBOQItemUnitRate(item.boqItemId).toLocaleString('ar-SA')}
               </TableCell>
               <TableCell>
                 {language === 'en' ? item.description : (item.descriptionAr || item.description)}
               </TableCell>
               <TableCell>{item.percentage}%</TableCell>
-              <TableCell>{item.value?.toLocaleString('ar-SA')}</TableCell>
+              <TableCell className="font-medium">
+                {calculateValue(item).toLocaleString('ar-SA')}
+              </TableCell>
               <TableCell className="text-right">
                 <div className="flex space-x-2 justify-end">
                   <Button 
@@ -77,14 +91,16 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
                     size="sm"
                     onClick={() => onEdit(item)}
                   >
-                    Edit
+                    {language === 'en' ? 'Edit' : 'تعديل'}
                   </Button>
                   <Button 
-                    variant="destructive" 
+                    variant="outline" 
                     size="sm"
-                    onClick={() => handleDelete(item.id)}
+                    onClick={handleDeleteClick}
+                    disabled
+                    className="opacity-50 cursor-not-allowed"
                   >
-                    Delete
+                    {language === 'en' ? 'Delete' : 'حذف'}
                   </Button>
                 </div>
               </TableCell>

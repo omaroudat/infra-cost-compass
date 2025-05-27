@@ -45,6 +45,14 @@ const Breakdown = () => {
             </Button>
           </div>
         </div>
+        <div className="text-sm text-gray-600">
+          <p>Breakdown items are automatically created from Level 5 BOQ items</p>
+          <p>Only description and percentage can be modified</p>
+        </div>
+      </div>
+      
+      {/* Only show dialog for editing, not for adding */}
+      {editingItem && (
         <BreakdownDialog
           isOpen={isAddDialogOpen}
           onOpenChange={setIsAddDialogOpen}
@@ -56,7 +64,7 @@ const Breakdown = () => {
           onReset={resetForm}
           boqItems={boqItems}
         />
-      </div>
+      )}
       
       <BreakdownTable
         breakdownItems={breakdownItems}

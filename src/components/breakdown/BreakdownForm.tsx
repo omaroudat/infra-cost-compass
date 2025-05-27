@@ -1,8 +1,8 @@
+
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BreakdownItem, BOQItem } from '../../types';
 
 interface BreakdownFormProps {
@@ -36,30 +36,28 @@ const BreakdownForm: React.FC<BreakdownFormProps> = ({
     return `${item.code} - ${item.description}`;
   };
 
+  // Find the current BOQ item to show its details
+  const currentBOQItem = flattenedBOQItems(boqItems).find(item => item.id === newItem.boqItemId);
+
   return (
     <div className="grid gap-4 py-4">
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="boqItemId" className="text-right">
+        <Label htmlFor="boqItemDisplay" className="text-right">
           BOQ Item (Level 5)
         </Label>
         <div className="col-span-3">
-          <Select
-            value={newItem.boqItemId}
-            onValueChange={(value) => onSelectChange('boqItemId', value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select Level 5 BOQ Item" />
-            </SelectTrigger>
-            <SelectContent>
-              {flattenedBOQItems(boqItems).map((item) => (
-                <SelectItem key={item.id} value={item.id}>
-                  {getBOQItemLabel(item)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Input
+            id="boqItemDisplay"
+            value={currentBOQItem ? getBOQItemLabel(currentBOQItem) : ''}
+            disabled
+            className="bg-gray-100"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            BOQ item cannot be changed. Breakdown items are automatically created from Level 5 BOQ items.
+          </p>
         </div>
       </div>
+      
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="keyword" className="text-right">
           Keyword (EN)
@@ -68,10 +66,11 @@ const BreakdownForm: React.FC<BreakdownFormProps> = ({
           id="keyword"
           name="keyword"
           value={newItem.keyword}
-          onChange={onInputChange}
-          className="col-span-3"
+          disabled
+          className="col-span-3 bg-gray-100"
         />
       </div>
+      
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="keywordAr" className="text-right">
           Keyword (AR)
@@ -80,11 +79,12 @@ const BreakdownForm: React.FC<BreakdownFormProps> = ({
           id="keywordAr"
           name="keywordAr"
           value={newItem.keywordAr || ''}
-          onChange={onInputChange}
-          className="col-span-3"
+          disabled
+          className="col-span-3 bg-gray-100"
           dir="rtl"
         />
       </div>
+      
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="description" className="text-right">
           Description (EN)
@@ -97,6 +97,7 @@ const BreakdownForm: React.FC<BreakdownFormProps> = ({
           className="col-span-3"
         />
       </div>
+      
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="descriptionAr" className="text-right">
           Description (AR)
@@ -110,21 +111,28 @@ const BreakdownForm: React.FC<BreakdownFormProps> = ({
           dir="rtl"
         />
       </div>
+      
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="percentage" className="text-right">
           Percentage (%)
         </Label>
-        <Input
-          id="percentage"
-          name="percentage"
-          type="number"
-          min="0"
-          max="100"
-          value={newItem.percentage}
-          onChange={onInputChange}
-          className="col-span-3"
-        />
+        <div className="col-span-3">
+          <Input
+            id="percentage"
+            name="percentage"
+            type="number"
+            min="0"
+            max="100"
+            step="0.01"
+            value={newItem.percentage}
+            onChange={onInputChange}
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Value will be automatically calculated as percentage of BOQ unit rate ({currentBOQItem?.unitRate?.toLocaleString('ar-SA')} SAR)
+          </p>
+        </div>
       </div>
+      
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="value" className="text-right">
           Value (SAR)
@@ -133,9 +141,11 @@ const BreakdownForm: React.FC<BreakdownFormProps> = ({
           id="value"
           name="value"
           type="number"
-          value={newItem.value}
-          onChange={onInputChange}
-          className="col-span-3"
+          value={currentBOQItem && newItem.percentage ? 
+            ((currentBOQItem.unitRate * (newItem.percentage || 0)) / 100).toFixed(2) : 
+            newItem.value}
+          disabled
+          className="col-span-3 bg-gray-100"
         />
       </div>
     </div>

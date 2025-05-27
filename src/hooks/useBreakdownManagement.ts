@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { BreakdownItem } from '../types';
@@ -40,12 +41,12 @@ export const useBreakdownManagement = () => {
       
       if (!existingBreakdown) {
         const autoBreakdownItem = {
-          keyword: '',
-          keywordAr: '',
-          description: '',
-          descriptionAr: '',
+          keyword: boqItem.code,
+          keywordAr: boqItem.code,
+          description: boqItem.description,
+          descriptionAr: boqItem.descriptionAr || boqItem.description,
           percentage: 0,
-          value: 0,
+          value: boqItem.unitRate,
           boqItemId: boqItem.id,
         };
         
@@ -58,27 +59,47 @@ export const useBreakdownManagement = () => {
     const { name, value } = e.target;
     setNewItem(prev => ({ 
       ...prev, 
-      [name]: name === 'percentage' || name === 'value' ? parseFloat(value) || 0 : value 
+      [name]: name === 'percentage' ? parseFloat(value) || 0 : value 
     }));
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    setNewItem(prev => ({ ...prev, [name]: value }));
+    // BOQ item selection is disabled
+    return;
   };
 
   const handleSave = () => {
-    if (!newItem.boqItemId) {
-      toast.error('Please select a BOQ item.');
+    if (!editingItem) {
+      toast.error('No item selected for editing.');
       return;
     }
     
-    if (editingItem) {
-      updateBreakdownItem(editingItem, newItem);
-      toast.success('Breakdown item updated successfully.');
-    } else {
-      addBreakdownItem(newItem as Omit<BreakdownItem, 'id'>);
-      toast.success('Breakdown item added successfully.');
+    // Get the current BOQ item to recalculate value based on percentage
+    const currentBreakdown = breakdownItems?.find(item => item.id === editingItem);
+    if (!currentBreakdown) {
+      toast.error('Breakdown item not found.');
+      return;
     }
+
+    const boqItem = flattenedBOQItems(boqItems).find(item => item.id === currentBreakdown.boqItemId);
+    if (!boqItem) {
+      toast.error('Associated BOQ item not found.');
+      return;
+    }
+
+    // Calculate value based on percentage of BOQ unit rate
+    const calculatedValue = (boqItem.unitRate * (newItem.percentage || 0)) / 100;
+    
+    const updatedItem = {
+      ...newItem,
+      value: calculatedValue,
+      boqItemId: currentBreakdown.boqItemId, // Keep original BOQ item
+      keyword: currentBreakdown.keyword, // Keep original keyword
+      keywordAr: currentBreakdown.keywordAr, // Keep original keyword
+    };
+    
+    updateBreakdownItem(editingItem, updatedItem);
+    toast.success('Breakdown item updated successfully.');
     
     resetForm();
   };
@@ -111,6 +132,15 @@ export const useBreakdownManagement = () => {
     setIsAddDialogOpen(true);
   };
 
+  // Disable add/delete functions
+  const handleAddDisabled = () => {
+    toast.info('Breakdown items are automatically created from Level 5 BOQ items.');
+  };
+
+  const handleDeleteDisabled = () => {
+    toast.info('Breakdown items cannot be deleted. They are linked to BOQ items.');
+  };
+
   return {
     breakdownItems,
     boqItems,
@@ -123,6 +153,7 @@ export const useBreakdownManagement = () => {
     handleSave,
     resetForm,
     handleEdit,
-    deleteBreakdownItem
+    deleteBreakdownItem: handleDeleteDisabled,
+    addBreakdownItem: handleAddDisabled
   };
 };
