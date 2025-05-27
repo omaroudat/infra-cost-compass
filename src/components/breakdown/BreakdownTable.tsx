@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -60,7 +59,6 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
           <TableRow>
             <TableHead>{language === 'en' ? 'BOQ Item' : 'بند الكميات'}</TableHead>
             <TableHead>{language === 'en' ? 'BOQ Unit Rate' : 'السعر الافرادي'}</TableHead>
-            <TableHead>{language === 'en' ? 'Description' : 'الوصف'}</TableHead>
             <TableHead>{language === 'en' ? 'Percentage' : 'النسبة المئوية'}</TableHead>
             <TableHead className="text-right">{language === 'en' ? 'Actions' : 'الإجراءات'}</TableHead>
           </TableRow>
@@ -73,9 +71,6 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
               </TableCell>
               <TableCell className="text-sm">
                 {numberFormatter.format(getBOQItemUnitRate(item.boqItemId))}
-              </TableCell>
-              <TableCell>
-                {language === 'en' ? item.description : (item.descriptionAr || item.description)}
               </TableCell>
               <TableCell>{item.percentage}%</TableCell>
               <TableCell className="text-right">
