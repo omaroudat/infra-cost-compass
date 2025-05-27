@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { WIR, BOQItem, BOQProgress } from '../types';
@@ -32,9 +33,10 @@ const ProgressTracking = () => {
     const flattened = flattenedBOQItems(boqItems);
     
     return flattened.map(boqItem => {
+      // Find WIRs that include this BOQ item in their linkedBOQItems array
       const relatedWIRs = wirs.filter(wir => 
-        wir.boqItemId === boqItem.id && 
-        (wir.result === 'A' || wir.result === 'B')
+        (wir.linkedBOQItems && wir.linkedBOQItems.includes(boqItem.id)) ||
+        (wir.boqItemId === boqItem.id && (wir.result === 'A' || wir.result === 'B'))
       );
       
       const completedQuantity = relatedWIRs.reduce((sum, wir) => {
@@ -49,21 +51,21 @@ const ProgressTracking = () => {
       const itemBreakdowns = breakdownItems?.filter(bd => bd.boqItemId === boqItem.id) || [];
       const breakdownProgress = itemBreakdowns.map(breakdown => {
         const breakdownWIRs = relatedWIRs.filter(wir => 
-          wir.description.toLowerCase().includes(breakdown.keyword.toLowerCase())
+          wir.description.toLowerCase().includes(breakdown.keyword?.toLowerCase() || '')
         );
         
         const breakdownCompleted = breakdownWIRs.reduce((sum, wir) => {
           return sum + (wir.lengthOfLine || 0);
         }, 0);
         
-        const expectedQuantity = (boqItem.quantity * breakdown.percentage) / 100;
+        const expectedQuantity = (boqItem.quantity * (breakdown.percentage || 0)) / 100;
         const completedPercentage = expectedQuantity > 0 
           ? Math.min((breakdownCompleted / expectedQuantity) * 100, 100)
           : 0;
         
         return {
           breakdownId: breakdown.id,
-          percentage: breakdown.percentage,
+          percentage: breakdown.percentage || 0,
           completedPercentage
         };
       });
@@ -86,7 +88,11 @@ const ProgressTracking = () => {
   const getBreakdownItem = (id: string) => breakdownItems?.find(item => item.id === id);
   
   const getWIRsForBOQ = (boqId: string) => {
-    return wirs.filter(wir => wir.boqItemId === boqId);
+    // Return WIRs that include this BOQ item in their linkedBOQItems array
+    return wirs.filter(wir => 
+      (wir.linkedBOQItems && wir.linkedBOQItems.includes(boqId)) ||
+      wir.boqItemId === boqId
+    );
   };
   
   return (
@@ -189,6 +195,7 @@ const ProgressTracking = () => {
                           <TableHead>{language === 'en' ? 'Engineer' : 'المهندس'}</TableHead>
                           <TableHead>{language === 'en' ? 'Length (m)' : 'الطول (م)'}</TableHead>
                           <TableHead>{language === 'en' ? 'Diameter (mm)' : 'القطر (مم)'}</TableHead>
+                          <TableHead>{language === 'en' ? 'WIR Value' : 'قيمة الطلب'}</TableHead>
                           <TableHead>{language === 'en' ? 'Status' : 'الحالة'}</TableHead>
                           <TableHead>{language === 'en' ? 'Result' : 'النتيجة'}</TableHead>
                           <TableHead>{language === 'en' ? 'Amount' : 'المبلغ'}</TableHead>
@@ -202,6 +209,7 @@ const ProgressTracking = () => {
                             <TableCell>{wir.engineer}</TableCell>
                             <TableCell>{wir.lengthOfLine?.toLocaleString()}</TableCell>
                             <TableCell>{wir.diameterOfLine?.toLocaleString()}</TableCell>
+                            <TableCell>{wir.value?.toLocaleString()}</TableCell>
                             <TableCell>
                               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                                 wir.status === 'submitted' ? 'bg-yellow-100 text-yellow-800' :
