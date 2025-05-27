@@ -28,7 +28,7 @@ const WIRTable: React.FC<WIRTableProps> = ({
 }) => {
   const { language } = useLanguage();
   
-  // Always use English number formatting
+  // Always use English number formatting for all numbers including currency
   const formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'SAR',

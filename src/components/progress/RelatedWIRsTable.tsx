@@ -24,6 +24,14 @@ export const RelatedWIRsTable: React.FC<RelatedWIRsTableProps> = ({
   // Always use English number formatting
   const numberFormatter = new Intl.NumberFormat('en-US');
   
+  // Always use English currency formatting
+  const englishFormatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'SAR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+  
   if (wirs.length === 0) return null;
 
   return (
@@ -74,7 +82,7 @@ export const RelatedWIRsTable: React.FC<RelatedWIRsTableProps> = ({
                   )}
                 </TableCell>
                 <TableCell>
-                  {wirAmountForThisItem > 0 ? formatter.format(wirAmountForThisItem) : '-'}
+                  {wirAmountForThisItem > 0 ? englishFormatter.format(wirAmountForThisItem) : '-'}
                 </TableCell>
               </TableRow>
             );
