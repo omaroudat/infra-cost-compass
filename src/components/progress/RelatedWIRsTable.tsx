@@ -21,6 +21,8 @@ export const RelatedWIRsTable: React.FC<RelatedWIRsTableProps> = ({
 }) => {
   const { t } = useLanguage();
   
+  const numberFormatter = new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US');
+  
   if (wirs.length === 0) return null;
 
   return (
@@ -49,7 +51,7 @@ export const RelatedWIRsTable: React.FC<RelatedWIRsTableProps> = ({
                 <TableCell className="font-medium">{wir.id}</TableCell>
                 <TableCell>{wir.contractor}</TableCell>
                 <TableCell>{wir.engineer}</TableCell>
-                <TableCell>{wir.value?.toLocaleString()}</TableCell>
+                <TableCell>{numberFormatter.format(wir.value || 0)}</TableCell>
                 <TableCell>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                     wir.status === 'submitted' ? 'bg-yellow-100 text-yellow-800' :

@@ -3,6 +3,7 @@ import React from 'react';
 import { BOQItem, WIR } from '@/types';
 import StatusBadge from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface WIRTableProps {
   wirs: WIR[];
@@ -25,12 +26,16 @@ const WIRTable: React.FC<WIRTableProps> = ({
   onSubmitResult,
   onRevisionRequest
 }) => {
-  const formatter = new Intl.NumberFormat('ar-SA', {
+  const { language } = useLanguage();
+  
+  const formatter = new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
     style: 'currency',
     currency: 'SAR',
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   });
+
+  const numberFormatter = new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US');
 
   const getBOQItemByIdWithLabel = (id: string): string => {
     const item = flattenedBOQItems.find(item => item.id === id);
@@ -102,7 +107,7 @@ const WIRTable: React.FC<WIRTableProps> = ({
                 <div>{wir.description}</div>
                 {wir.breakdownApplied && (
                   <div className="mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    +{(wir.breakdownApplied.percentage * 100).toFixed(0)}% ({wir.breakdownApplied.keyword})
+                    +{numberFormatter.format(wir.breakdownApplied.percentage * 100)}% ({wir.breakdownApplied.keyword})
                   </div>
                 )}
                 {wir.result === 'B' && wir.statusConditions && (
@@ -112,7 +117,7 @@ const WIRTable: React.FC<WIRTableProps> = ({
                 )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {wir.value?.toLocaleString('ar-SA') || 0}
+                {numberFormatter.format(wir.value || 0)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {new Date(wir.submittalDate).toLocaleDateString()}
