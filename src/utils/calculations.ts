@@ -1,5 +1,5 @@
 
-import { BOQItem, PercentageAdjustment, WIR, WIRResult } from "../types";
+import { BOQItem, PercentageAdjustment, WIR, WIRResult, BreakdownItem } from "../types";
 import { mockBOQItems, mockPercentageAdjustments } from "../data/mockData";
 
 export function findBOQItemById(id: string): BOQItem | undefined {
@@ -17,6 +17,47 @@ export function findBOQItemById(id: string): BOQItem | undefined {
   return undefined;
 }
 
+export function findBreakdownItemByBOQId(boqItemId: string, breakdownItems: BreakdownItem[]): BreakdownItem | null {
+  return breakdownItems.find(item => item.boqItemId === boqItemId) || null;
+}
+
+export function calculateWIRAmount(wir: WIR, breakdownItems: BreakdownItem[]): { amount: number | null, equation: string } {
+  // Only calculate for approved or conditionally approved WIRs
+  if (wir.result !== 'A' && wir.result !== 'B') {
+    return { amount: null, equation: '' };
+  }
+
+  let totalAmount = 0;
+  let equations: string[] = [];
+
+  // Calculate for each linked BOQ item
+  for (const boqItemId of wir.linkedBOQItems || [wir.boqItemId]) {
+    const boqItem = findBOQItemById(boqItemId);
+    if (!boqItem) continue;
+
+    const breakdown = findBreakdownItemByBOQId(boqItemId, breakdownItems);
+    const breakdownPercentage = breakdown?.percentage || 0;
+    const wirValue = wir.value || 0;
+
+    // Formula: BOQ Unit Rate × WIR Value × Breakdown Percentage / 100
+    const itemAmount = boqItem.unitRate * wirValue * (breakdownPercentage / 100);
+    totalAmount += itemAmount;
+
+    // Create equation string
+    const equation = `${boqItem.unitRate.toLocaleString('ar-SA')} × ${wirValue.toLocaleString('ar-SA')} × ${breakdownPercentage}% = ${itemAmount.toLocaleString('ar-SA')}`;
+    equations.push(`${boqItem.code}: ${equation}`);
+  }
+
+  const finalEquation = equations.length > 1 
+    ? `${equations.join(' + ')} = ${totalAmount.toLocaleString('ar-SA')} SAR`
+    : `${equations[0]} SAR`;
+
+  return { 
+    amount: parseFloat(totalAmount.toFixed(2)), 
+    equation: finalEquation 
+  };
+}
+
 export function findApplicableAdjustment(description: string): PercentageAdjustment | null {
   for (const adjustment of mockPercentageAdjustments) {
     if (description.toLowerCase().includes(adjustment.keyword.toLowerCase())) {
@@ -24,27 +65,6 @@ export function findApplicableAdjustment(description: string): PercentageAdjustm
     }
   }
   return null;
-}
-
-export function calculateWIRAmount(wir: WIR): number | null {
-  // Only calculate for approved or conditionally approved WIRs
-  if (wir.result !== 'A' && wir.result !== 'B') {
-    return null;
-  }
-
-  const boqItem = findBOQItemById(wir.boqItemId);
-  if (!boqItem) return null;
-
-  const adjustment = findApplicableAdjustment(wir.description);
-  let totalAmount = boqItem.quantity * boqItem.unitRate;
-
-  if (adjustment) {
-    // Apply the adjustment directly (multiply by percentage) instead of adding
-    // e.g., if percentage is 0.2 (20%), multiply by 0.2 to get 20% of the value
-    return parseFloat((adjustment.value * adjustment.percentage).toFixed(2));
-  }
-
-  return parseFloat(totalAmount.toFixed(2));
 }
 
 export function generateFinancialSummary(wirs: WIR[]): {

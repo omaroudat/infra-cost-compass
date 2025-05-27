@@ -1,10 +1,12 @@
+
 import { useState } from 'react';
 import { WIR, BOQItem } from '@/types';
 import { useAppContext } from '@/context/AppContext';
+import { calculateWIRAmount } from '@/utils/calculations';
 import { toast } from 'sonner';
 
 export const useWIRManagement = () => {
-  const { wirs, boqItems, addWIR, updateWIR, deleteWIR } = useAppContext();
+  const { wirs, boqItems, breakdownItems, addWIR, updateWIR, deleteWIR } = useAppContext();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingWIR, setEditingWIR] = useState<string | null>(null);
   const [isSubmittingResult, setIsSubmittingResult] = useState(false);
@@ -21,6 +23,7 @@ export const useWIRManagement = () => {
     diameterOfLine: 0,
     lineNo: '',
     region: '',
+    value: 0,
     linkedBOQItems: []
   });
   
@@ -57,6 +60,7 @@ export const useWIRManagement = () => {
       diameterOfLine: wir.diameterOfLine || 0,
       lineNo: wir.lineNo || '',
       region: wir.region || '',
+      value: wir.value || 0,
       linkedBOQItems: wir.linkedBOQItems || [wir.boqItemId]
     });
     setEditingWIR(wir.id);
@@ -79,6 +83,7 @@ export const useWIRManagement = () => {
       diameterOfLine: wir.diameterOfLine || 0,
       lineNo: wir.lineNo || '',
       region: wir.region || '',
+      value: wir.value || 0,
       linkedBOQItems: wir.linkedBOQItems || [wir.boqItemId]
     });
     setEditingWIR(wir.id);
@@ -104,13 +109,14 @@ export const useWIRManagement = () => {
       diameterOfLine: wir.diameterOfLine,
       lineNo: wir.lineNo,
       region: wir.region,
+      value: wir.value,
       linkedBOQItems: wir.linkedBOQItems,
       parentWIRId: wir.id,
       revisionNumber: revisionNumber,
       originalWIRId: originalWIRId
     };
 
-    addWIR(revisionWIR as Omit<WIR, 'id' | 'calculatedAmount' | 'breakdownApplied'>);
+    addWIR(revisionWIR as Omit<WIR, 'id' | 'calculatedAmount' | 'breakdownApplied' | 'calculationEquation'>);
     toast.success(`Revision request created: ${originalWIRId}_R${revisionNumber}`);
   };
   
@@ -122,12 +128,19 @@ export const useWIRManagement = () => {
       if (isSubmittingResult) {
         updates.status = 'completed';
         updates.receivedDate = updates.receivedDate || new Date().toISOString().split('T')[0];
+        
+        // Calculate amount and equation when result is submitted
+        if (updates.result === 'A' || updates.result === 'B') {
+          const calculation = calculateWIRAmount(updates as WIR, breakdownItems || []);
+          updates.calculatedAmount = calculation.amount;
+          updates.calculationEquation = calculation.equation;
+        }
       }
       
       updateWIR(editingWIR, updates);
       toast.success(isSubmittingResult ? 'Result submitted successfully.' : 'WIR updated successfully.');
     } else {
-      addWIR(newWIR as Omit<WIR, 'id' | 'calculatedAmount' | 'breakdownApplied'>);
+      addWIR(newWIR as Omit<WIR, 'id' | 'calculatedAmount' | 'breakdownApplied' | 'calculationEquation'>);
       toast.success('WIR added successfully.');
     }
     
@@ -144,6 +157,7 @@ export const useWIRManagement = () => {
       diameterOfLine: 0,
       lineNo: '',
       region: '',
+      value: 0,
       linkedBOQItems: []
     });
     setEditingWIR(null);
@@ -173,6 +187,7 @@ export const useWIRManagement = () => {
       diameterOfLine: 0,
       lineNo: '',
       region: '',
+      value: 0,
       linkedBOQItems: []
     });
   };

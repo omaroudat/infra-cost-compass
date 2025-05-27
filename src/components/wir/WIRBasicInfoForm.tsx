@@ -25,7 +25,10 @@ const WIRBasicInfoForm: React.FC<WIRBasicInfoFormProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setNewWIR(prev => ({ ...prev, [name]: value }));
+    setNewWIR(prev => ({ 
+      ...prev, 
+      [name]: name === 'value' ? parseFloat(value) || 0 : value 
+    }));
   };
 
   const handleSelectChange = (name: string, value: string) => {
@@ -92,6 +95,24 @@ const WIRBasicInfoForm: React.FC<WIRBasicInfoFormProps> = ({
             ))}
           </SelectContent>
         </Select>
+      </div>
+      
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="value" className="text-right">
+          Value / القيمة
+        </Label>
+        <Input
+          id="value"
+          name="value"
+          type="number"
+          min="0"
+          step="0.01"
+          value={newWIR.value || 0}
+          onChange={handleInputChange}
+          className="col-span-3"
+          disabled={isResultSubmission}
+          required
+        />
       </div>
       
       <div className="grid grid-cols-4 items-center gap-4">

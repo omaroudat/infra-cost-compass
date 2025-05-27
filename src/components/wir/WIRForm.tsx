@@ -28,7 +28,7 @@ const WIRForm: React.FC<WIRFormProps> = ({
     const required = [
       'description', 'submittalDate', 'status', 
       'contractor', 'engineer', 'lengthOfLine', 'diameterOfLine', 
-      'lineNo', 'region'
+      'lineNo', 'region', 'value'
     ];
     
     const missing = required.filter(field => !newWIR[field as keyof typeof newWIR]);
@@ -41,6 +41,12 @@ const WIRForm: React.FC<WIRFormProps> = ({
     // Check if at least one BOQ item is selected
     if (!newWIR.linkedBOQItems || newWIR.linkedBOQItems.length === 0) {
       toast.error('Please select at least one BOQ item.');
+      return;
+    }
+
+    // Validate value is greater than 0
+    if (!newWIR.value || newWIR.value <= 0) {
+      toast.error('Value must be greater than 0.');
       return;
     }
     

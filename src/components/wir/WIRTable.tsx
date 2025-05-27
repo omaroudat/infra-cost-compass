@@ -65,13 +65,16 @@ const WIRTable: React.FC<WIRTableProps> = ({
               Description
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Value
+            </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Submittal Date
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Status
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Amount
+              Amount & Calculation
             </th>
             {(canEdit || canDelete) && (
               <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -109,6 +112,9 @@ const WIRTable: React.FC<WIRTableProps> = ({
                 )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {wir.value?.toLocaleString('ar-SA') || 0}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {new Date(wir.submittalDate).toLocaleDateString()}
                 {wir.receivedDate && (
                   <div className="text-xs text-gray-400">
@@ -128,8 +134,15 @@ const WIRTable: React.FC<WIRTableProps> = ({
                   </span>
                 )}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                {wir.calculatedAmount ? formatter.format(wir.calculatedAmount) : '-'}
+              <td className="px-6 py-4 text-sm">
+                <div className="font-medium">
+                  {wir.calculatedAmount ? formatter.format(wir.calculatedAmount) : '-'}
+                </div>
+                {wir.calculationEquation && (
+                  <div className="text-xs text-gray-500 mt-1 font-mono">
+                    {wir.calculationEquation}
+                  </div>
+                )}
               </td>
               {(canEdit || canDelete) && (
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

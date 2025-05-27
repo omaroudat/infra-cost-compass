@@ -1,3 +1,4 @@
+
 export type BOQItem = {
   id: string;
   code: string;
@@ -42,6 +43,7 @@ export type WIR = {
   result?: WIRResult;
   statusConditions?: string;
   calculatedAmount: number | null;
+  calculationEquation?: string; // New field to store the equation
   breakdownApplied: BreakdownItem | null;
   adjustmentApplied?: BreakdownItem | null; // For backward compatibility
   contractor: string;
@@ -50,6 +52,7 @@ export type WIR = {
   diameterOfLine: number; // millimeters
   lineNo: string;
   region: string;
+  value: number; // New field for WIR value
   parentWIRId?: string; // for revisions
   revisionNumber?: number;
   linkedBOQItems: string[]; // multiple sub items
