@@ -1,12 +1,11 @@
-
 import { BOQItem, PercentageAdjustment, WIR, WIRResult, BreakdownItem } from "../types";
 import { mockBOQItems, mockPercentageAdjustments } from "../data/mockData";
 
-export function findBOQItemById(id: string): BOQItem | undefined {
-  console.log('Searching for BOQ item with ID:', id);
+export function findBOQItemById(id: string, boqItems: BOQItem[]): BOQItem | undefined {
+  console.log('Searching for BOQ item with ID:', id, 'in items:', boqItems.length);
   
   // First, check top-level items
-  for (const item of mockBOQItems) {
+  for (const item of boqItems) {
     if (item.id === id) {
       console.log('Found BOQ item at top level:', item);
       return item;
@@ -42,7 +41,7 @@ function findInChildren(children: BOQItem[], id: string): BOQItem | undefined {
 export function findBreakdownItemByBOQCode(boqCode: string, breakdownItems: BreakdownItem[]): BreakdownItem | null {
   console.log('Searching for breakdown item with BOQ code:', boqCode);
   const found = breakdownItems.find(item => item.keyword === boqCode) || null;
-  console.log('Found breakdown item:', found);
+  console.log('Found breakdown item by code:', found);
   return found;
 }
 
@@ -53,8 +52,14 @@ export function findBreakdownItemByBOQId(boqItemId: string, breakdownItems: Brea
   return found;
 }
 
-export function calculateWIRAmount(wir: WIR, breakdownItems: BreakdownItem[]): { amount: number | null, equation: string } {
-  console.log('calculateWIRAmount called with:', { wir, breakdownItems });
+export function calculateWIRAmount(wir: WIR, breakdownItems: BreakdownItem[], boqItems: BOQItem[]): { amount: number | null, equation: string } {
+  console.log('calculateWIRAmount called with:', { 
+    wir: wir.id, 
+    breakdownItemsCount: breakdownItems?.length || 0,
+    boqItemsCount: boqItems?.length || 0,
+    wirResult: wir.result,
+    wirStatus: wir.status
+  });
   
   // Only calculate for approved or conditionally approved WIRs
   if (wir.result !== 'A' && wir.result !== 'B') {
@@ -72,13 +77,13 @@ export function calculateWIRAmount(wir: WIR, breakdownItems: BreakdownItem[]): {
   for (const boqItemId of boqItemIds) {
     console.log('Processing BOQ item ID:', boqItemId);
     
-    const boqItem = findBOQItemById(boqItemId);
+    const boqItem = findBOQItemById(boqItemId, boqItems);
     if (!boqItem) {
       console.log('BOQ item not found for ID:', boqItemId);
       continue;
     }
 
-    console.log('Found BOQ item:', boqItem);
+    console.log('Found BOQ item:', { id: boqItem.id, code: boqItem.code, unitRate: boqItem.unitRate });
 
     // Try to find breakdown item by BOQ ID first, then by code
     let breakdown = findBreakdownItemByBOQId(boqItemId, breakdownItems);
@@ -86,9 +91,9 @@ export function calculateWIRAmount(wir: WIR, breakdownItems: BreakdownItem[]): {
       breakdown = findBreakdownItemByBOQCode(boqItem.code, breakdownItems);
     }
     
-    console.log('Found breakdown for BOQ item:', { boqItemId, breakdown });
+    console.log('Found breakdown for BOQ item:', { boqItemId, breakdown: breakdown?.id, percentage: breakdown?.percentage });
     
-    if (!breakdown || !breakdown.percentage) {
+    if (!breakdown || !breakdown.percentage || breakdown.percentage === 0) {
       console.log('No breakdown found or percentage is 0 for BOQ item:', boqItemId);
       continue;
     }
@@ -98,7 +103,7 @@ export function calculateWIRAmount(wir: WIR, breakdownItems: BreakdownItem[]): {
     const wirValue = wir.value || 0;
     const unitRate = boqItem.unitRate || 0;
 
-    console.log('Calculation values:', { wirValue, unitRate, breakdownPercentage });
+    console.log('Calculation values:', { wirValue, unitRate, breakdownPercentage, percentage: breakdown.percentage });
 
     // Formula: WIR Value × BOQ Unit Rate × Breakdown Percentage (as decimal)
     const itemAmount = wirValue * unitRate * breakdownPercentage;
@@ -150,7 +155,7 @@ export function generateFinancialSummary(wirs: WIR[]): {
   
   // Count WIRs by status and calculate amounts
   for (const wir of wirs) {
-    const boqItem = findBOQItemById(wir.boqItemId);
+    const boqItem = findBOQItemById(wir.boqItemId, mockBOQItems);
     
     if (boqItem) {
       // Calculate BOQ amount (without adjustments)

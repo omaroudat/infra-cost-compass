@@ -239,7 +239,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           if ((updatedWIR.result === 'A' || updatedWIR.result === 'B') && 
               updatedWIR.status === 'completed') {
             console.log('Calculating amount for WIR:', updatedWIR);
-            const calculation = calculateWIRAmount(updatedWIR, breakdownItems);
+            const calculation = calculateWIRAmount(updatedWIR, breakdownItems, boqItems);
             console.log('Calculation result:', calculation);
             updatedWIR.calculatedAmount = calculation.amount;
             updatedWIR.calculationEquation = calculation.equation;

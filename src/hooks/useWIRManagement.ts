@@ -118,7 +118,7 @@ export const useWIRManagement = () => {
         
         // Calculate amount and equation when result is submitted
         if (updates.result === 'A' || updates.result === 'B') {
-          const calculation = calculateWIRAmount(updates as WIR, breakdownItems || []);
+          const calculation = calculateWIRAmount(updates as WIR, breakdownItems || [], boqItems);
           updates.calculatedAmount = calculation.amount;
           updates.calculationEquation = calculation.equation;
         }
