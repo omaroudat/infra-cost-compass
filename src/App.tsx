@@ -1,112 +1,150 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Layout from "./components/Layout";
-import ProtectedRoute from "./components/ProtectedRoute";
-import Dashboard from "./pages/Dashboard";
-import BOQ from "./pages/BOQ";
-import Adjustments from "./pages/Adjustments";
-import WIRs from "./pages/WIRs";
-import Reports from "./pages/Reports";
-import NotFound from "./pages/NotFound";
-import Login from "./pages/Login";
-import Unauthorized from "./pages/Unauthorized";
-import UserManagement from "./pages/UserManagement";
-import Breakdown from "./pages/Breakdown";
-import ProgressTracking from "./pages/ProgressTracking";
-import { AppProvider } from "./context/AppContext";
-import { AuthProvider } from "./context/AuthContext";
-import { LanguageProvider } from "./context/LanguageContext";
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/sonner';
+import { AuthProvider } from './context/AuthContext';
+import { AppProvider } from './context/AppContext';
+import { LanguageProvider } from './context/LanguageContext';
+import Layout from './components/Layout';
+import ProtectedRoute from './components/ProtectedRoute';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import BOQ from './pages/BOQ';
+import Breakdown from './pages/Breakdown';
+import Adjustments from './pages/Adjustments';
+import WIRs from './pages/WIRs';
+import ProgressTracking from './pages/ProgressTracking';
+import Reports from './pages/Reports';
+import Invoices from './pages/Invoices';
+import StaffManagement from './pages/StaffManagement';
+import UserManagement from './pages/UserManagement';
+import Index from './pages/Index';
+import NotFound from './pages/NotFound';
+import Unauthorized from './pages/Unauthorized';
+import './App.css';
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <LanguageProvider>
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <AppProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
+          <LanguageProvider>
+            <Router>
               <Routes>
+                <Route path="/" element={<Index />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/unauthorized" element={<Unauthorized />} />
                 <Route
-                  path="/"
+                  path="/dashboard"
                   element={
-                    <ProtectedRoute>
-                      <Layout><Dashboard /></Layout>
+                    <ProtectedRoute requiredRoles={['admin', 'dataEntry', 'viewer']}>
+                      <Layout>
+                        <Dashboard />
+                      </Layout>
                     </ProtectedRoute>
                   }
                 />
                 <Route
                   path="/boq"
                   element={
-                    <ProtectedRoute allowedRoles={['admin']}>
-                      <Layout><BOQ /></Layout>
+                    <ProtectedRoute requiredRoles={['admin', 'dataEntry']}>
+                      <Layout>
+                        <BOQ />
+                      </Layout>
                     </ProtectedRoute>
                   }
                 />
                 <Route
                   path="/breakdown"
                   element={
-                    <ProtectedRoute allowedRoles={['admin']}>
-                      <Layout><Breakdown /></Layout>
+                    <ProtectedRoute requiredRoles={['admin', 'dataEntry']}>
+                      <Layout>
+                        <Breakdown />
+                      </Layout>
                     </ProtectedRoute>
                   }
                 />
                 <Route
                   path="/adjustments"
                   element={
-                    <ProtectedRoute allowedRoles={['admin']}>
-                      <Layout><Adjustments /></Layout>
+                    <ProtectedRoute requiredRoles={['admin', 'dataEntry']}>
+                      <Layout>
+                        <Adjustments />
+                      </Layout>
                     </ProtectedRoute>
                   }
                 />
                 <Route
                   path="/wirs"
                   element={
-                    <ProtectedRoute allowedRoles={['admin', 'dataEntry']}>
-                      <Layout><WIRs /></Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/reports"
-                  element={
-                    <ProtectedRoute allowedRoles={['admin']}>
-                      <Layout><Reports /></Layout>
+                    <ProtectedRoute requiredRoles={['admin', 'dataEntry', 'viewer']}>
+                      <Layout>
+                        <WIRs />
+                      </Layout>
                     </ProtectedRoute>
                   }
                 />
                 <Route
                   path="/progress"
                   element={
-                    <ProtectedRoute allowedRoles={['admin']}>
-                      <Layout><ProgressTracking /></Layout>
+                    <ProtectedRoute requiredRoles={['admin', 'dataEntry', 'viewer']}>
+                      <Layout>
+                        <ProgressTracking />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/reports"
+                  element={
+                    <ProtectedRoute requiredRoles={['admin', 'dataEntry', 'viewer']}>
+                      <Layout>
+                        <Reports />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/invoices"
+                  element={
+                    <ProtectedRoute requiredRoles={['admin', 'dataEntry', 'viewer']}>
+                      <Layout>
+                        <Invoices />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/staff"
+                  element={
+                    <ProtectedRoute requiredRoles={['admin']}>
+                      <Layout>
+                        <StaffManagement />
+                      </Layout>
                     </ProtectedRoute>
                   }
                 />
                 <Route
                   path="/users"
                   element={
-                    <ProtectedRoute allowedRoles={['admin']}>
-                      <Layout><UserManagement /></Layout>
+                    <ProtectedRoute requiredRoles={['admin']}>
+                      <Layout>
+                        <UserManagement />
+                      </Layout>
                     </ProtectedRoute>
                   }
                 />
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
+            </Router>
+            <Toaster />
+          </LanguageProvider>
         </AppProvider>
       </AuthProvider>
-    </LanguageProvider>
-  </QueryClientProvider>
-);
+    </QueryClientProvider>
+  );
+}
 
 export default App;
