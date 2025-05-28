@@ -26,7 +26,9 @@ const Invoices = () => {
   });
 
   const handleExportPDF = () => {
-    exportInvoiceToPDF(invoiceData, selectedMonth, language);
+    // Use the new logo for invoice exports
+    const logoUrl = '/lovable-uploads/454de6d4-afed-4b33-b065-ade01eb9065a.png';
+    exportInvoiceToPDF(invoiceData, selectedMonth, language, logoUrl);
   };
 
   return (

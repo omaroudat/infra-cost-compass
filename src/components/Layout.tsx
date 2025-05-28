@@ -64,35 +64,42 @@ const AppSidebar = () => {
   );
 
   return (
-    <Sidebar className="bg-slate-800 text-white">
-      <SidebarHeader className="border-b border-slate-700 p-6">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center">
-            <img 
-              src="/lovable-uploads/87571df3-99f0-413c-b984-aa2e1eae6341.png" 
-              alt="Company Logo" 
-              className="w-12 h-12 object-contain"
-            />
+    <Sidebar className="bg-gradient-to-b from-blue-900 via-blue-800 to-blue-900 text-white border-r-2 border-blue-700">
+      <SidebarHeader className="border-b border-blue-700/50 p-8 bg-gradient-to-r from-blue-800/50 to-blue-900/50">
+        <div className="flex flex-col items-center space-y-6">
+          <div className="relative">
+            <div className="w-20 h-20 bg-gradient-to-br from-amber-300 to-amber-500 rounded-full flex items-center justify-center shadow-lg border-2 border-amber-400">
+              <img 
+                src="/lovable-uploads/454de6d4-afed-4b33-b065-ade01eb9065a.png" 
+                alt="Company Logo" 
+                className="w-16 h-16 object-contain"
+              />
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white"></div>
           </div>
-          <div className="text-center">
-            <div className="text-yellow-400 text-sm font-medium mb-1" dir="rtl">
+          
+          <div className="text-center space-y-2">
+            <div className="text-amber-300 text-lg font-bold tracking-wide" dir="rtl">
               شركة سعد سعيد الصاعدي
             </div>
-            <div className="text-yellow-400 text-xs" dir="rtl">
+            <div className="text-amber-200 text-sm font-medium" dir="rtl">
               وأولاده التضامنية
             </div>
-          </div>
-          <div className="text-center">
-            <h1 className="text-white text-xl font-bold">WIR Management</h1>
-            <p className="text-slate-300 text-sm">Construction Financial Manager</p>
+            <div className="h-px bg-gradient-to-r from-transparent via-blue-400 to-transparent w-full my-3"></div>
+            <div className="text-center">
+              <h1 className="text-white text-xl font-bold bg-gradient-to-r from-blue-100 to-blue-200 bg-clip-text text-transparent">
+                WIR Management System
+              </h1>
+              <p className="text-blue-200 text-sm font-medium">Construction Financial Manager</p>
+            </div>
           </div>
         </div>
       </SidebarHeader>
       
-      <SidebarContent className="px-4 py-6">
+      <SidebarContent className="px-6 py-8 bg-gradient-to-b from-transparent to-blue-900/30">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-2">
+            <SidebarMenu className="space-y-3">
               {filteredNavigation.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.href;
@@ -102,16 +109,19 @@ const AppSidebar = () => {
                       asChild 
                       isActive={isActive}
                       className={`
-                        w-full text-left px-4 py-3 rounded-lg transition-colors
+                        w-full text-left px-6 py-4 rounded-xl transition-all duration-300 group
                         ${isActive 
-                          ? 'bg-slate-700 text-white font-medium' 
-                          : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                          ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold shadow-lg transform scale-105 border border-blue-500' 
+                          : 'text-blue-100 hover:bg-gradient-to-r hover:from-blue-700 hover:to-blue-800 hover:text-white hover:shadow-md hover:transform hover:scale-102'
                         }
                       `}
                     >
-                      <Link to={item.href} className="flex items-center space-x-3">
-                        <Icon className="h-5 w-5" />
-                        <span>{item.name}</span>
+                      <Link to={item.href} className="flex items-center space-x-4 w-full">
+                        <div className={`p-2 rounded-lg ${isActive ? 'bg-blue-500/30' : 'bg-blue-800/50 group-hover:bg-blue-600/50'} transition-colors`}>
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <span className="font-medium">{item.name}</span>
+                        {isActive && <div className="ml-auto w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>}
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -122,26 +132,31 @@ const AppSidebar = () => {
         </SidebarGroup>
       </SidebarContent>
       
-      <SidebarFooter className="border-t border-slate-700 p-4">
+      <SidebarFooter className="border-t border-blue-700/50 p-6 bg-gradient-to-r from-blue-800/50 to-blue-900/50">
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton className="w-full text-slate-300 hover:bg-slate-700 hover:text-white">
-                  <Avatar className="h-6 w-6">
-                    <AvatarFallback className="bg-slate-600 text-white">
-                      {user?.name?.charAt(0) || user?.username?.charAt(0) || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="truncate">{user?.name || user?.username}</span>
+                <SidebarMenuButton className="w-full text-blue-100 hover:bg-blue-700/50 hover:text-white rounded-xl p-4 transition-all duration-300">
+                  <div className="flex items-center space-x-3 w-full">
+                    <Avatar className="h-10 w-10 border-2 border-blue-400">
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold">
+                        {user?.name?.charAt(0) || user?.username?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 text-left">
+                      <div className="font-medium text-white truncate">{user?.name || user?.username}</div>
+                      <div className="text-xs text-blue-200 truncate">{user?.role}</div>
+                    </div>
+                  </div>
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
-              <DropdownMenuContent side="top" className="w-56">
-                <div className="px-2 py-1.5 text-sm text-gray-500">
+              <DropdownMenuContent side="top" className="w-56 bg-white/95 backdrop-blur-sm">
+                <div className="px-3 py-2 text-sm text-gray-600 border-b">
                   {user?.email || user?.username}
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} className="text-red-600">
+                <DropdownMenuItem onClick={logout} className="text-red-600 hover:bg-red-50 focus:bg-red-50">
                   <LogOut className="mr-2 h-4 w-4" />
                   {t('auth.logout') || 'Logout'}
                 </DropdownMenuItem>
@@ -160,13 +175,13 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       <div className="min-h-screen flex w-full bg-gray-50">
         <AppSidebar />
         <SidebarInset className="flex-1">
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-white px-4 shadow-sm">
-            <SidebarTrigger className="-ml-1" />
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-white px-6 shadow-sm">
+            <SidebarTrigger className="-ml-1 hover:bg-blue-50" />
             <div className="ml-auto flex items-center space-x-4">
               <LanguageSelector />
             </div>
           </header>
-          <main className="flex-1 p-6 bg-gray-50">
+          <main className="flex-1 p-8 bg-gradient-to-br from-gray-50 to-gray-100">
             {children}
           </main>
         </SidebarInset>
