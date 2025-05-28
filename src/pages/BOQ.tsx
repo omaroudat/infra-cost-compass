@@ -3,6 +3,7 @@ import { useAppContext } from '../context/AppContext';
 import { BOQItem } from '../types';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -315,6 +316,11 @@ const BOQ = () => {
     return item?.level || 0;
   };
   
+  const handleDeleteItem = (itemId: string, itemCode: string) => {
+    deleteBOQItem(itemId);
+    toast.success(`BOQ item ${itemCode} deleted successfully.`);
+  };
+  
   const renderBOQItem = (item: BOQItem, level: number = 0) => {
     const totalValue = calculateItemTotal(item);
     const indentLevel = level * 30;
@@ -369,16 +375,28 @@ const BOQ = () => {
                 <Plus className="w-4 h-4" />
                 Add Sub-item
               </Button>
-              <Button 
-                variant="destructive" 
-                size="sm"
-                onClick={() => {
-                  deleteBOQItem(item.id);
-                  toast.success('BOQ item deleted successfully.');
-                }}
-              >
-                Delete
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm">
+                    Delete
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete the BOQ item "{item.code}" 
+                      {isParent ? ' and all its sub-items' : ''}.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => handleDeleteItem(item.id, item.code)}>
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </td>
         </tr>
