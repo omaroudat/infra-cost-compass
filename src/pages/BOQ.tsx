@@ -46,8 +46,22 @@ const BOQ = () => {
     }
   };
   
+  // Function to find BOQ item by code recursively
+  const findItemByCode = (items: BOQItem[], code: string): BOQItem | null => {
+    for (const item of items) {
+      if (item.code === code) {
+        return item;
+      }
+      if (item.children && item.children.length > 0) {
+        const found = findItemByCode(item.children, code);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+  
   // Function to flatten BOQ items for export
-  const flattenBOQItems = (items: BOQItem[], level: number = 0): any[] => {
+  const flattenBOQItems = (items: BOQItem[], level: number = 0, parentCode: string = ''): any[] => {
     const result: any[] = [];
     items.forEach(item => {
       const totalValue = calculateItemTotal(item);
@@ -61,11 +75,11 @@ const BOQ = () => {
         'Unit Rate': item.unitRate,
         'Total Amount': totalValue,
         'Level': level,
-        'Parent Code': level > 0 ? items.find(parent => parent.children?.some(child => child.id === item.id))?.code || '' : ''
+        'Parent Code': parentCode
       });
       
       if (item.children && item.children.length > 0) {
-        result.push(...flattenBOQItems(item.children, level + 1));
+        result.push(...flattenBOQItems(item.children, level + 1, item.code));
       }
     });
     return result;
@@ -117,8 +131,13 @@ const BOQ = () => {
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
         
+        console.log('Imported data:', jsonData);
+        console.log('Current BOQ items:', boqItems);
+        
         // Process imported data
         let importCount = 0;
+        let skippedCount = 0;
+        
         jsonData.forEach((row: any) => {
           const itemData = {
             code: row['Item Code'] || '',
@@ -128,24 +147,61 @@ const BOQ = () => {
             unit: row['Unit (EN)'] || '',
             unitAr: row['Unit (AR)'] || '',
             unitRate: parseFloat(row['Unit Rate']) || 0,
-            level: parseInt(row['Level']) || 0
+            level: parseInt(row['Level']) || 0,
+            parentCode: row['Parent Code'] || ''
           };
+          
+          console.log('Processing item:', itemData);
           
           // Only import if required fields are present
           if (itemData.code && itemData.description && itemData.unit) {
-            const totalAmount = itemData.quantity * itemData.unitRate;
+            // Check if item already exists
+            const existingItem = findItemByCode(boqItems, itemData.code);
+            if (existingItem) {
+              console.log('Item already exists, skipping:', itemData.code);
+              skippedCount++;
+              return;
+            }
+            
+            let parentId: string | undefined = undefined;
+            
+            // Find parent if parentCode is provided
+            if (itemData.parentCode) {
+              const parentItem = findItemByCode(boqItems, itemData.parentCode);
+              if (parentItem) {
+                parentId = parentItem.id;
+                console.log('Found parent for', itemData.code, ':', parentItem.code, parentItem.id);
+              } else {
+                console.log('Parent not found for', itemData.code, ', parent code:', itemData.parentCode);
+                console.log('Available items:', boqItems.map(item => ({ code: item.code, id: item.id })));
+              }
+            }
+            
             const itemToAdd = {
-              ...itemData,
-              totalAmount
+              code: itemData.code,
+              description: itemData.description,
+              descriptionAr: itemData.descriptionAr,
+              quantity: itemData.quantity,
+              unit: itemData.unit,
+              unitAr: itemData.unitAr,
+              unitRate: itemData.unitRate,
+              level: itemData.level
             };
             
-            // For now, add as top-level items (parent-child relationship can be enhanced later)
-            addBOQItem(itemToAdd as Omit<BOQItem, 'id'>, undefined);
+            console.log('Adding item:', itemToAdd, 'with parentId:', parentId);
+            addBOQItem(itemToAdd, parentId);
             importCount++;
+          } else {
+            console.log('Skipping item due to missing required fields:', itemData);
+            skippedCount++;
           }
         });
         
-        toast.success(`Successfully imported ${importCount} BOQ items!`);
+        if (importCount > 0) {
+          toast.success(`Successfully imported ${importCount} BOQ items!${skippedCount > 0 ? ` (${skippedCount} items skipped)` : ''}`);
+        } else {
+          toast.warning('No items were imported. Please check the file format and data.');
+        }
       } catch (error) {
         console.error('Import error:', error);
         toast.error('Failed to import BOQ data. Please check the file format.');
