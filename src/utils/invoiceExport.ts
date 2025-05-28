@@ -4,7 +4,8 @@ import { MonthlyInvoiceData } from '@/hooks/useInvoiceCalculations';
 export const exportInvoiceToPDF = (
   invoiceData: MonthlyInvoiceData,
   month: string,
-  language: 'en' | 'ar'
+  language: 'en' | 'ar',
+  logoUrl?: string
 ) => {
   const monthName = new Date(month + '-01').toLocaleDateString(
     language === 'ar' ? 'ar-SA' : 'en-US',
@@ -20,6 +21,10 @@ export const exportInvoiceToPDF = (
 
   const printWindow = window.open('', '_blank');
   if (!printWindow) return;
+
+  const logoSection = logoUrl 
+    ? `<img src="${logoUrl}" alt="Company Logo" style="width: 80px; height: 80px; object-fit: contain; margin: 0 auto 15px; display: block; border-radius: 50%; background: rgba(255, 255, 255, 0.2); padding: 10px;" />`
+    : `<div class="logo-placeholder">LOGO</div>`;
 
   const htmlContent = `
     <!DOCTYPE html>
@@ -229,8 +234,8 @@ export const exportInvoiceToPDF = (
       <div class="invoice-container">
         <div class="invoice-header">
           <div class="logo-section">
-            <div class="logo-placeholder">LOGO</div>
-            <div class="company-name">${language === 'en' ? 'Construction Company' : 'شركة الإنشاءات'}</div>
+            ${logoSection}
+            <div class="company-name">${language === 'en' ? 'Saad Saeed Al-Saadi & Sons Company' : 'شركة سعد سعيد الصاعدي وأولاده التضامنية'}</div>
           </div>
           <div class="invoice-title">${language === 'en' ? 'Monthly Progress Invoice' : 'فاتورة التقدم الشهرية'}</div>
           <div class="invoice-period">${monthName}</div>
