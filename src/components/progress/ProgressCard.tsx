@@ -44,9 +44,6 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({
   const boqTotalAmount = boqItem.quantity * boqItem.unitRate;
   const hasChildren = children && React.Children.count(children) > 0;
 
-  // Always use English number formatting for quantities
-  const numberFormatter = new Intl.NumberFormat('en-US');
-  
   // Always use English currency formatting
   const englishFormatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -55,9 +52,6 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({
     maximumFractionDigits: 2,
   });
 
-  // Calculate quantity progress (completed quantity / total quantity)
-  const quantityProgress = boqItem.quantity > 0 ? (progress.completedQuantity / boqTotalAmount) * 100 : 0;
-  
   // Calculate cost progress (approved cost / total estimated cost)
   const approvedAmount = relatedWIRs
     .filter(wir => wir.result === 'A')
@@ -100,14 +94,14 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-500">{boqItem.code}</span>
                   <span className="text-sm font-medium">
-                    {isParent ? `${parentCostProgress.toFixed(1)}%` : `${quantityProgress.toFixed(1)}%`}
+                    {isParent ? `${parentCostProgress.toFixed(1)}%` : `${costProgress.toFixed(1)}%`}
                   </span>
                 </div>
                 <h3 className="text-lg font-semibold">
                   {language === 'en' ? boqItem.description : (boqItem.descriptionAr || boqItem.description)}
                 </h3>
                 <div className="text-sm text-gray-600 mt-1">
-                  {t('progress.quantity')}: {numberFormatter.format(boqItem.quantity)} {language === 'en' ? boqItem.unit : (boqItem.unitAr || boqItem.unit)} | 
+                  {t('progress.quantity')}: {boqItem.quantity} {language === 'en' ? boqItem.unit : (boqItem.unitAr || boqItem.unit)} | 
                   {' '}{t('progress.unitRate')}: {englishFormatter.format(boqItem.unitRate)} | 
                   {' '}{t('progress.totalValue')}: {englishFormatter.format(boqTotalAmount)}
                 </div>
@@ -115,37 +109,17 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({
             </div>
           </CardTitle>
           
-          {/* Progress Bars */}
+          {/* Progress Bar - Only Cost Progress */}
           <div className="space-y-3 mt-4">
-            {isParent ? (
-              // Parent items show only cost progress
-              <div>
-                <div className="flex justify-between text-xs text-gray-600 mb-1">
-                  <span>Cost Progress (Approved): {englishFormatter.format(childrenApprovedAmount)} / {englishFormatter.format(childrenTotalAmount)}</span>
-                  <span>{parentCostProgress.toFixed(1)}%</span>
-                </div>
-                <Progress value={parentCostProgress} className="h-2" />
+            <div>
+              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                <span>
+                  Cost Progress (Approved): {englishFormatter.format(isParent ? childrenApprovedAmount : approvedAmount)} / {englishFormatter.format(isParent ? childrenTotalAmount : boqTotalAmount)}
+                </span>
+                <span>{(isParent ? parentCostProgress : costProgress).toFixed(1)}%</span>
               </div>
-            ) : (
-              // Child items show both quantity and cost progress
-              <>
-                <div>
-                  <div className="flex justify-between text-xs text-gray-600 mb-1">
-                    <span>Quantity Progress: {englishFormatter.format(progress.completedQuantity)} / {englishFormatter.format(boqTotalAmount)}</span>
-                    <span>{quantityProgress.toFixed(1)}%</span>
-                  </div>
-                  <Progress value={quantityProgress} className="h-2" />
-                </div>
-                
-                <div>
-                  <div className="flex justify-between text-xs text-gray-600 mb-1">
-                    <span>Cost Progress (Approved): {englishFormatter.format(approvedAmount)} / {englishFormatter.format(boqTotalAmount)}</span>
-                    <span>{costProgress.toFixed(1)}%</span>
-                  </div>
-                  <Progress value={costProgress} className="h-2" />
-                </div>
-              </>
-            )}
+              <Progress value={isParent ? parentCostProgress : costProgress} className="h-2" />
+            </div>
           </div>
         </CardHeader>
         

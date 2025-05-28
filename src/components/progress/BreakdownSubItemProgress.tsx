@@ -27,9 +27,6 @@ export const BreakdownSubItemProgress: React.FC<BreakdownSubItemProgressProps> =
     maximumFractionDigits: 2,
   });
 
-  // Always use English number formatting for quantities
-  const numberFormatter = new Intl.NumberFormat('en-US');
-
   const calculateSubItemProgress = (subItem: BreakdownItem) => {
     // Find approved WIRs that include this breakdown sub-item
     const approvedWIRs = relatedWIRs.filter(wir => 
@@ -50,23 +47,13 @@ export const BreakdownSubItemProgress: React.FC<BreakdownSubItemProgressProps> =
     const boqTotalAmount = boqItem.quantity * boqItem.unitRate;
     const totalExpectedAmount = (boqTotalAmount * (subItem.percentage || 0)) / 100;
 
-    // Calculate approved quantity (based on approved WIRs value)
-    const approvedQuantity = approvedWIRs.reduce((sum, wir) => sum + (wir.value || 0), 0);
-
-    // Total quantity is the BOQ quantity
-    const totalQuantity = boqItem.quantity;
-
-    // Calculate progress percentages
+    // Calculate progress percentage
     const amountProgress = totalExpectedAmount > 0 ? (approvedAmount / totalExpectedAmount) * 100 : 0;
-    const quantityProgress = totalQuantity > 0 ? (approvedQuantity / totalQuantity) * 100 : 0;
 
     return {
       approvedAmount,
       totalExpectedAmount,
-      approvedQuantity,
-      totalQuantity,
-      amountProgress: Math.min(amountProgress, 100),
-      quantityProgress: Math.min(quantityProgress, 100)
+      amountProgress: Math.min(amountProgress, 100)
     };
   };
 
@@ -113,17 +100,6 @@ export const BreakdownSubItemProgress: React.FC<BreakdownSubItemProgressProps> =
                   <span className="font-medium">{progress.amountProgress.toFixed(1)}%</span>
                 </div>
                 <Progress value={progress.amountProgress} className="h-2" />
-              </div>
-              
-              {/* Approved Quantity Progress */}
-              <div>
-                <div className="flex justify-between text-xs text-gray-600 mb-1">
-                  <span>
-                    {language === 'en' ? 'Approved Quantity:' : 'الكمية المعتمدة:'} {numberFormatter.format(progress.approvedQuantity)} / {numberFormatter.format(progress.totalQuantity)}
-                  </span>
-                  <span className="font-medium">{progress.quantityProgress.toFixed(1)}%</span>
-                </div>
-                <Progress value={progress.quantityProgress} className="h-2" />
               </div>
             </div>
           );

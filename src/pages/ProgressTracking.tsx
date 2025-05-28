@@ -3,6 +3,7 @@ import React from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
 import { ProgressCard } from '../components/progress/ProgressCard';
+import { ProgressExportButton } from '../components/progress/ProgressExportButton';
 import { useProgressCalculations } from '../hooks/useProgressCalculations';
 import { BOQItem } from '@/types';
 
@@ -98,6 +99,12 @@ const ProgressTracking = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold">{t('progress.title')}</h2>
+        <ProgressExportButton
+          boqItems={boqItems}
+          breakdownItems={breakdownItems}
+          wirs={wirs}
+          language={language}
+        />
       </div>
       
       <div className="space-y-4">
