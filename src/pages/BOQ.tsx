@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { BOQItem } from '../types';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Download, Upload, Plus, Edit } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 const BOQ = () => {
   const { boqItems, addBOQItem, updateBOQItem, deleteBOQItem } = useAppContext();
@@ -24,6 +25,7 @@ const BOQ = () => {
   });
   const [parentId, setParentId] = useState<string | undefined>(undefined);
   const [language, setLanguage] = useState<'en' | 'ar'>('en');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Always use English number formatting
   const formatter = new Intl.NumberFormat('en-US', {
@@ -41,6 +43,119 @@ const BOQ = () => {
     } else {
       // Leaf item: quantity * unitRate
       return item.quantity * item.unitRate;
+    }
+  };
+  
+  // Function to flatten BOQ items for export
+  const flattenBOQItems = (items: BOQItem[], level: number = 0): any[] => {
+    const result: any[] = [];
+    items.forEach(item => {
+      const totalValue = calculateItemTotal(item);
+      result.push({
+        'Item Code': item.code,
+        'Description (EN)': item.description,
+        'Description (AR)': item.descriptionAr || '',
+        'Quantity': item.quantity,
+        'Unit (EN)': item.unit,
+        'Unit (AR)': item.unitAr || '',
+        'Unit Rate': item.unitRate,
+        'Total Amount': totalValue,
+        'Level': level,
+        'Parent Code': level > 0 ? items.find(parent => parent.children?.some(child => child.id === item.id))?.code || '' : ''
+      });
+      
+      if (item.children && item.children.length > 0) {
+        result.push(...flattenBOQItems(item.children, level + 1));
+      }
+    });
+    return result;
+  };
+  
+  const exportToExcel = () => {
+    try {
+      const flattenedData = flattenBOQItems(boqItems);
+      const worksheet = XLSX.utils.json_to_sheet(flattenedData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'BOQ Items');
+      
+      // Set column widths
+      worksheet['!cols'] = [
+        { width: 15 }, // Item Code
+        { width: 40 }, // Description (EN)
+        { width: 40 }, // Description (AR)
+        { width: 12 }, // Quantity
+        { width: 15 }, // Unit (EN)
+        { width: 15 }, // Unit (AR)
+        { width: 15 }, // Unit Rate
+        { width: 18 }, // Total Amount
+        { width: 8 },  // Level
+        { width: 15 }  // Parent Code
+      ];
+      
+      XLSX.writeFile(workbook, `BOQ_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
+      toast.success('BOQ data exported successfully!');
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Failed to export BOQ data');
+    }
+  };
+  
+  const importFromExcel = () => {
+    fileInputRef.current?.click();
+  };
+  
+  const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = e.target?.result;
+        const workbook = XLSX.read(data, { type: 'binary' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        
+        // Process imported data
+        let importCount = 0;
+        jsonData.forEach((row: any) => {
+          const itemData = {
+            code: row['Item Code'] || '',
+            description: row['Description (EN)'] || '',
+            descriptionAr: row['Description (AR)'] || '',
+            quantity: parseFloat(row['Quantity']) || 0,
+            unit: row['Unit (EN)'] || '',
+            unitAr: row['Unit (AR)'] || '',
+            unitRate: parseFloat(row['Unit Rate']) || 0,
+            level: parseInt(row['Level']) || 0
+          };
+          
+          // Only import if required fields are present
+          if (itemData.code && itemData.description && itemData.unit) {
+            const totalAmount = itemData.quantity * itemData.unitRate;
+            const itemToAdd = {
+              ...itemData,
+              totalAmount
+            };
+            
+            // For now, add as top-level items (parent-child relationship can be enhanced later)
+            addBOQItem(itemToAdd as Omit<BOQItem, 'id'>, undefined);
+            importCount++;
+          }
+        });
+        
+        toast.success(`Successfully imported ${importCount} BOQ items!`);
+      } catch (error) {
+        console.error('Import error:', error);
+        toast.error('Failed to import BOQ data. Please check the file format.');
+      }
+    };
+    reader.readAsBinaryString(file);
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
   
@@ -216,16 +331,6 @@ const BOQ = () => {
     );
   };
   
-  const exportToExcel = () => {
-    // This would typically use a library like xlsx
-    toast.info('Excel export functionality will be implemented with xlsx library');
-  };
-  
-  const importFromExcel = () => {
-    // This would typically use a library like xlsx
-    toast.info('Excel import functionality will be implemented with xlsx library');
-  };
-  
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -249,6 +354,13 @@ const BOQ = () => {
           </div>
         </div>
         <div className="flex gap-2">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileImport}
+            accept=".xlsx,.xls"
+            style={{ display: 'none' }}
+          />
           <Button variant="outline" onClick={importFromExcel}>
             <Upload className="w-4 h-4 mr-2" />
             Import Excel
