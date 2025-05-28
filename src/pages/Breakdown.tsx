@@ -58,7 +58,7 @@ const Breakdown = () => {
           </div>
         </div>
         <div className="text-sm text-gray-600">
-          <p>Breakdown items are automatically created from Level 5 BOQ items with quantities > 0</p>
+          <p>Breakdown items are automatically created from Level 5 BOQ items with quantities {'>'}  0</p>
           <p>Add sub-items with percentages for detailed breakdown</p>
         </div>
       </div>
