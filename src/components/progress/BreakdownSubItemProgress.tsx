@@ -50,21 +50,21 @@ export const BreakdownSubItemProgress: React.FC<BreakdownSubItemProgressProps> =
     // Calculate progress percentage for amount
     const amountProgress = totalExpectedAmount > 0 ? (approvedAmount / totalExpectedAmount) * 100 : 0;
 
-    // Calculate approved quantity for this sub-item
+    // Calculate approved quantity for this sub-item (sum of WIR values)
     const approvedQuantity = approvedWIRs.reduce((sum, wir) => sum + (wir.value || 0), 0);
 
-    // Calculate total expected quantity for this sub-item (Total BOQ Quantity * Percentage)
-    const totalExpectedQuantity = (boqItem.quantity * (subItem.percentage || 0)) / 100;
+    // Use total BOQ quantity directly (no percentage multiplication)
+    const totalQuantity = boqItem.quantity;
 
     // Calculate progress percentage for quantity
-    const quantityProgress = totalExpectedQuantity > 0 ? (approvedQuantity / totalExpectedQuantity) * 100 : 0;
+    const quantityProgress = totalQuantity > 0 ? (approvedQuantity / totalQuantity) * 100 : 0;
 
     return {
       approvedAmount,
       totalExpectedAmount,
       amountProgress: Math.min(amountProgress, 100),
       approvedQuantity,
-      totalExpectedQuantity,
+      totalQuantity,
       quantityProgress: Math.min(quantityProgress, 100)
     };
   };
@@ -118,7 +118,7 @@ export const BreakdownSubItemProgress: React.FC<BreakdownSubItemProgressProps> =
               <div>
                 <div className="flex justify-between text-xs text-gray-600 mb-1">
                   <span>
-                    {language === 'en' ? 'Approved Quantity:' : 'الكمية المعتمدة:'} {progress.approvedQuantity.toFixed(2)} / {progress.totalExpectedQuantity.toFixed(2)} {language === 'en' ? boqItem.unit : (boqItem.unitAr || boqItem.unit)}
+                    {language === 'en' ? 'Approved Quantity:' : 'الكمية المعتمدة:'} {progress.approvedQuantity.toFixed(2)} / {progress.totalQuantity.toFixed(2)} {language === 'en' ? boqItem.unit : (boqItem.unitAr || boqItem.unit)}
                   </span>
                   <span className="font-medium">{progress.quantityProgress.toFixed(1)}%</span>
                 </div>
