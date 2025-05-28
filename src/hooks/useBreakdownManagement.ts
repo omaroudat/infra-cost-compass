@@ -49,7 +49,7 @@ export const useBreakdownManagement = () => {
           value: boqItem.unitRate,
           boqItemId: boqItem.id,
           unitRate: boqItem.unitRate,
-          quantity: 1,
+          quantity: boqItem.quantity, // Use actual BOQ quantity
           isLeaf: false
         };
         
@@ -104,7 +104,7 @@ export const useBreakdownManagement = () => {
       keywordAr: currentBreakdown.keywordAr,
       parentBreakdownId: currentBreakdown.parentBreakdownId,
       unitRate: boqItem.unitRate,
-      quantity: currentBreakdown.parentBreakdownId ? (newItem.percentage || 0) / 100 : currentBreakdown.quantity
+      quantity: boqItem.quantity // Always use BOQ quantity, not calculated
     };
     
     updateBreakdownItem(editingItem, updatedItem);
@@ -142,11 +142,24 @@ export const useBreakdownManagement = () => {
   };
 
   const handleAddSubItem = (parentId: string, subItemData: Omit<BreakdownItem, 'id'>) => {
-    if (addBreakdownSubItem) {
-      addBreakdownSubItem(parentId, subItemData);
-    } else {
-      // Fallback to regular add if addBreakdownSubItem is not available
-      addBreakdownItem(subItemData);
+    // Get parent breakdown item to inherit BOQ quantity
+    const parentBreakdown = breakdownItems?.find(item => item.id === parentId);
+    if (parentBreakdown) {
+      const boqItem = flattenedBOQItems(boqItems).find(item => item.id === parentBreakdown.boqItemId);
+      if (boqItem) {
+        // Use BOQ quantity for sub-items as well
+        const subItemWithQuantity = {
+          ...subItemData,
+          quantity: boqItem.quantity
+        };
+        
+        if (addBreakdownSubItem) {
+          addBreakdownSubItem(parentId, subItemWithQuantity);
+        } else {
+          // Fallback to regular add if addBreakdownSubItem is not available
+          addBreakdownItem(subItemWithQuantity);
+        }
+      }
     }
   };
 

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -61,6 +60,11 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
     return item?.unitRate || 0;
   };
 
+  const getBOQItemQuantity = (id: string) => {
+    const item = flattenedBOQItems(boqItems).find(item => item.id === id);
+    return item?.quantity || 0;
+  };
+
   const handleAddSubItem = (parent: BreakdownItem) => {
     setSelectedParent(parent);
     setNewSubItem({
@@ -80,6 +84,8 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
     }
 
     const unitRate = getBOQItemUnitRate(selectedParent.boqItemId);
+    const boqQuantity = getBOQItemQuantity(selectedParent.boqItemId);
+    
     const subItemData = {
       keyword: `${selectedParent.keyword}-${Date.now()}`,
       keywordAr: `${selectedParent.keywordAr}-${Date.now()}`,
@@ -90,7 +96,7 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
       boqItemId: selectedParent.boqItemId,
       parentBreakdownId: selectedParent.id,
       unitRate: unitRate,
-      quantity: (newSubItem.percentage / 100), // Convert percentage to quantity ratio
+      quantity: boqQuantity, // Use BOQ quantity directly
       isLeaf: true
     };
 
@@ -129,7 +135,7 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
             {level > 0 ? `${item.percentage}%` : '-'}
           </TableCell>
           <TableCell>
-            {item.quantity ? numberFormatter.format(item.quantity) : (isParent ? '-' : '1')}
+            {numberFormatter.format(getBOQItemQuantity(item.boqItemId))}
           </TableCell>
           <TableCell>
             {level > 0 && item.value ? numberFormatter.format(item.value) : '-'}
