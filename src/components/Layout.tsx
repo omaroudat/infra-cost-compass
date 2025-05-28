@@ -68,38 +68,38 @@ const AppSidebar = () => {
 
   return (
     <Sidebar className="bg-white border-r border-gray-200/60 shadow-xl backdrop-blur-sm">
-      <SidebarHeader className="border-b border-gray-100 p-8 bg-gradient-to-br from-slate-50 to-white">
-        <div className="flex flex-col items-center space-y-6">
+      <SidebarHeader className="border-b border-gray-100 p-4 bg-gradient-to-br from-slate-50 to-white">
+        <div className="flex flex-col items-center space-y-3">
           <div className="relative group">
-            <div className="absolute -inset-2 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 rounded-full blur-lg opacity-20 group-hover:opacity-30 transition duration-500 animate-pulse"></div>
-            <div className="relative w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-2xl border border-gray-100 group-hover:shadow-blue-100 transition-all duration-300">
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 rounded-full blur-md opacity-20 group-hover:opacity-30 transition duration-500 animate-pulse"></div>
+            <div className="relative w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-xl border border-gray-100 group-hover:shadow-blue-100 transition-all duration-300">
               <img 
                 src="/lovable-uploads/454de6d4-afed-4b33-b065-ade01eb9065a.png" 
                 alt="Company Logo" 
-                className="w-20 h-20 object-contain filter drop-shadow-md"
+                className="w-14 h-14 object-contain filter drop-shadow-md"
               />
             </div>
-            <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-3 border-white shadow-lg">
+            <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-2 border-white shadow-lg">
               <div className="w-full h-full bg-green-400 rounded-full animate-ping opacity-40"></div>
             </div>
           </div>
           
-          <div className="text-center space-y-4">
-            <div className="space-y-2">
-              <div className="text-gray-800 text-xl font-bold tracking-wide" dir="rtl">
+          <div className="text-center space-y-2">
+            <div className="space-y-1">
+              <div className="text-gray-800 text-sm font-bold tracking-wide" dir="rtl">
                 شركة سعد سعيد الصاعدي
               </div>
-              <div className="text-gray-600 text-sm font-medium" dir="rtl">
+              <div className="text-gray-600 text-xs font-medium" dir="rtl">
                 وأولاده التضامنية
               </div>
             </div>
             
             <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent w-full"></div>
             
-            <div className="space-y-3">
-              <div className="flex items-center justify-center space-x-2">
-                <Building2 className="w-5 h-5 text-blue-600" />
-                <h1 className="text-gray-900 text-lg font-bold">
+            <div className="space-y-1">
+              <div className="flex items-center justify-center space-x-1">
+                <Building2 className="w-4 h-4 text-blue-600" />
+                <h1 className="text-gray-900 text-sm font-bold">
                   WIR Management System
                 </h1>
               </div>
@@ -111,10 +111,10 @@ const AppSidebar = () => {
         </div>
       </SidebarHeader>
       
-      <SidebarContent className="px-6 py-8 bg-gradient-to-b from-white to-gray-50/50">
+      <SidebarContent className="px-4 py-4 bg-gradient-to-b from-white to-gray-50/50">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-3">
+            <SidebarMenu className="space-y-2">
               {filteredNavigation.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.href;
@@ -124,7 +124,7 @@ const AppSidebar = () => {
                       asChild 
                       isActive={isActive}
                       className={`
-                        w-full text-left px-5 py-4 rounded-2xl transition-all duration-300 group relative overflow-hidden border
+                        w-full text-left px-3 py-2.5 rounded-xl transition-all duration-300 group relative overflow-hidden border
                         ${isActive 
                           ? 'bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 font-semibold shadow-lg shadow-blue-500/10 border-blue-200/60 transform scale-[1.02]' 
                           : 'text-gray-600 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50/30 hover:text-gray-900 hover:shadow-md hover:transform hover:scale-[1.01] hover:shadow-gray-500/10 border-transparent hover:border-gray-200/40'
@@ -132,27 +132,27 @@ const AppSidebar = () => {
                       `}
                     >
                       <Link to={item.href} className="flex items-center justify-between w-full relative z-10">
-                        <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-3">
                           <div className={`
-                            p-3 rounded-xl transition-all duration-300 flex items-center justify-center
+                            p-2 rounded-lg transition-all duration-300 flex items-center justify-center
                             ${isActive 
                               ? `bg-gradient-to-r ${item.color} shadow-lg text-white` 
                               : 'bg-gray-100 group-hover:bg-white group-hover:shadow-md text-gray-500 group-hover:text-gray-700'
                             }
                           `}>
-                            <Icon className="h-5 w-5" />
+                            <Icon className="h-4 w-4" />
                           </div>
                           <span className="font-medium tracking-wide text-sm">{item.name}</span>
                         </div>
                         
                         {isActive ? (
                           <div className="flex items-center space-x-1">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                            <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
-                            <div className="w-1 h-1 bg-blue-300 rounded-full"></div>
+                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                            <div className="w-1 h-1 bg-blue-400 rounded-full"></div>
+                            <div className="w-0.5 h-0.5 bg-blue-300 rounded-full"></div>
                           </div>
                         ) : (
-                          <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                          <ChevronRight className="w-3 h-3 text-gray-400 group-hover:text-gray-600 transition-colors" />
                         )}
                       </Link>
                     </SidebarMenuButton>
@@ -164,26 +164,26 @@ const AppSidebar = () => {
         </SidebarGroup>
       </SidebarContent>
       
-      <SidebarFooter className="border-t border-gray-100 p-6 bg-gradient-to-r from-gray-50 to-white">
+      <SidebarFooter className="border-t border-gray-100 p-3 bg-gradient-to-r from-gray-50 to-white">
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton className="w-full text-gray-700 hover:bg-gray-100/60 hover:text-gray-900 rounded-2xl p-4 transition-all duration-300 group border border-transparent hover:border-gray-200/40 hover:shadow-md">
-                  <div className="flex items-center space-x-4 w-full">
+                <SidebarMenuButton className="w-full text-gray-700 hover:bg-gray-100/60 hover:text-gray-900 rounded-xl p-3 transition-all duration-300 group border border-transparent hover:border-gray-200/40 hover:shadow-md">
+                  <div className="flex items-center space-x-3 w-full">
                     <div className="relative">
-                      <Avatar className="h-12 w-12 border-2 border-gray-200 shadow-md">
-                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-sm">
+                      <Avatar className="h-8 w-8 border-2 border-gray-200 shadow-md">
+                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-xs">
                           {user?.name?.charAt(0) || user?.username?.charAt(0) || 'U'}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-400 rounded-full border-2 border-white shadow-sm"></div>
+                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-white shadow-sm"></div>
                     </div>
                     <div className="flex-1 text-left">
-                      <div className="font-semibold text-gray-900 truncate text-sm">{user?.name || user?.username}</div>
+                      <div className="font-semibold text-gray-900 truncate text-xs">{user?.name || user?.username}</div>
                       <div className="text-xs text-gray-500 truncate capitalize font-medium">{user?.role}</div>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                    <ChevronRight className="w-3 h-3 text-gray-400 group-hover:text-gray-600 transition-colors" />
                   </div>
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
