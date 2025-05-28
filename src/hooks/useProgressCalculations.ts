@@ -29,11 +29,8 @@ export const useProgressCalculations = (
       
       // Calculate total submitted amount for this BOQ item
       const totalSubmittedAmount = relatedWIRs.reduce((sum, wir) => {
-        // For WIRs with multiple BOQ items, divide the amount proportionally
-        if (wir.linkedBOQItems && wir.linkedBOQItems.length > 1) {
-          return sum + ((wir.calculatedAmount || 0) / wir.linkedBOQItems.length);
-        }
-        return sum + (wir.calculatedAmount || 0);
+        const wirAmount = getWIRAmountForBOQ(wir, boqItem.id);
+        return sum + wirAmount;
       }, 0);
       
       // Calculate BOQ total amount
@@ -52,10 +49,7 @@ export const useProgressCalculations = (
         );
         
         const breakdownAmount = breakdownWIRs.reduce((sum, wir) => {
-          if (wir.linkedBOQItems && wir.linkedBOQItems.length > 1) {
-            return sum + ((wir.calculatedAmount || 0) / wir.linkedBOQItems.length);
-          }
-          return sum + (wir.calculatedAmount || 0);
+          return sum + getWIRAmountForBOQ(wir, boqItem.id);
         }, 0);
         
         const expectedAmount = (boqTotalAmount * (breakdown.percentage || 0)) / 100;

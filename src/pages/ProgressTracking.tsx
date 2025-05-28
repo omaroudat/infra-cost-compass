@@ -4,6 +4,7 @@ import { useAppContext } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
 import { ProgressCard } from '../components/progress/ProgressCard';
 import { useProgressCalculations } from '../hooks/useProgressCalculations';
+import { BOQItem } from '@/types';
 
 const ProgressTracking = () => {
   const { wirs, boqItems, breakdownItems } = useAppContext();
@@ -25,32 +26,41 @@ const ProgressTracking = () => {
   
   const progressData = calculateBOQProgress();
   
+  // Function to render BOQ items hierarchically
+  const renderBOQItem = (boqItem: BOQItem, level: number = 0): React.ReactNode => {
+    const progress = progressData.find(p => p.boqItemId === boqItem.id);
+    if (!progress) return null;
+    
+    const relatedWIRs = getWIRsForBOQ(progress.boqItemId);
+    
+    return (
+      <ProgressCard
+        key={boqItem.id}
+        progress={progress}
+        boqItem={boqItem}
+        relatedWIRs={relatedWIRs}
+        breakdownItems={breakdownItems}
+        language={language}
+        formatter={formatter}
+        getWIRAmountForBOQ={getWIRAmountForBOQ}
+        level={level}
+      >
+        {boqItem.children?.map(child => renderBOQItem(child, level + 1))}
+      </ProgressCard>
+    );
+  };
+
+  // Filter to show only top-level items (items without parentId or with level 0)
+  const topLevelItems = boqItems.filter(item => !item.parentId || item.level === 0);
+  
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold">{t('progress.title')}</h2>
       </div>
       
-      <div className="grid gap-6">
-        {progressData.map((progress) => {
-          const boqItem = getBOQItem(progress.boqItemId);
-          if (!boqItem) return null;
-          
-          const relatedWIRs = getWIRsForBOQ(progress.boqItemId);
-          
-          return (
-            <ProgressCard
-              key={progress.boqItemId}
-              progress={progress}
-              boqItem={boqItem}
-              relatedWIRs={relatedWIRs}
-              breakdownItems={breakdownItems}
-              language={language}
-              formatter={formatter}
-              getWIRAmountForBOQ={getWIRAmountForBOQ}
-            />
-          );
-        })}
+      <div className="space-y-4">
+        {topLevelItems.map(boqItem => renderBOQItem(boqItem, 0))}
       </div>
     </div>
   );
