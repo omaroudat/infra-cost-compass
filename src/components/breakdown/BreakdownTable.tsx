@@ -48,23 +48,14 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
   const getBOQItemDetails = (id: string) => {
     const allItems = flattenedBOQItems(boqItems);
     const item = allItems.find(item => item.id === id);
-    if (!item) return { label: 'Unknown', unitRate: 0, quantity: 0, parentInfo: null };
-    
-    // Get parent information
-    const parent = item.parentId ? allItems.find(p => p.id === item.parentId) : null;
+    if (!item) return { label: 'Unknown', unitRate: 0, quantity: 0 };
     
     const desc = language === 'en' ? item.description : (item.descriptionAr || item.description);
-    const parentDesc = parent ? (language === 'en' ? parent.description : (parent.descriptionAr || parent.description)) : null;
     
     return {
       label: `${item.code} - ${desc}`,
       unitRate: item.unitRate || 0,
-      quantity: item.quantity || 0,
-      parentInfo: parent ? {
-        code: parent.code,
-        description: parentDesc,
-        fullLabel: `${parent.code} - ${parentDesc}`
-      } : null
+      quantity: item.quantity || 0
     };
   };
 
@@ -123,16 +114,8 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
       <React.Fragment key={item.id}>
         <TableRow className={level > 0 ? 'bg-gray-50' : ''}>
           <TableCell className="font-mono text-sm" style={{ paddingLeft: `${indentLevel + 16}px` }}>
-            <div className="space-y-1">
-              {/* Show parent info for main items */}
-              {level === 0 && boqDetails.parentInfo && (
-                <div className="text-xs text-gray-500 font-medium">
-                  Parent: {boqDetails.parentInfo.fullLabel}
-                </div>
-              )}
-              <div className="text-blue-600">
-                {boqDetails.label}
-              </div>
+            <div className="text-blue-600">
+              {boqDetails.label}
             </div>
           </TableCell>
           <TableCell className="text-sm">
@@ -196,7 +179,7 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>{language === 'en' ? 'BOQ Item (with Parent)' : 'بند الكميات (مع الأصل)'}</TableHead>
+            <TableHead>{language === 'en' ? 'BOQ Item' : 'بند الكميات'}</TableHead>
             <TableHead>{language === 'en' ? 'Description' : 'الوصف'}</TableHead>
             <TableHead>{language === 'en' ? 'BOQ Unit Rate' : 'السعر الافرادي'}</TableHead>
             <TableHead>{language === 'en' ? 'Percentage' : 'النسبة المئوية'}</TableHead>
