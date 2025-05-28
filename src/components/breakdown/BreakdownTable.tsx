@@ -48,12 +48,10 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
   const getBOQItemDetails = (id: string) => {
     const allItems = flattenedBOQItems(boqItems);
     const item = allItems.find(item => item.id === id);
-    if (!item) return { label: 'Unknown', unitRate: 0, quantity: 0 };
-    
-    const desc = language === 'en' ? item.description : (item.descriptionAr || item.description);
+    if (!item) return { code: 'Unknown', unitRate: 0, quantity: 0 };
     
     return {
-      label: `${item.code} - ${desc}`,
+      code: item.code,
       unitRate: item.unitRate || 0,
       quantity: item.quantity || 0
     };
@@ -115,12 +113,12 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
         <TableRow className={level > 0 ? 'bg-gray-50' : ''}>
           <TableCell className="font-mono text-sm" style={{ paddingLeft: `${indentLevel + 16}px` }}>
             <div className="text-blue-600">
-              {boqDetails.label}
+              {boqDetails.code}
             </div>
           </TableCell>
           <TableCell className="text-sm">
             <div className={language === 'ar' ? 'text-right' : ''}>
-              {language === 'en' ? item.description : (item.descriptionAr || item.description)}
+              {level === 0 ? '' : (language === 'en' ? item.description : (item.descriptionAr || item.description))}
             </div>
           </TableCell>
           <TableCell className="text-sm">
