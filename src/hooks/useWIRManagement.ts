@@ -23,15 +23,20 @@ export const useWIRManagement = () => {
     linkedBOQItems: []
   });
   
-  // Filter to only show Level 5 BOQ items
+  // Filter to show leaf BOQ items with quantity > 0 (same logic as breakdown)
   const flattenedBOQItems = (() => {
     const result: BOQItem[] = [];
     const flattenItems = (items: BOQItem[]) => {
       items.forEach(item => {
-        const codeLevel = (item.code.match(/\./g) || []).length + 1;
-        if (codeLevel === 5) {
+        // Check if this item is a leaf (no children) and has quantity > 0
+        const hasChildren = item.children && item.children.length > 0;
+        const hasQuantity = item.quantity && item.quantity > 0;
+        
+        if (!hasChildren && hasQuantity) {
           result.push(item);
         }
+        
+        // Continue flattening children
         if (item.children && item.children.length > 0) {
           flattenItems(item.children);
         }

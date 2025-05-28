@@ -21,23 +21,16 @@ const BOQItemSelector: React.FC<BOQItemSelectorProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Filter to only show Level 5 items (items with 4 dots in code = level 5)
-  const level5Items = useMemo(() => {
-    return flattenedBOQItems.filter(item => {
-      const codeLevel = (item.code.match(/\./g) || []).length + 1;
-      return codeLevel === 5;
-    });
-  }, [flattenedBOQItems]);
-
   // Filter items based on search term (code or description)
+  // Note: flattenedBOQItems already contains only leaf items with quantity > 0
   const filteredItems = useMemo(() => {
-    if (!searchTerm) return level5Items;
+    if (!searchTerm) return flattenedBOQItems;
     
-    return level5Items.filter(item => 
+    return flattenedBOQItems.filter(item => 
       item.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [level5Items, searchTerm]);
+  }, [flattenedBOQItems, searchTerm]);
 
   const handleItemSelection = (itemId: string) => {
     if (isResultSubmission) return;
@@ -47,12 +40,12 @@ const BOQItemSelector: React.FC<BOQItemSelectorProps> = ({
   };
 
   const selectedItem = selectedItems.length > 0 ? selectedItems[0] : '';
-  const selectedBOQItem = level5Items.find(item => item.id === selectedItem);
+  const selectedBOQItem = flattenedBOQItems.find(item => item.id === selectedItem);
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label className="text-right">BOQ Item (Level 5)</Label>
+        <Label className="text-right">BOQ Item (Leaf with Quantity)</Label>
         <div className="col-span-3 space-y-3">
           {/* Search Input */}
           <div className="relative">
@@ -81,13 +74,14 @@ const BOQItemSelector: React.FC<BOQItemSelectorProps> = ({
                   <div className="flex flex-col">
                     <span className="font-mono text-blue-600 text-sm">{item.code}</span>
                     <span className="text-sm text-gray-700">{item.description}</span>
+                    <span className="text-xs text-gray-500">Qty: {item.quantity} {item.unit}</span>
                   </div>
                 </SelectItem>
               ))}
               
               {filteredItems.length === 0 && (
                 <SelectItem value="" disabled>
-                  {searchTerm ? 'No Level 5 items match your search' : 'No Level 5 items available'}
+                  {searchTerm ? 'No leaf items match your search' : 'No leaf items with quantities available'}
                 </SelectItem>
               )}
             </SelectContent>
@@ -100,6 +94,9 @@ const BOQItemSelector: React.FC<BOQItemSelectorProps> = ({
                 <span className="font-medium">Selected: </span>
                 <span className="font-mono text-blue-600">{selectedBOQItem.code}</span>
                 <span className="ml-2">{selectedBOQItem.description}</span>
+                <div className="text-xs text-gray-600 mt-1">
+                  Quantity: {selectedBOQItem.quantity} {selectedBOQItem.unit} | Unit Rate: {selectedBOQItem.unitRate}
+                </div>
               </div>
             </div>
           )}
