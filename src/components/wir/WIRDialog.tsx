@@ -25,13 +25,25 @@ const WIRDialog: React.FC<WIRDialogProps> = ({
   onCancel,
   onSubmit
 }) => {
+  const isResultSubmission = editingWIR && newWIR.status === 'submitted';
+  
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[550px]">
-        <DialogHeader>
-          <DialogTitle>{editingWIR ? 'Edit' : 'Add'} Work Inspection Request</DialogTitle>
-          <DialogDescription>
-            Fill in the details for the work inspection request.
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh]">
+        <DialogHeader className="border-b pb-4">
+          <DialogTitle className="text-xl font-semibold text-gray-900">
+            {isResultSubmission 
+              ? 'Submit Inspection Result' 
+              : editingWIR 
+                ? 'Edit Work Inspection Request' 
+                : 'Create New Work Inspection Request'
+            }
+          </DialogTitle>
+          <DialogDescription className="text-gray-600">
+            {isResultSubmission 
+              ? 'Review and submit the inspection results for this WIR.'
+              : 'Fill in the comprehensive details for the work inspection request. All required fields must be completed.'
+            }
           </DialogDescription>
         </DialogHeader>
         <WIRForm

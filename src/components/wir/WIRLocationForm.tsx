@@ -24,22 +24,21 @@ const WIRLocationForm: React.FC<WIRLocationFormProps> = ({
   };
 
   return (
-    <>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="region" className="text-right">
-          Region / المنطقة
-        </Label>
-        <Input
-          id="region"
-          name="region"
-          value={newWIR.region || ''}
-          onChange={handleInputChange}
-          className="col-span-3"
-          disabled={isResultSubmission}
-          required
-        />
-      </div>
-    </>
+    <div className="space-y-2">
+      <Label htmlFor="region" className="text-sm font-medium text-gray-700">
+        Zone / المنطقة *
+      </Label>
+      <Input
+        id="region"
+        name="region"
+        value={newWIR.region || ''}
+        onChange={handleInputChange}
+        className="w-full"
+        disabled={isResultSubmission}
+        required
+        placeholder="Enter project zone or area"
+      />
+    </div>
   );
 };
 

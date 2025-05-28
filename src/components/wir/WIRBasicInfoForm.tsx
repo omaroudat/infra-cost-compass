@@ -13,6 +13,7 @@ interface WIRBasicInfoFormProps {
   setNewWIR: React.Dispatch<React.SetStateAction<Partial<WIR>>>;
   flattenedBOQItems: BOQItem[];
   isResultSubmission: boolean;
+  showOnlyBOQ?: boolean;
 }
 
 const WIRBasicInfoForm: React.FC<WIRBasicInfoFormProps> = ({
@@ -20,6 +21,7 @@ const WIRBasicInfoForm: React.FC<WIRBasicInfoFormProps> = ({
   setNewWIR,
   flattenedBOQItems,
   isResultSubmission,
+  showOnlyBOQ = false,
 }) => {
   const { contractors, engineers } = useAppContext();
 
@@ -44,108 +46,118 @@ const WIRBasicInfoForm: React.FC<WIRBasicInfoFormProps> = ({
     }));
   };
 
-  return (
-    <>
+  if (showOnlyBOQ) {
+    return (
       <BOQItemSelector
         flattenedBOQItems={flattenedBOQItems}
         selectedItems={newWIR.linkedBOQItems || []}
         onSelectionChange={handleBOQItemsChange}
         isResultSubmission={isResultSubmission}
       />
-      
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="contractor" className="text-right">
-          Contractor / المقاول
-        </Label>
-        <Select
-          value={newWIR.contractor || ''}
-          onValueChange={(value) => handleSelectChange('contractor', value)}
-          disabled={isResultSubmission}
-        >
-          <SelectTrigger className="col-span-3">
-            <SelectValue placeholder="Select a contractor" />
-          </SelectTrigger>
-          <SelectContent>
-            {contractors.map((contractor) => (
-              <SelectItem key={contractor.id} value={contractor.name}>
-                {contractor.name} {contractor.company && `(${contractor.company})`}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-2">
+          <Label htmlFor="contractor" className="text-sm font-medium text-gray-700">
+            Contractor / المقاول *
+          </Label>
+          <Select
+            value={newWIR.contractor || ''}
+            onValueChange={(value) => handleSelectChange('contractor', value)}
+            disabled={isResultSubmission}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a contractor" />
+            </SelectTrigger>
+            <SelectContent>
+              {contractors.map((contractor) => (
+                <SelectItem key={contractor.id} value={contractor.name}>
+                  {contractor.name} {contractor.company && `(${contractor.company})`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="engineer" className="text-sm font-medium text-gray-700">
+            Engineer / المهندس *
+          </Label>
+          <Select
+            value={newWIR.engineer || ''}
+            onValueChange={(value) => handleSelectChange('engineer', value)}
+            disabled={isResultSubmission}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select an engineer" />
+            </SelectTrigger>
+            <SelectContent>
+              {engineers.map((engineer) => (
+                <SelectItem key={engineer.id} value={engineer.name}>
+                  {engineer.name} {engineer.department && `(${engineer.department})`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-2">
+          <Label htmlFor="value" className="text-sm font-medium text-gray-700">
+            Value / القيمة (SAR) *
+          </Label>
+          <Input
+            id="value"
+            name="value"
+            type="number"
+            min="0"
+            step="0.01"
+            value={newWIR.value || 0}
+            onChange={handleInputChange}
+            className="w-full"
+            disabled={isResultSubmission}
+            required
+            placeholder="0.00"
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="submittalDate" className="text-sm font-medium text-gray-700">
+            Submittal Date / تاريخ التقديم *
+          </Label>
+          <Input
+            id="submittalDate"
+            name="submittalDate"
+            type="date"
+            value={newWIR.submittalDate}
+            onChange={handleInputChange}
+            className="w-full"
+            disabled={isResultSubmission}
+            required
+          />
+        </div>
       </div>
       
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="engineer" className="text-right">
-          Engineer / المهندس
-        </Label>
-        <Select
-          value={newWIR.engineer || ''}
-          onValueChange={(value) => handleSelectChange('engineer', value)}
-          disabled={isResultSubmission}
-        >
-          <SelectTrigger className="col-span-3">
-            <SelectValue placeholder="Select an engineer" />
-          </SelectTrigger>
-          <SelectContent>
-            {engineers.map((engineer) => (
-              <SelectItem key={engineer.id} value={engineer.name}>
-                {engineer.name} {engineer.department && `(${engineer.department})`}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="value" className="text-right">
-          Value / القيمة
-        </Label>
-        <Input
-          id="value"
-          name="value"
-          type="number"
-          min="0"
-          step="0.01"
-          value={newWIR.value || 0}
-          onChange={handleInputChange}
-          className="col-span-3"
-          disabled={isResultSubmission}
-          required
-        />
-      </div>
-      
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="description" className="text-right">
-          Description / الوصف
+      <div className="space-y-2">
+        <Label htmlFor="description" className="text-sm font-medium text-gray-700">
+          Description / الوصف *
         </Label>
         <Textarea
           id="description"
           name="description"
           value={newWIR.description}
           onChange={handleInputChange}
-          className="col-span-3 min-h-[80px]"
+          className="w-full min-h-[100px] resize-vertical"
           disabled={isResultSubmission}
           required
+          placeholder="Provide detailed description of the work inspection..."
         />
       </div>
-      
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="submittalDate" className="text-right">
-          Submittal Date / تاريخ التقديم
-        </Label>
-        <Input
-          id="submittalDate"
-          name="submittalDate"
-          type="date"
-          value={newWIR.submittalDate}
-          onChange={handleInputChange}
-          className="col-span-3"
-          disabled={isResultSubmission}
-          required
-        />
-      </div>
-    </>
+    </div>
   );
 };
 
