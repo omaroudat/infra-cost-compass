@@ -37,10 +37,7 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
   const flattenedBOQItems = (items: BOQItem[]): BOQItem[] => {
     const result: BOQItem[] = [];
     items.forEach(item => {
-      const codeLevel = (item.code.match(/\./g) || []).length + 1;
-      if (codeLevel === 5) {
-        result.push(item);
-      }
+      result.push(item);
       if (item.children && item.children.length > 0) {
         result.push(...flattenedBOQItems(item.children));
       }
@@ -48,21 +45,27 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
     return result;
   };
 
-  const getBOQItemLabel = (id: string) => {
-    const item = flattenedBOQItems(boqItems).find(item => item.id === id);
-    if (!item) return 'Unknown';
+  const getBOQItemDetails = (id: string) => {
+    const allItems = flattenedBOQItems(boqItems);
+    const item = allItems.find(item => item.id === id);
+    if (!item) return { label: 'Unknown', unitRate: 0, quantity: 0, parentInfo: null };
+    
+    // Get parent information
+    const parent = item.parentId ? allItems.find(p => p.id === item.parentId) : null;
+    
     const desc = language === 'en' ? item.description : (item.descriptionAr || item.description);
-    return `${item.code} - ${desc}`;
-  };
-
-  const getBOQItemUnitRate = (id: string) => {
-    const item = flattenedBOQItems(boqItems).find(item => item.id === id);
-    return item?.unitRate || 0;
-  };
-
-  const getBOQItemQuantity = (id: string) => {
-    const item = flattenedBOQItems(boqItems).find(item => item.id === id);
-    return item?.quantity || 0;
+    const parentDesc = parent ? (language === 'en' ? parent.description : (parent.descriptionAr || parent.description)) : null;
+    
+    return {
+      label: `${item.code} - ${desc}`,
+      unitRate: item.unitRate || 0,
+      quantity: item.quantity || 0,
+      parentInfo: parent ? {
+        code: parent.code,
+        description: parentDesc,
+        fullLabel: `${parent.code} - ${parentDesc}`
+      } : null
+    };
   };
 
   const handleAddSubItem = (parent: BreakdownItem) => {
@@ -83,8 +86,7 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
       return;
     }
 
-    const unitRate = getBOQItemUnitRate(selectedParent.boqItemId);
-    const boqQuantity = getBOQItemQuantity(selectedParent.boqItemId);
+    const boqDetails = getBOQItemDetails(selectedParent.boqItemId);
     
     const subItemData = {
       keyword: `${selectedParent.keyword}-${Date.now()}`,
@@ -92,11 +94,11 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
       description: newSubItem.description,
       descriptionAr: newSubItem.descriptionAr,
       percentage: newSubItem.percentage,
-      value: (unitRate * newSubItem.percentage) / 100,
+      value: (boqDetails.unitRate * newSubItem.percentage) / 100,
       boqItemId: selectedParent.boqItemId,
       parentBreakdownId: selectedParent.id,
-      unitRate: unitRate,
-      quantity: boqQuantity, // Use BOQ quantity directly
+      unitRate: boqDetails.unitRate,
+      quantity: boqDetails.quantity,
       isLeaf: true
     };
 
@@ -115,13 +117,23 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
 
   const renderBreakdownItem = (item: BreakdownItem, level: number = 0) => {
     const indentLevel = level * 20;
-    const isParent = item.children && item.children.length > 0;
+    const boqDetails = getBOQItemDetails(item.boqItemId);
     
     return (
       <React.Fragment key={item.id}>
         <TableRow className={level > 0 ? 'bg-gray-50' : ''}>
           <TableCell className="font-mono text-sm" style={{ paddingLeft: `${indentLevel + 16}px` }}>
-            {getBOQItemLabel(item.boqItemId)}
+            <div className="space-y-1">
+              {/* Show parent info for main items */}
+              {level === 0 && boqDetails.parentInfo && (
+                <div className="text-xs text-gray-500 font-medium">
+                  Parent: {boqDetails.parentInfo.fullLabel}
+                </div>
+              )}
+              <div className="text-blue-600">
+                {boqDetails.label}
+              </div>
+            </div>
           </TableCell>
           <TableCell className="text-sm">
             <div className={language === 'ar' ? 'text-right' : ''}>
@@ -129,13 +141,13 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
             </div>
           </TableCell>
           <TableCell className="text-sm">
-            {numberFormatter.format(getBOQItemUnitRate(item.boqItemId))}
+            {numberFormatter.format(boqDetails.unitRate)}
           </TableCell>
           <TableCell>
             {level > 0 ? `${item.percentage}%` : '-'}
           </TableCell>
           <TableCell>
-            {numberFormatter.format(getBOQItemQuantity(item.boqItemId))}
+            {numberFormatter.format(boqDetails.quantity)}
           </TableCell>
           <TableCell>
             {level > 0 && item.value ? numberFormatter.format(item.value) : '-'}
@@ -184,7 +196,7 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>{language === 'en' ? 'BOQ Item' : 'بند الكميات'}</TableHead>
+            <TableHead>{language === 'en' ? 'BOQ Item (with Parent)' : 'بند الكميات (مع الأصل)'}</TableHead>
             <TableHead>{language === 'en' ? 'Description' : 'الوصف'}</TableHead>
             <TableHead>{language === 'en' ? 'BOQ Unit Rate' : 'السعر الافرادي'}</TableHead>
             <TableHead>{language === 'en' ? 'Percentage' : 'النسبة المئوية'}</TableHead>
@@ -252,7 +264,7 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   {selectedParent && 
-                    `Amount will be: ${getBOQItemUnitRate(selectedParent.boqItemId).toLocaleString()} × ${newSubItem.percentage}% = ${((getBOQItemUnitRate(selectedParent.boqItemId) * newSubItem.percentage) / 100).toLocaleString()} SAR`
+                    `Amount will be: ${getBOQItemDetails(selectedParent.boqItemId).unitRate.toLocaleString()} × ${newSubItem.percentage}% = ${((getBOQItemDetails(selectedParent.boqItemId).unitRate * newSubItem.percentage) / 100).toLocaleString()} SAR`
                   }
                 </p>
               </div>

@@ -27,6 +27,11 @@ export type BreakdownItem = {
   unitRate?: number; // Inherited from BOQ item
   quantity?: number; // New field for actual quantities
   isLeaf?: boolean; // To identify leaf items
+  parentInfo?: { // New field for parent information
+    code: string;
+    description: string;
+    descriptionAr: string;
+  };
 };
 
 // Keep PercentageAdjustment as an alias for backward compatibility

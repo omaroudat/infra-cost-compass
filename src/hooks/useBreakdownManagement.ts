@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { BreakdownItem } from '../types';
@@ -21,10 +20,7 @@ export const useBreakdownManagement = () => {
   const flattenedBOQItems = (items: any[]): any[] => {
     const result: any[] = [];
     items.forEach(item => {
-      const codeLevel = (item.code.match(/\./g) || []).length + 1;
-      if (codeLevel === 5) {
-        result.push(item);
-      }
+      result.push(item);
       if (item.children && item.children.length > 0) {
         result.push(...flattenedBOQItems(item.children));
       }
@@ -32,25 +28,48 @@ export const useBreakdownManagement = () => {
     return result;
   };
 
-  // Auto-create breakdown items for Level 5 BOQ items
+  const getParentPath = (itemId: string, allItems: any[]): any[] => {
+    const item = allItems.find(i => i.id === itemId);
+    if (!item || !item.parentId) return [];
+    
+    const parent = allItems.find(i => i.id === item.parentId);
+    if (!parent) return [];
+    
+    return [...getParentPath(parent.id, allItems), parent];
+  };
+
+  // Auto-create breakdown items for all leaf items (Level 5) with their parent hierarchy
   useEffect(() => {
-    const level5Items = flattenedBOQItems(boqItems);
+    const allFlatItems = flattenedBOQItems(boqItems);
+    const level5Items = allFlatItems.filter(item => {
+      const codeLevel = (item.code.match(/\./g) || []).length + 1;
+      return codeLevel === 5;
+    });
     
     level5Items.forEach(boqItem => {
       const existingBreakdown = breakdownItems?.find(bd => bd.boqItemId === boqItem.id && !bd.parentBreakdownId);
       
       if (!existingBreakdown) {
+        // Get parent hierarchy for the leaf item
+        const parentPath = getParentPath(boqItem.id, allFlatItems);
+        const immediateParent = parentPath.length > 0 ? parentPath[parentPath.length - 1] : null;
+        
         const autoBreakdownItem = {
           keyword: boqItem.code,
           keywordAr: boqItem.code,
-          description: boqItem.description,
-          descriptionAr: boqItem.descriptionAr || boqItem.description,
+          description: `${immediateParent ? immediateParent.description + ' - ' : ''}${boqItem.description}`,
+          descriptionAr: `${immediateParent ? (immediateParent.descriptionAr || immediateParent.description) + ' - ' : ''}${boqItem.descriptionAr || boqItem.description}`,
           percentage: 0,
           value: boqItem.unitRate,
           boqItemId: boqItem.id,
           unitRate: boqItem.unitRate,
-          quantity: boqItem.quantity, // Use actual BOQ quantity
-          isLeaf: false
+          quantity: boqItem.quantity,
+          isLeaf: false,
+          parentInfo: immediateParent ? {
+            code: immediateParent.code,
+            description: immediateParent.description,
+            descriptionAr: immediateParent.descriptionAr || immediateParent.description
+          } : null
         };
         
         addBreakdownItem(autoBreakdownItem);
@@ -104,7 +123,7 @@ export const useBreakdownManagement = () => {
       keywordAr: currentBreakdown.keywordAr,
       parentBreakdownId: currentBreakdown.parentBreakdownId,
       unitRate: boqItem.unitRate,
-      quantity: boqItem.quantity // Always use BOQ quantity, not calculated
+      quantity: boqItem.quantity
     };
     
     updateBreakdownItem(editingItem, updatedItem);
