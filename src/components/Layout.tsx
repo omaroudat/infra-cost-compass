@@ -42,7 +42,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     { name: t('nav.wirs'), href: '/wirs', icon: FileCheck, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
     { name: t('nav.progress'), href: '/progress', icon: TrendingUp, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
     { name: t('nav.reports'), href: '/reports', icon: BarChart3, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
-    { name: 'Invoices', href: '/invoices', icon: Receipt, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
+    { name: t('nav.invoices') || 'Invoices', href: '/invoices', icon: Receipt, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
     { name: t('nav.staff'), href: '/staff', icon: Users, roles: ['admin'] as UserRole[] },
     { name: t('nav.users'), href: '/users', icon: Settings, roles: ['admin'] as UserRole[] },
   ];
