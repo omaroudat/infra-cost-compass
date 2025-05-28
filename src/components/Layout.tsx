@@ -26,7 +26,8 @@ import {
   Percent,
   FileCheck
 } from 'lucide-react';
-import LanguageSelector from './LanguageSelector';
+import { LanguageSelector } from './LanguageSelector';
+import { UserRole } from '../types/auth';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const { user, logout, hasPermission } = useAuth();
@@ -34,16 +35,16 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
 
   const navigation = [
-    { name: t('nav.dashboard'), href: '/dashboard', icon: Home, roles: ['admin', 'dataEntry', 'viewer'] },
-    { name: t('nav.boq'), href: '/boq', icon: FileSpreadsheet, roles: ['admin', 'dataEntry'] },
-    { name: t('nav.breakdown'), href: '/breakdown', icon: Calculator, roles: ['admin', 'dataEntry'] },
-    { name: t('nav.adjustments'), href: '/adjustments', icon: Percent, roles: ['admin', 'dataEntry'] },
-    { name: t('nav.wirs'), href: '/wirs', icon: FileCheck, roles: ['admin', 'dataEntry', 'viewer'] },
-    { name: t('nav.progress'), href: '/progress', icon: TrendingUp, roles: ['admin', 'dataEntry', 'viewer'] },
-    { name: t('nav.reports'), href: '/reports', icon: BarChart3, roles: ['admin', 'dataEntry', 'viewer'] },
-    { name: 'Invoices', href: '/invoices', icon: Receipt, roles: ['admin', 'dataEntry', 'viewer'] },
-    { name: t('nav.staff'), href: '/staff', icon: Users, roles: ['admin'] },
-    { name: t('nav.users'), href: '/users', icon: Settings, roles: ['admin'] },
+    { name: t('nav.dashboard'), href: '/dashboard', icon: Home, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
+    { name: t('nav.boq'), href: '/boq', icon: FileSpreadsheet, roles: ['admin', 'dataEntry'] as UserRole[] },
+    { name: t('nav.breakdown'), href: '/breakdown', icon: Calculator, roles: ['admin', 'dataEntry'] as UserRole[] },
+    { name: t('nav.adjustments'), href: '/adjustments', icon: Percent, roles: ['admin', 'dataEntry'] as UserRole[] },
+    { name: t('nav.wirs'), href: '/wirs', icon: FileCheck, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
+    { name: t('nav.progress'), href: '/progress', icon: TrendingUp, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
+    { name: t('nav.reports'), href: '/reports', icon: BarChart3, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
+    { name: 'Invoices', href: '/invoices', icon: Receipt, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
+    { name: t('nav.staff'), href: '/staff', icon: Users, roles: ['admin'] as UserRole[] },
+    { name: t('nav.users'), href: '/users', icon: Settings, roles: ['admin'] as UserRole[] },
   ];
 
   const filteredNavigation = navigation.filter(item => 
@@ -90,14 +91,14 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center space-x-2">
                     <Avatar className="h-8 w-8">
-                      <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
+                      <AvatarFallback>{user?.name?.charAt(0) || user?.username?.charAt(0) || 'U'}</AvatarFallback>
                     </Avatar>
-                    <span className="hidden md:block text-sm font-medium">{user?.name}</span>
+                    <span className="hidden md:block text-sm font-medium">{user?.name || user?.username}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <div className="px-2 py-1.5 text-sm text-gray-500">
-                    {user?.email}
+                    {user?.email || user?.username}
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={logout} className="text-red-600">

@@ -1,11 +1,13 @@
 
-export type UserRole = 'admin' | 'dataEntry';
+export type UserRole = 'admin' | 'dataEntry' | 'viewer';
 
 export interface User {
   id: string;
   username: string;
   password: string; // Note: In a real app, passwords should be hashed and never stored in client
   role: UserRole;
+  name?: string;
+  email?: string;
 }
 
 export interface AuthState {

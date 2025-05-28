@@ -6,12 +6,12 @@ import { UserRole } from '../types/auth';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: UserRole[];
+  requiredRoles?: UserRole[];
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
-  allowedRoles = ['admin', 'dataEntry'] 
+  requiredRoles = ['admin', 'dataEntry'] 
 }) => {
   const { isAuthenticated, hasPermission } = useAuth();
 
@@ -19,7 +19,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/login" replace />;
   }
 
-  if (!hasPermission(allowedRoles)) {
+  if (!hasPermission(requiredRoles)) {
     return <Navigate to="/unauthorized" replace />;
   }
 

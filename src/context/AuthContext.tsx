@@ -10,13 +10,25 @@ const MOCK_USERS: User[] = [
     id: '1',
     username: 'admin',
     password: 'admin123',
-    role: 'admin'
+    role: 'admin',
+    name: 'Admin User',
+    email: 'admin@wirsystem.com'
   },
   {
     id: '2',
     username: 'dataentry',
     password: 'data123',
-    role: 'dataEntry'
+    role: 'dataEntry',
+    name: 'Data Entry User',
+    email: 'dataentry@wirsystem.com'
+  },
+  {
+    id: '3',
+    username: 'viewer',
+    password: 'view123',
+    role: 'viewer',
+    name: 'Viewer User',
+    email: 'viewer@wirsystem.com'
   }
 ];
 
@@ -89,7 +101,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
         isAuthenticated: true,
         user
       });
-      toast.success(`Welcome, ${user.username}!`);
+      toast.success(`Welcome, ${user.name || user.username}!`);
       return true;
     } else {
       toast.error('Invalid credentials');
@@ -123,7 +135,9 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
       id: `${users.length + 1}`,
       username,
       password,
-      role
+      role,
+      name: username,
+      email: `${username}@wirsystem.com`
     };
     
     setUsers(prevUsers => [...prevUsers, newUser]);
