@@ -67,45 +67,6 @@ export const ProgressExportButton: React.FC<ProgressExportButtonProps> = ({
         'Status': costProgress >= 100 ? 'Completed' : costProgress > 0 ? 'In Progress' : 'Not Started'
       });
 
-      // Add breakdown sub-items
-      const subItems = breakdownItems.filter(bd => bd.boqItemId === item.id && bd.isLeaf);
-      subItems.forEach(subItem => {
-        const subItemWIRs = relatedWIRs.filter(wir => 
-          wir.result === 'A' && 
-          wir.selectedBreakdownItems?.includes(subItem.id)
-        );
-
-        const subItemApprovedAmount = subItemWIRs.reduce((sum, wir) => {
-          const wirValue = wir.value || 0;
-          const unitRate = item.unitRate || 0;
-          const percentage = (subItem.percentage || 0) / 100;
-          return sum + (wirValue * unitRate * percentage);
-        }, 0);
-
-        const subItemTotalExpected = (boqTotalAmount * (subItem.percentage || 0)) / 100;
-        const subItemProgress = subItemTotalExpected > 0 ? (subItemApprovedAmount / subItemTotalExpected) * 100 : 0;
-        const subItemRemaining = subItemTotalExpected - subItemApprovedAmount;
-        const subItemRemainingPercentage = 100 - subItemProgress;
-
-        result.push({
-          'Level': level + 1,
-          'BOQ Code': `${item.code}.${subItem.id.slice(-4)}`,
-          'Description': `  └ ${language === 'en' ? subItem.description : (subItem.descriptionAr || subItem.description)}`,
-          'Quantity': item.quantity,
-          'Unit': language === 'en' ? item.unit : (item.unitAr || item.unit),
-          'Unit Rate': englishFormatter.format(item.unitRate),
-          'Total Amount': englishFormatter.format(subItemTotalExpected),
-          'Approved Amount': englishFormatter.format(subItemApprovedAmount),
-          'Approved %': `${subItemProgress.toFixed(1)}%`,
-          'Remaining Amount': englishFormatter.format(subItemRemaining),
-          'Remaining %': `${subItemRemainingPercentage.toFixed(1)}%`,
-          'Type': 'Breakdown Sub-Item',
-          'Parent Code': item.code,
-          'Status': subItemProgress >= 100 ? 'Completed' : subItemProgress > 0 ? 'In Progress' : 'Not Started',
-          'Breakdown %': `${subItem.percentage}%`
-        });
-      });
-
       // Add children recursively
       if (item.children && item.children.length > 0) {
         result.push(...flattenBOQItems(item.children, level + 1));
@@ -115,12 +76,87 @@ export const ProgressExportButton: React.FC<ProgressExportButtonProps> = ({
     return result;
   };
 
+  const generateBreakdownSubItemsData = (): any[] => {
+    const result: any[] = [];
+    
+    // Get all BOQ items (flattened)
+    const flattenedBOQItems = (items: BOQItem[]): BOQItem[] => {
+      const result: BOQItem[] = [];
+      items.forEach(item => {
+        result.push(item);
+        if (item.children) {
+          result.push(...flattenedBOQItems(item.children));
+        }
+      });
+      return result;
+    };
+
+    const allBOQItems = flattenedBOQItems(boqItems);
+
+    allBOQItems.forEach(boqItem => {
+      const subItems = breakdownItems.filter(bd => bd.boqItemId === boqItem.id && bd.isLeaf);
+      const relatedWIRs = getWIRsForBOQ(boqItem.id);
+      
+      subItems.forEach(subItem => {
+        const subItemWIRs = relatedWIRs.filter(wir => 
+          wir.result === 'A' && 
+          wir.selectedBreakdownItems?.includes(subItem.id)
+        );
+
+        // Calculate amount progress
+        const subItemApprovedAmount = subItemWIRs.reduce((sum, wir) => {
+          const wirValue = wir.value || 0;
+          const unitRate = boqItem.unitRate || 0;
+          const percentage = (subItem.percentage || 0) / 100;
+          return sum + (wirValue * unitRate * percentage);
+        }, 0);
+
+        const boqTotalAmount = boqItem.quantity * boqItem.unitRate;
+        const subItemTotalExpected = (boqTotalAmount * (subItem.percentage || 0)) / 100;
+        const subItemAmountProgress = subItemTotalExpected > 0 ? (subItemApprovedAmount / subItemTotalExpected) * 100 : 0;
+
+        // Calculate quantity progress
+        const subItemApprovedQuantity = subItemWIRs.reduce((sum, wir) => sum + (wir.value || 0), 0);
+        const subItemTotalExpectedQuantity = (boqItem.quantity * (subItem.percentage || 0)) / 100;
+        const subItemQuantityProgress = subItemTotalExpectedQuantity > 0 ? (subItemApprovedQuantity / subItemTotalExpectedQuantity) * 100 : 0;
+
+        const subItemRemainingAmount = subItemTotalExpected - subItemApprovedAmount;
+        const subItemRemainingQuantity = subItemTotalExpectedQuantity - subItemApprovedQuantity;
+
+        // Generate sub-item code: ParentCode-SubItemName
+        const subItemCode = `${boqItem.code}-${subItem.description?.replace(/\s+/g, '') || subItem.id.slice(-6)}`;
+
+        result.push({
+          'Sub-Item Code': subItemCode,
+          'Parent BOQ Code': boqItem.code,
+          'Sub-Item Description': language === 'en' ? subItem.description : (subItem.descriptionAr || subItem.description),
+          'Sub-Item Percentage': `${subItem.percentage}%`,
+          'Expected Quantity': subItemTotalExpectedQuantity.toFixed(2),
+          'Approved Quantity': subItemApprovedQuantity.toFixed(2),
+          'Remaining Quantity': subItemRemainingQuantity.toFixed(2),
+          'Quantity Progress %': `${subItemQuantityProgress.toFixed(1)}%`,
+          'Unit': language === 'en' ? boqItem.unit : (boqItem.unitAr || boqItem.unit),
+          'Expected Amount': englishFormatter.format(subItemTotalExpected),
+          'Approved Amount': englishFormatter.format(subItemApprovedAmount),
+          'Remaining Amount': englishFormatter.format(subItemRemainingAmount),
+          'Amount Progress %': `${subItemAmountProgress.toFixed(1)}%`,
+          'Status': subItemAmountProgress >= 100 ? 'Completed' : subItemAmountProgress > 0 ? 'In Progress' : 'Not Started'
+        });
+      });
+    });
+
+    return result;
+  };
+
   const exportToExcel = () => {
     // Get top-level items
     const topLevelItems = boqItems.filter(item => !item.parentId || item.level === 0);
     
-    // Flatten all data
+    // Flatten all BOQ data
     const exportData = flattenBOQItems(topLevelItems);
+
+    // Generate breakdown sub-items data
+    const breakdownData = generateBreakdownSubItemsData();
 
     // Create summary data
     const totalBOQAmount = exportData
@@ -160,7 +196,13 @@ export const ProgressExportButton: React.FC<ProgressExportButtonProps> = ({
     
     // Add detailed progress sheet
     const detailWs = XLSX.utils.json_to_sheet(exportData);
-    XLSX.utils.book_append_sheet(wb, detailWs, 'Detailed Progress');
+    XLSX.utils.book_append_sheet(wb, detailWs, 'BOQ Progress');
+
+    // Add breakdown sub-items sheet
+    if (breakdownData.length > 0) {
+      const breakdownWs = XLSX.utils.json_to_sheet(breakdownData);
+      XLSX.utils.book_append_sheet(wb, breakdownWs, 'Breakdown Sub-Items');
+    }
 
     // Generate filename with current date
     const currentDate = new Date().toISOString().split('T')[0];

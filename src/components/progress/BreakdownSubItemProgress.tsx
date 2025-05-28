@@ -47,13 +47,25 @@ export const BreakdownSubItemProgress: React.FC<BreakdownSubItemProgressProps> =
     const boqTotalAmount = boqItem.quantity * boqItem.unitRate;
     const totalExpectedAmount = (boqTotalAmount * (subItem.percentage || 0)) / 100;
 
-    // Calculate progress percentage
+    // Calculate progress percentage for amount
     const amountProgress = totalExpectedAmount > 0 ? (approvedAmount / totalExpectedAmount) * 100 : 0;
+
+    // Calculate approved quantity for this sub-item
+    const approvedQuantity = approvedWIRs.reduce((sum, wir) => sum + (wir.value || 0), 0);
+
+    // Calculate total expected quantity for this sub-item (Total BOQ Quantity * Percentage)
+    const totalExpectedQuantity = (boqItem.quantity * (subItem.percentage || 0)) / 100;
+
+    // Calculate progress percentage for quantity
+    const quantityProgress = totalExpectedQuantity > 0 ? (approvedQuantity / totalExpectedQuantity) * 100 : 0;
 
     return {
       approvedAmount,
       totalExpectedAmount,
-      amountProgress: Math.min(amountProgress, 100)
+      amountProgress: Math.min(amountProgress, 100),
+      approvedQuantity,
+      totalExpectedQuantity,
+      quantityProgress: Math.min(quantityProgress, 100)
     };
   };
 
@@ -100,6 +112,17 @@ export const BreakdownSubItemProgress: React.FC<BreakdownSubItemProgressProps> =
                   <span className="font-medium">{progress.amountProgress.toFixed(1)}%</span>
                 </div>
                 <Progress value={progress.amountProgress} className="h-2" />
+              </div>
+
+              {/* Approved Quantity Progress */}
+              <div>
+                <div className="flex justify-between text-xs text-gray-600 mb-1">
+                  <span>
+                    {language === 'en' ? 'Approved Quantity:' : 'الكمية المعتمدة:'} {progress.approvedQuantity.toFixed(2)} / {progress.totalExpectedQuantity.toFixed(2)} {language === 'en' ? boqItem.unit : (boqItem.unitAr || boqItem.unit)}
+                  </span>
+                  <span className="font-medium">{progress.quantityProgress.toFixed(1)}%</span>
+                </div>
+                <Progress value={progress.quantityProgress} className="h-2" />
               </div>
             </div>
           );
