@@ -3,8 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { BOQItem } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search } from 'lucide-react';
 
 interface BOQItemSelectorProps {
@@ -40,20 +39,20 @@ const BOQItemSelector: React.FC<BOQItemSelectorProps> = ({
     );
   }, [level5Items, searchTerm]);
 
-  const handleItemToggle = (itemId: string) => {
+  const handleItemSelection = (itemId: string) => {
     if (isResultSubmission) return;
     
-    const newSelection = selectedItems.includes(itemId)
-      ? selectedItems.filter(id => id !== itemId)
-      : [...selectedItems, itemId];
-    
-    onSelectionChange(newSelection);
+    // Single selection - replace the current selection
+    onSelectionChange([itemId]);
   };
+
+  const selectedItem = selectedItems.length > 0 ? selectedItems[0] : '';
+  const selectedBOQItem = level5Items.find(item => item.id === selectedItem);
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label className="text-right">BOQ Items (Level 5)</Label>
+        <Label className="text-right">BOQ Item (Level 5)</Label>
         <div className="col-span-3 space-y-3">
           {/* Search Input */}
           <div className="relative">
@@ -67,41 +66,43 @@ const BOQItemSelector: React.FC<BOQItemSelectorProps> = ({
             />
           </div>
           
-          {/* Selected Items Summary */}
-          {selectedItems.length > 0 && (
-            <div className="text-sm text-gray-600">
-              Selected: {selectedItems.length} item(s)
-            </div>
-          )}
-          
-          {/* Items List */}
-          <ScrollArea className="h-48 border rounded-md p-3">
-            <div className="space-y-2">
+          {/* BOQ Item Dropdown */}
+          <Select
+            value={selectedItem}
+            onValueChange={handleItemSelection}
+            disabled={isResultSubmission}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a BOQ item..." />
+            </SelectTrigger>
+            <SelectContent className="max-h-60">
               {filteredItems.map((item) => (
-                <div key={item.id} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={item.id}
-                    checked={selectedItems.includes(item.id)}
-                    onCheckedChange={() => handleItemToggle(item.id)}
-                    disabled={isResultSubmission}
-                  />
-                  <label
-                    htmlFor={item.id}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-1 cursor-pointer"
-                  >
-                    <span className="font-mono text-blue-600">{item.code}</span>
-                    <span className="ml-2">{item.description}</span>
-                  </label>
-                </div>
+                <SelectItem key={item.id} value={item.id}>
+                  <div className="flex flex-col">
+                    <span className="font-mono text-blue-600 text-sm">{item.code}</span>
+                    <span className="text-sm text-gray-700">{item.description}</span>
+                  </div>
+                </SelectItem>
               ))}
               
               {filteredItems.length === 0 && (
-                <div className="text-sm text-gray-500 text-center py-4">
+                <SelectItem value="" disabled>
                   {searchTerm ? 'No Level 5 items match your search' : 'No Level 5 items available'}
-                </div>
+                </SelectItem>
               )}
+            </SelectContent>
+          </Select>
+          
+          {/* Selected Item Display */}
+          {selectedBOQItem && (
+            <div className="p-3 bg-blue-50 rounded-md">
+              <div className="text-sm">
+                <span className="font-medium">Selected: </span>
+                <span className="font-mono text-blue-600">{selectedBOQItem.code}</span>
+                <span className="ml-2">{selectedBOQItem.description}</span>
+              </div>
             </div>
-          </ScrollArea>
+          )}
         </div>
       </div>
     </div>

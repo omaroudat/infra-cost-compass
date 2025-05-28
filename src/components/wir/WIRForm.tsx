@@ -40,7 +40,7 @@ const WIRForm: React.FC<WIRFormProps> = ({
 
     // Check if at least one BOQ item is selected
     if (!newWIR.linkedBOQItems || newWIR.linkedBOQItems.length === 0) {
-      toast.error('Please select at least one BOQ item.');
+      toast.error('Please select a BOQ item.');
       return;
     }
 
@@ -55,6 +55,9 @@ const WIRForm: React.FC<WIRFormProps> = ({
 
   // Check if this is a result submission (editing an existing submitted WIR)
   const isResultSubmission = editingWIR && newWIR.status === 'submitted';
+
+  // Check if BOQ item is selected to show breakdown selection
+  const hasBOQItemSelected = newWIR.linkedBOQItems && newWIR.linkedBOQItems.length > 0;
 
   return (
     <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto">
@@ -71,11 +74,14 @@ const WIRForm: React.FC<WIRFormProps> = ({
         isResultSubmission={isResultSubmission}
       />
 
-      <WIRBreakdownSelection
-        newWIR={newWIR}
-        setNewWIR={setNewWIR}
-        isResultSubmission={isResultSubmission}
-      />
+      {/* Only show breakdown selection after BOQ item is selected */}
+      {hasBOQItemSelected && (
+        <WIRBreakdownSelection
+          newWIR={newWIR}
+          setNewWIR={setNewWIR}
+          isResultSubmission={isResultSubmission}
+        />
+      )}
       
       <WIRResultForm
         newWIR={newWIR}
