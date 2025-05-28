@@ -83,8 +83,8 @@ const Invoices = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-blue-50 p-4 rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                 <h3 className="font-semibold text-blue-800 mb-2">
                   {language === 'en' ? 'Previous Amount' : 'المبلغ السابق'}
                 </h3>
@@ -96,7 +96,7 @@ const Invoices = () => {
                 </p>
               </div>
 
-              <div className="bg-green-50 p-4 rounded-lg">
+              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                 <h3 className="font-semibold text-green-800 mb-2">
                   {language === 'en' ? 'Current Month Amount' : 'مبلغ الشهر الحالي'}
                 </h3>
@@ -108,7 +108,19 @@ const Invoices = () => {
                 </p>
               </div>
 
-              <div className="bg-purple-50 p-4 rounded-lg">
+              <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                <h3 className="font-semibold text-amber-800 mb-2">
+                  {language === 'en' ? 'Cumulative Total' : 'المجموع التراكمي'}
+                </h3>
+                <p className="text-2xl font-bold text-amber-900">
+                  {formatter.format(invoiceData.previousAmount + invoiceData.currentAmount)}
+                </p>
+                <p className="text-sm text-amber-600 mt-1">
+                  {language === 'en' ? 'Total amount to date' : 'إجمالي المبلغ حتى التاريخ'}
+                </p>
+              </div>
+
+              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
                 <h3 className="font-semibold text-purple-800 mb-2">
                   {language === 'en' ? 'Total BOQ Amount' : 'إجمالي مبلغ جدول الكميات'}
                 </h3>
