@@ -18,7 +18,6 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -29,7 +28,6 @@ import {
 } from '@/components/ui/sidebar';
 import { 
   BarChart3, 
-  FileText, 
   Home, 
   LogOut, 
   Settings, 
@@ -39,7 +37,8 @@ import {
   FileSpreadsheet,
   Calculator,
   Percent,
-  FileCheck
+  FileCheck,
+  Plus
 } from 'lucide-react';
 import { LanguageSelector } from './LanguageSelector';
 import { UserRole } from '../types/auth';
@@ -50,16 +49,15 @@ const AppSidebar = () => {
   const location = useLocation();
 
   const navigation = [
-    { name: t('nav.dashboard'), href: '/dashboard', icon: Home, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
-    { name: t('nav.boq'), href: '/boq', icon: FileSpreadsheet, roles: ['admin', 'dataEntry'] as UserRole[] },
-    { name: t('nav.breakdown'), href: '/breakdown', icon: Calculator, roles: ['admin', 'dataEntry'] as UserRole[] },
-    { name: t('nav.adjustments'), href: '/adjustments', icon: Percent, roles: ['admin', 'dataEntry'] as UserRole[] },
-    { name: t('nav.wirs'), href: '/wirs', icon: FileCheck, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
-    { name: t('nav.progress'), href: '/progress', icon: TrendingUp, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
-    { name: t('nav.reports'), href: '/reports', icon: BarChart3, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
+    { name: t('nav.dashboard') || 'Dashboard', href: '/dashboard', icon: Home, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
+    { name: t('nav.boq') || 'BOQ Items', href: '/boq', icon: FileSpreadsheet, roles: ['admin', 'dataEntry'] as UserRole[] },
+    { name: t('nav.breakdown') || 'Break-Down', href: '/breakdown', icon: Calculator, roles: ['admin', 'dataEntry'] as UserRole[] },
+    { name: t('nav.adjustments') || 'Adjustments', href: '/adjustments', icon: Percent, roles: ['admin', 'dataEntry'] as UserRole[] },
+    { name: t('nav.wirs') || 'WIRs', href: '/wirs', icon: FileCheck, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
+    { name: t('nav.reports') || 'Reports', href: '/reports', icon: BarChart3, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
+    { name: t('nav.progress') || 'Progress Tracking', href: '/progress', icon: Plus, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
     { name: t('nav.invoices') || 'Invoices', href: '/invoices', icon: Receipt, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
-    { name: t('nav.staff'), href: '/staff', icon: Users, roles: ['admin'] as UserRole[] },
-    { name: t('nav.users'), href: '/users', icon: Settings, roles: ['admin'] as UserRole[] },
+    { name: t('nav.users') || 'Users', href: '/users', icon: Users, roles: ['admin'] as UserRole[] },
   ];
 
   const filteredNavigation = navigation.filter(item => 
@@ -67,27 +65,53 @@ const AppSidebar = () => {
   );
 
   return (
-    <Sidebar>
-      <SidebarHeader className="border-b">
-        <div className="flex items-center space-x-2 px-4 py-2">
-          <FileText className="h-8 w-8 text-blue-600" />
-          <span className="text-xl font-bold text-gray-900">WIR System</span>
+    <Sidebar className="bg-slate-800 text-white">
+      <SidebarHeader className="border-b border-slate-700 p-6">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center">
+            <img 
+              src="/lovable-uploads/87571df3-99f0-413c-b984-aa2e1eae6341.png" 
+              alt="Company Logo" 
+              className="w-12 h-12 object-contain"
+            />
+          </div>
+          <div className="text-center">
+            <div className="text-yellow-400 text-sm font-medium mb-1" dir="rtl">
+              شركة سعد سعيد الصاعدي
+            </div>
+            <div className="text-yellow-400 text-xs" dir="rtl">
+              وأولاده التضامنية
+            </div>
+          </div>
+          <div className="text-center">
+            <h1 className="text-white text-xl font-bold">WIR Management</h1>
+            <p className="text-slate-300 text-sm">Construction Financial Manager</p>
+          </div>
         </div>
       </SidebarHeader>
       
-      <SidebarContent>
+      <SidebarContent className="px-4 py-6">
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-2">
               {filteredNavigation.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.href;
                 return (
                   <SidebarMenuItem key={item.name}>
-                    <SidebarMenuButton asChild isActive={isActive}>
-                      <Link to={item.href}>
-                        <Icon className="h-4 w-4" />
+                    <SidebarMenuButton 
+                      asChild 
+                      isActive={isActive}
+                      className={`
+                        w-full text-left px-4 py-3 rounded-lg transition-colors
+                        ${isActive 
+                          ? 'bg-slate-700 text-white font-medium' 
+                          : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                        }
+                      `}
+                    >
+                      <Link to={item.href} className="flex items-center space-x-3">
+                        <Icon className="h-5 w-5" />
                         <span>{item.name}</span>
                       </Link>
                     </SidebarMenuButton>
@@ -99,14 +123,16 @@ const AppSidebar = () => {
         </SidebarGroup>
       </SidebarContent>
       
-      <SidebarFooter className="border-t">
+      <SidebarFooter className="border-t border-slate-700 p-4">
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton className="w-full">
+                <SidebarMenuButton className="w-full text-slate-300 hover:bg-slate-700 hover:text-white">
                   <Avatar className="h-6 w-6">
-                    <AvatarFallback>{user?.name?.charAt(0) || user?.username?.charAt(0) || 'U'}</AvatarFallback>
+                    <AvatarFallback className="bg-slate-600 text-white">
+                      {user?.name?.charAt(0) || user?.username?.charAt(0) || 'U'}
+                    </AvatarFallback>
                   </Avatar>
                   <span className="truncate">{user?.name || user?.username}</span>
                 </SidebarMenuButton>
@@ -118,7 +144,7 @@ const AppSidebar = () => {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout} className="text-red-600">
                   <LogOut className="mr-2 h-4 w-4" />
-                  {t('auth.logout')}
+                  {t('auth.logout') || 'Logout'}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -132,16 +158,16 @@ const AppSidebar = () => {
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full bg-gray-50">
         <AppSidebar />
-        <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+        <SidebarInset className="flex-1">
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-white px-4 shadow-sm">
             <SidebarTrigger className="-ml-1" />
             <div className="ml-auto flex items-center space-x-4">
               <LanguageSelector />
             </div>
           </header>
-          <main className="flex-1 p-6">
+          <main className="flex-1 p-6 bg-gray-50">
             {children}
           </main>
         </SidebarInset>
