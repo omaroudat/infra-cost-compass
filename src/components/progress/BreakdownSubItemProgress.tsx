@@ -46,8 +46,9 @@ export const BreakdownSubItemProgress: React.FC<BreakdownSubItemProgressProps> =
       return sum + (wirValue * unitRate * percentage);
     }, 0);
 
-    // Calculate total expected amount for this sub-item (BOQ Unit Rate * Percentage)
-    const totalExpectedAmount = (boqItem.unitRate * (subItem.percentage || 0)) / 100;
+    // Calculate total expected amount for this sub-item (Total BOQ Amount * Percentage)
+    const boqTotalAmount = boqItem.quantity * boqItem.unitRate;
+    const totalExpectedAmount = (boqTotalAmount * (subItem.percentage || 0)) / 100;
 
     // Calculate approved quantity (based on approved WIRs value)
     const approvedQuantity = approvedWIRs.reduce((sum, wir) => sum + (wir.value || 0), 0);
