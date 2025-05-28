@@ -6,6 +6,7 @@ import WIRBasicInfoForm from './WIRBasicInfoForm';
 import WIRLocationForm from './WIRLocationForm';
 import WIRResultForm from './WIRResultForm';
 import WIRFormActions from './WIRFormActions';
+import WIRBreakdownSelection from './WIRBreakdownSelection';
 
 interface WIRFormProps {
   newWIR: Partial<WIR>;
@@ -65,6 +66,12 @@ const WIRForm: React.FC<WIRFormProps> = ({
       />
       
       <WIRLocationForm
+        newWIR={newWIR}
+        setNewWIR={setNewWIR}
+        isResultSubmission={isResultSubmission}
+      />
+
+      <WIRBreakdownSelection
         newWIR={newWIR}
         setNewWIR={setNewWIR}
         isResultSubmission={isResultSubmission}

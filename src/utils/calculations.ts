@@ -58,7 +58,8 @@ export function calculateWIRAmount(wir: WIR, breakdownItems: BreakdownItem[], bo
     breakdownItemsCount: breakdownItems?.length || 0,
     boqItemsCount: boqItems?.length || 0,
     wirResult: wir.result,
-    wirStatus: wir.status
+    wirStatus: wir.status,
+    selectedBreakdownItems: wir.selectedBreakdownItems
   });
   
   // Only calculate for approved or conditionally approved WIRs
@@ -70,55 +71,102 @@ export function calculateWIRAmount(wir: WIR, breakdownItems: BreakdownItem[], bo
   let totalAmount = 0;
   let equations: string[] = [];
 
-  // Calculate for each linked BOQ item
-  const boqItemIds = wir.linkedBOQItems && wir.linkedBOQItems.length > 0 ? wir.linkedBOQItems : [wir.boqItemId];
-  console.log('Processing BOQ item IDs:', boqItemIds);
-  
-  for (const boqItemId of boqItemIds) {
-    console.log('Processing BOQ item ID:', boqItemId);
+  // Use selected breakdown items if available, otherwise fall back to BOQ items
+  if (wir.selectedBreakdownItems && wir.selectedBreakdownItems.length > 0) {
+    console.log('Processing selected breakdown items:', wir.selectedBreakdownItems);
     
-    const boqItem = findBOQItemById(boqItemId, boqItems);
-    if (!boqItem) {
-      console.log('BOQ item not found for ID:', boqItemId);
-      continue;
+    for (const breakdownId of wir.selectedBreakdownItems) {
+      const breakdown = breakdownItems.find(item => item.id === breakdownId);
+      if (!breakdown) {
+        console.log('Breakdown item not found for ID:', breakdownId);
+        continue;
+      }
+
+      const boqItem = findBOQItemById(breakdown.boqItemId, boqItems);
+      if (!boqItem) {
+        console.log('BOQ item not found for breakdown:', breakdown.boqItemId);
+        continue;
+      }
+
+      console.log('Processing breakdown:', { 
+        id: breakdown.id, 
+        percentage: breakdown.percentage, 
+        boqUnitRate: boqItem.unitRate 
+      });
+
+      if (!breakdown.percentage || breakdown.percentage === 0) {
+        console.log('No percentage set for breakdown item:', breakdownId);
+        continue;
+      }
+      
+      // New formula: WIR Value × BOQ Unit Rate × Breakdown Percentage (as decimal)
+      const breakdownPercentage = breakdown.percentage / 100;
+      const wirValue = wir.value || 0;
+      const unitRate = boqItem.unitRate || 0;
+
+      console.log('Calculation values:', { wirValue, unitRate, breakdownPercentage, percentage: breakdown.percentage });
+
+      const itemAmount = wirValue * unitRate * breakdownPercentage;
+      totalAmount += itemAmount;
+
+      console.log('Calculated item amount:', itemAmount);
+
+      // Create equation string
+      const percentageDisplay = `${breakdown.percentage}%`;
+      const equation = `${wirValue.toLocaleString('en-US')} × ${unitRate.toLocaleString('en-US')} × ${percentageDisplay} = ${itemAmount.toLocaleString('en-US')}`;
+      equations.push(`${breakdown.description}: ${equation}`);
     }
+  } else {
+    // Fall back to original calculation for BOQ items
+    const boqItemIds = wir.linkedBOQItems && wir.linkedBOQItems.length > 0 ? wir.linkedBOQItems : [wir.boqItemId];
+    console.log('Processing BOQ item IDs (fallback):', boqItemIds);
+    
+    for (const boqItemId of boqItemIds) {
+      console.log('Processing BOQ item ID:', boqItemId);
+      
+      const boqItem = findBOQItemById(boqItemId, boqItems);
+      if (!boqItem) {
+        console.log('BOQ item not found for ID:', boqItemId);
+        continue;
+      }
 
-    console.log('Found BOQ item:', { id: boqItem.id, code: boqItem.code, unitRate: boqItem.unitRate });
+      console.log('Found BOQ item:', { id: boqItem.id, code: boqItem.code, unitRate: boqItem.unitRate });
 
-    // Try to find breakdown item by BOQ ID first, then by code
-    let breakdown = findBreakdownItemByBOQId(boqItemId, breakdownItems);
-    if (!breakdown) {
-      breakdown = findBreakdownItemByBOQCode(boqItem.code, breakdownItems);
+      // Try to find breakdown item by BOQ ID first, then by code
+      let breakdown = findBreakdownItemByBOQId(boqItemId, breakdownItems);
+      if (!breakdown) {
+        breakdown = findBreakdownItemByBOQCode(boqItem.code, breakdownItems);
+      }
+      
+      console.log('Found breakdown for BOQ item:', { boqItemId, breakdown: breakdown?.id, percentage: breakdown?.percentage });
+      
+      if (!breakdown || !breakdown.percentage || breakdown.percentage === 0) {
+        console.log('No breakdown found or percentage is 0 for BOQ item:', boqItemId);
+        continue;
+      }
+      
+      // Use breakdown percentage as decimal (e.g., 0.4 for 40%)
+      const breakdownPercentage = breakdown.percentage / 100;
+      const wirValue = wir.value || 0;
+      const unitRate = boqItem.unitRate || 0;
+
+      console.log('Calculation values:', { wirValue, unitRate, breakdownPercentage, percentage: breakdown.percentage });
+
+      // Formula: WIR Value × BOQ Unit Rate × Breakdown Percentage (as decimal)
+      const itemAmount = wirValue * unitRate * breakdownPercentage;
+      totalAmount += itemAmount;
+
+      console.log('Calculated item amount:', itemAmount);
+
+      // Create equation string with proper formatting
+      const percentageDisplay = `${breakdown.percentage}%`;
+      const equation = `${wirValue.toLocaleString('en-US')} × ${unitRate.toLocaleString('en-US')} × ${percentageDisplay} = ${itemAmount.toLocaleString('en-US')}`;
+      equations.push(`${boqItem.code}: ${equation}`);
     }
-    
-    console.log('Found breakdown for BOQ item:', { boqItemId, breakdown: breakdown?.id, percentage: breakdown?.percentage });
-    
-    if (!breakdown || !breakdown.percentage || breakdown.percentage === 0) {
-      console.log('No breakdown found or percentage is 0 for BOQ item:', boqItemId);
-      continue;
-    }
-    
-    // Use breakdown percentage as decimal (e.g., 0.4 for 40%)
-    const breakdownPercentage = breakdown.percentage / 100;
-    const wirValue = wir.value || 0;
-    const unitRate = boqItem.unitRate || 0;
-
-    console.log('Calculation values:', { wirValue, unitRate, breakdownPercentage, percentage: breakdown.percentage });
-
-    // Formula: WIR Value × BOQ Unit Rate × Breakdown Percentage (as decimal)
-    const itemAmount = wirValue * unitRate * breakdownPercentage;
-    totalAmount += itemAmount;
-
-    console.log('Calculated item amount:', itemAmount);
-
-    // Create equation string with proper formatting
-    const percentageDisplay = `${breakdown.percentage}%`;
-    const equation = `${wirValue.toLocaleString('ar-SA')} × ${unitRate.toLocaleString('ar-SA')} × ${percentageDisplay} = ${itemAmount.toLocaleString('ar-SA')}`;
-    equations.push(`${boqItem.code}: ${equation}`);
   }
 
   const finalEquation = equations.length > 1 
-    ? `${equations.join(' + ')} = ${totalAmount.toLocaleString('ar-SA')} SAR`
+    ? `${equations.join(' + ')} = ${totalAmount.toLocaleString('en-US')} SAR`
     : equations.length > 0 ? `${equations[0]} SAR` : '';
 
   console.log('Final calculation result:', { amount: totalAmount, equation: finalEquation });

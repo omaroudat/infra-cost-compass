@@ -14,6 +14,7 @@ interface AppContextType {
   updateBOQItem: (id: string, updates: Partial<BOQItem>) => void;
   deleteBOQItem: (id: string) => void;
   addBreakdownItem: (item: Omit<BreakdownItem, 'id'>) => void;
+  addBreakdownSubItem: (parentId: string, item: Omit<BreakdownItem, 'id'>) => void; // New function
   updateBreakdownItem: (id: string, updates: Partial<BreakdownItem>) => void;
   deleteBreakdownItem: (id: string) => void;
   addPercentageAdjustment: (item: Omit<BreakdownItem, 'id'>) => void; // Alias
@@ -196,6 +197,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setBreakdownItems(prev => [...prev, newItem]);
   };
 
+  const addBreakdownSubItem = (parentId: string, item: Omit<BreakdownItem, 'id'>) => {
+    const newItem = {
+      ...item,
+      id: `breakdown-sub-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      parentBreakdownId: parentId
+    };
+    setBreakdownItems(prev => [...prev, newItem]);
+  };
+
   const updateBreakdownItem = (id: string, updates: Partial<BreakdownItem>) => {
     setBreakdownItems(prev => {
       return prev.map(item => {
@@ -311,6 +321,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     updateBOQItem,
     deleteBOQItem,
     addBreakdownItem,
+    addBreakdownSubItem, // New function
     updateBreakdownItem,
     deleteBreakdownItem,
     addPercentageAdjustment: addBreakdownItem, // Alias

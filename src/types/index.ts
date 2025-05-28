@@ -1,4 +1,3 @@
-
 export type BOQItem = {
   id: string;
   code: string;
@@ -23,6 +22,11 @@ export type BreakdownItem = {
   percentage?: number;
   value?: number;
   boqItemId: string;
+  parentBreakdownId?: string; // For sub-items
+  children?: BreakdownItem[]; // For sub-items
+  unitRate?: number; // Inherited from BOQ item
+  quantity?: number; // New field for actual quantities
+  isLeaf?: boolean; // To identify leaf items
 };
 
 // Keep PercentageAdjustment as an alias for backward compatibility
@@ -57,6 +61,7 @@ export type WIR = {
   revisionNumber?: number;
   linkedBOQItems: string[]; // multiple sub items
   originalWIRId?: string; // original WIR ID for revisions
+  selectedBreakdownItems?: string[]; // New field for selected breakdown sub-items
 };
 
 export type FinancialSummary = {

@@ -18,10 +18,22 @@ const Breakdown = () => {
     handleSave,
     resetForm,
     handleEdit,
+    handleAddSubItem,
     deleteBreakdownItem
   } = useBreakdownManagement();
 
   const [language, setLanguage] = useState<'en' | 'ar'>('en');
+
+  // Organize breakdown items into hierarchical structure
+  const organizedBreakdownItems = breakdownItems?.map(item => {
+    if (!item.parentBreakdownId) {
+      return {
+        ...item,
+        children: breakdownItems?.filter(child => child.parentBreakdownId === item.id) || []
+      };
+    }
+    return null;
+  }).filter(Boolean) || [];
   
   return (
     <div className="space-y-6">
@@ -47,11 +59,11 @@ const Breakdown = () => {
         </div>
         <div className="text-sm text-gray-600">
           <p>Breakdown items are automatically created from Level 5 BOQ items</p>
-          <p>Only description and percentage can be modified</p>
+          <p>Add sub-items with percentages for detailed breakdown</p>
         </div>
       </div>
       
-      {/* Only show dialog for editing, not for adding */}
+      {/* Only show dialog for editing sub-items */}
       {editingItem && (
         <BreakdownDialog
           isOpen={isAddDialogOpen}
@@ -67,11 +79,12 @@ const Breakdown = () => {
       )}
       
       <BreakdownTable
-        breakdownItems={breakdownItems}
+        breakdownItems={organizedBreakdownItems}
         boqItems={boqItems}
         language={language}
         onEdit={handleEdit}
         onDelete={deleteBreakdownItem}
+        onAddSubItem={handleAddSubItem}
       />
     </div>
   );

@@ -5,7 +5,7 @@ import { BreakdownItem } from '../types';
 import { toast } from 'sonner';
 
 export const useBreakdownManagement = () => {
-  const { breakdownItems, boqItems, addBreakdownItem, updateBreakdownItem, deleteBreakdownItem } = useAppContext();
+  const { breakdownItems, boqItems, addBreakdownItem, updateBreakdownItem, deleteBreakdownItem, addBreakdownSubItem } = useAppContext();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [newItem, setNewItem] = useState<Partial<BreakdownItem>>({
@@ -37,7 +37,7 @@ export const useBreakdownManagement = () => {
     const level5Items = flattenedBOQItems(boqItems);
     
     level5Items.forEach(boqItem => {
-      const existingBreakdown = breakdownItems?.find(bd => bd.boqItemId === boqItem.id);
+      const existingBreakdown = breakdownItems?.find(bd => bd.boqItemId === boqItem.id && !bd.parentBreakdownId);
       
       if (!existingBreakdown) {
         const autoBreakdownItem = {
@@ -48,6 +48,9 @@ export const useBreakdownManagement = () => {
           percentage: 0,
           value: boqItem.unitRate,
           boqItemId: boqItem.id,
+          unitRate: boqItem.unitRate,
+          quantity: 1,
+          isLeaf: false
         };
         
         addBreakdownItem(autoBreakdownItem);
@@ -74,7 +77,7 @@ export const useBreakdownManagement = () => {
       return;
     }
     
-    // Get the current BOQ item to recalculate value based on percentage
+    // Get the current breakdown item
     const currentBreakdown = breakdownItems?.find(item => item.id === editingItem);
     if (!currentBreakdown) {
       toast.error('Breakdown item not found.');
@@ -87,15 +90,21 @@ export const useBreakdownManagement = () => {
       return;
     }
 
-    // Calculate value based on percentage of BOQ unit rate
-    const calculatedValue = (boqItem.unitRate * (newItem.percentage || 0)) / 100;
+    // Calculate value based on percentage of BOQ unit rate (for sub-items)
+    let calculatedValue = currentBreakdown.value;
+    if (currentBreakdown.parentBreakdownId && newItem.percentage) {
+      calculatedValue = (boqItem.unitRate * (newItem.percentage || 0)) / 100;
+    }
     
     const updatedItem = {
       ...newItem,
       value: calculatedValue,
-      boqItemId: currentBreakdown.boqItemId, // Keep original BOQ item
-      keyword: currentBreakdown.keyword, // Keep original keyword
-      keywordAr: currentBreakdown.keywordAr, // Keep original keyword
+      boqItemId: currentBreakdown.boqItemId,
+      keyword: currentBreakdown.keyword,
+      keywordAr: currentBreakdown.keywordAr,
+      parentBreakdownId: currentBreakdown.parentBreakdownId,
+      unitRate: boqItem.unitRate,
+      quantity: currentBreakdown.parentBreakdownId ? (newItem.percentage || 0) / 100 : currentBreakdown.quantity
     };
     
     updateBreakdownItem(editingItem, updatedItem);
@@ -132,7 +141,16 @@ export const useBreakdownManagement = () => {
     setIsAddDialogOpen(true);
   };
 
-  // Disable add/delete functions
+  const handleAddSubItem = (parentId: string, subItemData: Omit<BreakdownItem, 'id'>) => {
+    if (addBreakdownSubItem) {
+      addBreakdownSubItem(parentId, subItemData);
+    } else {
+      // Fallback to regular add if addBreakdownSubItem is not available
+      addBreakdownItem(subItemData);
+    }
+  };
+
+  // Disable add/delete functions for main items
   const handleAddDisabled = () => {
     toast.info('Breakdown items are automatically created from Level 5 BOQ items.');
   };
@@ -153,6 +171,7 @@ export const useBreakdownManagement = () => {
     handleSave,
     resetForm,
     handleEdit,
+    handleAddSubItem,
     deleteBreakdownItem: handleDeleteDisabled,
     addBreakdownItem: handleAddDisabled
   };
