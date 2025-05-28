@@ -38,15 +38,15 @@ export const useBreakdownManagement = () => {
     return [...getParentPath(parent.id, allItems), parent];
   };
 
-  // Auto-create breakdown items for all leaf items (Level 5) with their parent hierarchy
+  // Auto-create breakdown items for Level 5 items that have quantity > 0
   useEffect(() => {
     const allFlatItems = flattenedBOQItems(boqItems);
-    const level5Items = allFlatItems.filter(item => {
+    const level5ItemsWithQuantity = allFlatItems.filter(item => {
       const codeLevel = (item.code.match(/\./g) || []).length + 1;
-      return codeLevel === 5;
+      return codeLevel === 5 && item.quantity && item.quantity > 0;
     });
     
-    level5Items.forEach(boqItem => {
+    level5ItemsWithQuantity.forEach(boqItem => {
       const existingBreakdown = breakdownItems?.find(bd => bd.boqItemId === boqItem.id && !bd.parentBreakdownId);
       
       if (!existingBreakdown) {
@@ -184,7 +184,7 @@ export const useBreakdownManagement = () => {
 
   // Disable add/delete functions for main items
   const handleAddDisabled = () => {
-    toast.info('Breakdown items are automatically created from Level 5 BOQ items.');
+    toast.info('Breakdown items are automatically created from Level 5 BOQ items with quantities.');
   };
 
   const handleDeleteDisabled = () => {

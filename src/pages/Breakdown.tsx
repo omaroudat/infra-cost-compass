@@ -39,7 +39,7 @@ const Breakdown = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <h2 className="text-xl font-bold">Break-Down Items / وصف البنود الفرعية (Level 5 Only)</h2>
+          <h2 className="text-xl font-bold">Break-Down Items / وصف البنود الفرعية (Level 5 with Quantities)</h2>
           <div className="flex gap-2">
             <Button
               variant={language === 'en' ? 'default' : 'outline'}
@@ -58,7 +58,7 @@ const Breakdown = () => {
           </div>
         </div>
         <div className="text-sm text-gray-600">
-          <p>Breakdown items are automatically created from Level 5 BOQ items</p>
+          <p>Breakdown items are automatically created from Level 5 BOQ items with quantities > 0</p>
           <p>Add sub-items with percentages for detailed breakdown</p>
         </div>
       </div>
