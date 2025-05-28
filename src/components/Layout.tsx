@@ -49,15 +49,14 @@ const AppSidebar = () => {
   const location = useLocation();
 
   const navigation = [
-    { name: t('nav.dashboard') || 'Dashboard', href: '/dashboard', icon: Home, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
-    { name: t('nav.boq') || 'BOQ Items', href: '/boq', icon: FileSpreadsheet, roles: ['admin', 'dataEntry'] as UserRole[] },
-    { name: t('nav.breakdown') || 'Break-Down', href: '/breakdown', icon: Calculator, roles: ['admin', 'dataEntry'] as UserRole[] },
-    { name: t('nav.adjustments') || 'Adjustments', href: '/adjustments', icon: Percent, roles: ['admin', 'dataEntry'] as UserRole[] },
-    { name: t('nav.wirs') || 'WIRs', href: '/wirs', icon: FileCheck, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
-    { name: t('nav.reports') || 'Reports', href: '/reports', icon: BarChart3, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
-    { name: t('nav.progress') || 'Progress Tracking', href: '/progress', icon: Plus, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
-    { name: t('nav.invoices') || 'Invoices', href: '/invoices', icon: Receipt, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
-    { name: t('nav.users') || 'Users', href: '/users', icon: Users, roles: ['admin'] as UserRole[] },
+    { name: 'Dashboard', href: '/dashboard', icon: Home, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
+    { name: 'BOQ Items', href: '/boq', icon: FileSpreadsheet, roles: ['admin', 'dataEntry'] as UserRole[] },
+    { name: 'Break-Down', href: '/breakdown', icon: Calculator, roles: ['admin', 'dataEntry'] as UserRole[] },
+    { name: 'WIRs', href: '/wirs', icon: FileCheck, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
+    { name: 'Reports', href: '/reports', icon: BarChart3, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
+    { name: 'Progress Tracking', href: '/progress', icon: Plus, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
+    { name: 'Invoices', href: '/invoices', icon: Receipt, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[] },
+    { name: 'Users', href: '/users', icon: Users, roles: ['admin'] as UserRole[] },
   ];
 
   const filteredNavigation = navigation.filter(item => 
