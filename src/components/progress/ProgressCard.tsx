@@ -7,6 +7,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 import { BOQItem, BOQProgress, BreakdownItem, WIR } from '@/types';
 import { useLanguage } from '../../context/LanguageContext';
 import { RelatedWIRsTable } from './RelatedWIRsTable';
+import { BreakdownSubItemProgress } from './BreakdownSubItemProgress';
 
 interface ProgressCardProps {
   progress: BOQProgress;
@@ -67,6 +68,11 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({
   const parentCostProgress = isParent && childrenTotalAmount > 0 
     ? (childrenApprovedAmount / childrenTotalAmount) * 100 
     : 0;
+
+  // Get breakdown sub-items for this BOQ item
+  const breakdownSubItems = breakdownItems?.filter(item => 
+    item.boqItemId === boqItem.id && item.isLeaf
+  ) || [];
 
   const paddingLeft = level * 2; // 2rem per level
 
@@ -145,6 +151,17 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({
         
         {isExpanded && !isParent && (
           <CardContent className="space-y-6">
+            {/* Breakdown Sub-Items Progress */}
+            {breakdownSubItems.length > 0 && (
+              <BreakdownSubItemProgress
+                breakdownSubItems={breakdownSubItems}
+                relatedWIRs={relatedWIRs}
+                boqItem={boqItem}
+                language={language}
+                getWIRAmountForBOQ={getWIRAmountForBOQ}
+              />
+            )}
+            
             <RelatedWIRsTable
               wirs={relatedWIRs}
               boqItemId={progress.boqItemId}
