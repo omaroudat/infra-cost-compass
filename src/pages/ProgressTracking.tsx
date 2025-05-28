@@ -26,12 +26,50 @@ const ProgressTracking = () => {
   
   const progressData = calculateBOQProgress();
   
+  // Calculate total approved amount for children of a parent
+  const calculateChildrenApprovedAmount = (boqItem: BOQItem): { approvedAmount: number; totalAmount: number } => {
+    if (!boqItem.children || boqItem.children.length === 0) {
+      return { approvedAmount: 0, totalAmount: 0 };
+    }
+    
+    let totalApproved = 0;
+    let totalAmount = 0;
+    
+    const processChildren = (children: BOQItem[]) => {
+      children.forEach(child => {
+        const childWIRs = getWIRsForBOQ(child.id);
+        const childApprovedAmount = childWIRs
+          .filter(wir => wir.result === 'A')
+          .reduce((sum, wir) => sum + getWIRAmountForBOQ(wir, child.id), 0);
+        
+        const childTotalAmount = child.quantity * child.unitRate;
+        
+        totalApproved += childApprovedAmount;
+        totalAmount += childTotalAmount;
+        
+        // Process nested children
+        if (child.children && child.children.length > 0) {
+          processChildren(child.children);
+        }
+      });
+    };
+    
+    processChildren(boqItem.children);
+    
+    return { approvedAmount: totalApproved, totalAmount: totalAmount };
+  };
+  
   // Function to render BOQ items hierarchically
   const renderBOQItem = (boqItem: BOQItem, level: number = 0): React.ReactNode => {
     const progress = progressData.find(p => p.boqItemId === boqItem.id);
     if (!progress) return null;
     
     const relatedWIRs = getWIRsForBOQ(progress.boqItemId);
+    const isParent = boqItem.children && boqItem.children.length > 0;
+    
+    // Calculate children approved amount for parent items
+    const { approvedAmount: childrenApprovedAmount, totalAmount: childrenTotalAmount } = 
+      isParent ? calculateChildrenApprovedAmount(boqItem) : { approvedAmount: 0, totalAmount: 0 };
     
     return (
       <ProgressCard
@@ -44,6 +82,9 @@ const ProgressTracking = () => {
         formatter={formatter}
         getWIRAmountForBOQ={getWIRAmountForBOQ}
         level={level}
+        isParent={isParent}
+        childrenApprovedAmount={childrenApprovedAmount}
+        childrenTotalAmount={childrenTotalAmount}
       >
         {boqItem.children?.map(child => renderBOQItem(child, level + 1))}
       </ProgressCard>

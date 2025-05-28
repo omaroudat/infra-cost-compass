@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { BOQItem, BOQProgress, BreakdownItem, WIR } from '@/types';
 import { useLanguage } from '../../context/LanguageContext';
-import { BreakdownProgress } from './BreakdownProgress';
 import { RelatedWIRsTable } from './RelatedWIRsTable';
 
 interface ProgressCardProps {
@@ -19,6 +18,9 @@ interface ProgressCardProps {
   getWIRAmountForBOQ: (wir: WIR, boqId: string) => number;
   children?: React.ReactNode;
   level?: number;
+  isParent?: boolean;
+  childrenApprovedAmount?: number;
+  childrenTotalAmount?: number;
 }
 
 export const ProgressCard: React.FC<ProgressCardProps> = ({
@@ -30,7 +32,10 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({
   formatter,
   getWIRAmountForBOQ,
   children,
-  level = 0
+  level = 0,
+  isParent = false,
+  childrenApprovedAmount = 0,
+  childrenTotalAmount = 0
 }) => {
   const { t } = useLanguage();
   const [isExpanded, setIsExpanded] = useState(true);
@@ -58,6 +63,11 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({
     .reduce((sum, wir) => sum + getWIRAmountForBOQ(wir, boqItem.id), 0);
   const costProgress = boqTotalAmount > 0 ? (approvedAmount / boqTotalAmount) * 100 : 0;
 
+  // For parent items, calculate progress based on children
+  const parentCostProgress = isParent && childrenTotalAmount > 0 
+    ? (childrenApprovedAmount / childrenTotalAmount) * 100 
+    : 0;
+
   const paddingLeft = level * 2; // 2rem per level
 
   return (
@@ -81,7 +91,12 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({
                 </Button>
               )}
               <div className="flex-1">
-                <span className="text-sm text-gray-500">{boqItem.code}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500">{boqItem.code}</span>
+                  <span className="text-sm font-medium">
+                    {isParent ? `${parentCostProgress.toFixed(1)}%` : `${quantityProgress.toFixed(1)}%`}
+                  </span>
+                </div>
                 <h3 className="text-lg font-semibold">
                   {language === 'en' ? boqItem.description : (boqItem.descriptionAr || boqItem.description)}
                 </h3>
@@ -92,44 +107,44 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({
                 </div>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-sm text-gray-500 mb-1">
-                Quantity: {quantityProgress.toFixed(1)}% | Cost: {costProgress.toFixed(1)}%
-              </div>
-              <div className="text-sm text-gray-500">
-                Approved: {englishFormatter.format(approvedAmount)} / {englishFormatter.format(boqTotalAmount)}
-              </div>
-            </div>
           </CardTitle>
           
-          {/* Dual Progress Bars */}
+          {/* Progress Bars */}
           <div className="space-y-3 mt-4">
-            <div>
-              <div className="flex justify-between text-xs text-gray-600 mb-1">
-                <span>Quantity Progress</span>
-                <span>{quantityProgress.toFixed(1)}%</span>
+            {isParent ? (
+              // Parent items show only cost progress
+              <div>
+                <div className="flex justify-between text-xs text-gray-600 mb-1">
+                  <span>Cost Progress (Approved): {englishFormatter.format(childrenApprovedAmount)} / {englishFormatter.format(childrenTotalAmount)}</span>
+                  <span>{parentCostProgress.toFixed(1)}%</span>
+                </div>
+                <Progress value={parentCostProgress} className="h-2" />
               </div>
-              <Progress value={quantityProgress} className="h-2" />
-            </div>
-            
-            <div>
-              <div className="flex justify-between text-xs text-gray-600 mb-1">
-                <span>Cost Progress (Approved)</span>
-                <span>{costProgress.toFixed(1)}%</span>
-              </div>
-              <Progress value={costProgress} className="h-2" />
-            </div>
+            ) : (
+              // Child items show both quantity and cost progress
+              <>
+                <div>
+                  <div className="flex justify-between text-xs text-gray-600 mb-1">
+                    <span>Quantity Progress: {englishFormatter.format(progress.completedQuantity)} / {englishFormatter.format(boqTotalAmount)}</span>
+                    <span>{quantityProgress.toFixed(1)}%</span>
+                  </div>
+                  <Progress value={quantityProgress} className="h-2" />
+                </div>
+                
+                <div>
+                  <div className="flex justify-between text-xs text-gray-600 mb-1">
+                    <span>Cost Progress (Approved): {englishFormatter.format(approvedAmount)} / {englishFormatter.format(boqTotalAmount)}</span>
+                    <span>{costProgress.toFixed(1)}%</span>
+                  </div>
+                  <Progress value={costProgress} className="h-2" />
+                </div>
+              </>
+            )}
           </div>
         </CardHeader>
         
-        {isExpanded && (
+        {isExpanded && !isParent && (
           <CardContent className="space-y-6">
-            <BreakdownProgress
-              breakdownProgress={progress.breakdownProgress}
-              breakdownItems={breakdownItems}
-              language={language}
-            />
-            
             <RelatedWIRsTable
               wirs={relatedWIRs}
               boqItemId={progress.boqItemId}
