@@ -29,20 +29,20 @@ const WIRDialog: React.FC<WIRDialogProps> = ({
   
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh]">
-        <DialogHeader className="border-b pb-4">
-          <DialogTitle className="text-xl font-semibold text-gray-900">
+      <DialogContent className="sm:max-w-[800px] lg:max-w-[900px] max-h-[90vh] w-[95vw]">
+        <DialogHeader className="border-b border-gray-200 pb-4 mb-2">
+          <DialogTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
             {isResultSubmission 
-              ? 'Submit Inspection Result' 
+              ? '📋 Submit Inspection Result' 
               : editingWIR 
-                ? 'Edit Work Inspection Request' 
-                : 'Create New Work Inspection Request'
+                ? '📝 Edit Work Inspection Request' 
+                : '➕ Create New Work Inspection Request'
             }
           </DialogTitle>
-          <DialogDescription className="text-gray-600">
+          <DialogDescription className="text-gray-600 text-sm leading-relaxed">
             {isResultSubmission 
               ? 'Review and submit the inspection results for this WIR.'
-              : 'Fill in the comprehensive details for the work inspection request. All required fields must be completed.'
+              : 'Fill in the comprehensive details for the work inspection request. All required fields must be completed for submission.'
             }
           </DialogDescription>
         </DialogHeader>

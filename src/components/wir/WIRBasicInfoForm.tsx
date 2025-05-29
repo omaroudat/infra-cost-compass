@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAppContext } from '@/context/AppContext';
 import BOQItemSelector from './BOQItemSelector';
+import { User, Users, Calendar, DollarSign, FileText } from 'lucide-react';
 
 interface WIRBasicInfoFormProps {
   newWIR: Partial<WIR>;
@@ -58,10 +59,12 @@ const WIRBasicInfoForm: React.FC<WIRBasicInfoFormProps> = ({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="space-y-4">
+      {/* Personnel Information */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="contractor" className="text-sm font-medium text-gray-700">
+          <Label htmlFor="contractor" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+            <Users className="w-4 h-4" />
             Contractor / المقاول *
           </Label>
           <Select
@@ -69,13 +72,18 @@ const WIRBasicInfoForm: React.FC<WIRBasicInfoFormProps> = ({
             onValueChange={(value) => handleSelectChange('contractor', value)}
             disabled={isResultSubmission}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full border-gray-300 focus:border-purple-500 focus:ring-purple-500">
               <SelectValue placeholder="Select a contractor" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white border border-gray-200 shadow-lg">
               {contractors.map((contractor) => (
-                <SelectItem key={contractor.id} value={contractor.name}>
-                  {contractor.name} {contractor.company && `(${contractor.company})`}
+                <SelectItem key={contractor.id} value={contractor.name} className="hover:bg-purple-50">
+                  <div className="flex flex-col">
+                    <span className="font-medium">{contractor.name}</span>
+                    {contractor.company && (
+                      <span className="text-xs text-gray-500">{contractor.company}</span>
+                    )}
+                  </div>
                 </SelectItem>
               ))}
             </SelectContent>
@@ -83,7 +91,8 @@ const WIRBasicInfoForm: React.FC<WIRBasicInfoFormProps> = ({
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="engineer" className="text-sm font-medium text-gray-700">
+          <Label htmlFor="engineer" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+            <User className="w-4 h-4" />
             Engineer / المهندس *
           </Label>
           <Select
@@ -91,13 +100,18 @@ const WIRBasicInfoForm: React.FC<WIRBasicInfoFormProps> = ({
             onValueChange={(value) => handleSelectChange('engineer', value)}
             disabled={isResultSubmission}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full border-gray-300 focus:border-purple-500 focus:ring-purple-500">
               <SelectValue placeholder="Select an engineer" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white border border-gray-200 shadow-lg">
               {engineers.map((engineer) => (
-                <SelectItem key={engineer.id} value={engineer.name}>
-                  {engineer.name} {engineer.department && `(${engineer.department})`}
+                <SelectItem key={engineer.id} value={engineer.name} className="hover:bg-purple-50">
+                  <div className="flex flex-col">
+                    <span className="font-medium">{engineer.name}</span>
+                    {engineer.department && (
+                      <span className="text-xs text-gray-500">{engineer.department}</span>
+                    )}
+                  </div>
                 </SelectItem>
               ))}
             </SelectContent>
@@ -105,9 +119,11 @@ const WIRBasicInfoForm: React.FC<WIRBasicInfoFormProps> = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Financial and Date Information */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="value" className="text-sm font-medium text-gray-700">
+          <Label htmlFor="value" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+            <DollarSign className="w-4 h-4" />
             Value / القيمة (SAR) *
           </Label>
           <Input
@@ -118,7 +134,7 @@ const WIRBasicInfoForm: React.FC<WIRBasicInfoFormProps> = ({
             step="0.01"
             value={newWIR.value || 0}
             onChange={handleInputChange}
-            className="w-full"
+            className="w-full border-gray-300 focus:border-purple-500 focus:ring-purple-500"
             disabled={isResultSubmission}
             required
             placeholder="0.00"
@@ -126,7 +142,8 @@ const WIRBasicInfoForm: React.FC<WIRBasicInfoFormProps> = ({
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="submittalDate" className="text-sm font-medium text-gray-700">
+          <Label htmlFor="submittalDate" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+            <Calendar className="w-4 h-4" />
             Submittal Date / تاريخ التقديم *
           </Label>
           <Input
@@ -135,15 +152,17 @@ const WIRBasicInfoForm: React.FC<WIRBasicInfoFormProps> = ({
             type="date"
             value={newWIR.submittalDate}
             onChange={handleInputChange}
-            className="w-full"
+            className="w-full border-gray-300 focus:border-purple-500 focus:ring-purple-500"
             disabled={isResultSubmission}
             required
           />
         </div>
       </div>
       
+      {/* Description */}
       <div className="space-y-2">
-        <Label htmlFor="description" className="text-sm font-medium text-gray-700">
+        <Label htmlFor="description" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+          <FileText className="w-4 h-4" />
           Description / الوصف *
         </Label>
         <Textarea
@@ -151,7 +170,7 @@ const WIRBasicInfoForm: React.FC<WIRBasicInfoFormProps> = ({
           name="description"
           value={newWIR.description}
           onChange={handleInputChange}
-          className="w-full min-h-[100px] resize-vertical"
+          className="w-full min-h-[80px] resize-vertical border-gray-300 focus:border-purple-500 focus:ring-purple-500"
           disabled={isResultSubmission}
           required
           placeholder="Provide detailed description of the work inspection..."

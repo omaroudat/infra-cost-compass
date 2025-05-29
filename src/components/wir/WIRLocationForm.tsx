@@ -3,6 +3,7 @@ import React from 'react';
 import { WIR } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { MapPin } from 'lucide-react';
 
 interface WIRLocationFormProps {
   newWIR: Partial<WIR>;
@@ -25,7 +26,8 @@ const WIRLocationForm: React.FC<WIRLocationFormProps> = ({
 
   return (
     <div className="space-y-2">
-      <Label htmlFor="region" className="text-sm font-medium text-gray-700">
+      <Label htmlFor="region" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+        <MapPin className="w-4 h-4" />
         Zone / المنطقة *
       </Label>
       <Input
@@ -33,7 +35,7 @@ const WIRLocationForm: React.FC<WIRLocationFormProps> = ({
         name="region"
         value={newWIR.region || ''}
         onChange={handleInputChange}
-        className="w-full"
+        className="w-full border-gray-300 focus:border-purple-500 focus:ring-purple-500"
         disabled={isResultSubmission}
         required
         placeholder="Enter project zone or area"

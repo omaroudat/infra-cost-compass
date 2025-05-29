@@ -9,6 +9,7 @@ import WIRLocationForm from './WIRLocationForm';
 import WIRResultForm from './WIRResultForm';
 import WIRFormActions from './WIRFormActions';
 import WIRBreakdownSelection from './WIRBreakdownSelection';
+import { Package, MapPin, Settings, CheckCircle } from 'lucide-react';
 
 interface WIRFormProps {
   newWIR: Partial<WIR>;
@@ -62,17 +63,19 @@ const WIRForm: React.FC<WIRFormProps> = ({
   const hasBOQItemSelected = newWIR.linkedBOQItems && newWIR.linkedBOQItems.length > 0;
 
   return (
-    <div className="space-y-6 max-h-[75vh] overflow-y-auto p-1">
+    <div className="space-y-4 max-h-[80vh] overflow-y-auto pr-2">
       {/* BOQ Item Selection */}
-      <Card className="border-blue-200 shadow-sm">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg text-blue-700 flex items-center">
-            <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+      <Card className="border border-blue-200 shadow-sm bg-gradient-to-r from-blue-50 to-blue-25">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-semibold text-blue-800 flex items-center gap-2">
+            <Package className="w-4 h-4" />
             BOQ Item Selection
           </CardTitle>
-          <CardDescription>Select the Bill of Quantities item for this work inspection</CardDescription>
+          <CardDescription className="text-sm text-blue-600">
+            Select the Bill of Quantities item for this work inspection
+          </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           <WIRBasicInfoForm
             newWIR={newWIR}
             setNewWIR={setNewWIR}
@@ -85,15 +88,17 @@ const WIRForm: React.FC<WIRFormProps> = ({
 
       {/* Breakdown Selection */}
       {hasBOQItemSelected && (
-        <Card className="border-green-200 shadow-sm">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg text-green-700 flex items-center">
-              <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+        <Card className="border border-emerald-200 shadow-sm bg-gradient-to-r from-emerald-50 to-emerald-25">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold text-emerald-800 flex items-center gap-2">
+              <Settings className="w-4 h-4" />
               Breakdown Sub-Items Selection
             </CardTitle>
-            <CardDescription>Choose specific breakdown components if applicable</CardDescription>
+            <CardDescription className="text-sm text-emerald-600">
+              Choose specific breakdown components if applicable
+            </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             <WIRBreakdownSelection
               newWIR={newWIR}
               setNewWIR={setNewWIR}
@@ -104,15 +109,17 @@ const WIRForm: React.FC<WIRFormProps> = ({
       )}
 
       {/* Work Details */}
-      <Card className="border-purple-200 shadow-sm">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg text-purple-700 flex items-center">
-            <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
+      <Card className="border border-purple-200 shadow-sm bg-gradient-to-r from-purple-50 to-purple-25">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-semibold text-purple-800 flex items-center gap-2">
+            <MapPin className="w-4 h-4" />
             Work Details
           </CardTitle>
-          <CardDescription>Provide comprehensive information about the work inspection</CardDescription>
+          <CardDescription className="text-sm text-purple-600">
+            Provide comprehensive information about the work inspection
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="pt-0 space-y-4">
           <WIRBasicInfoForm
             newWIR={newWIR}
             setNewWIR={setNewWIR}
@@ -121,7 +128,7 @@ const WIRForm: React.FC<WIRFormProps> = ({
             showOnlyBOQ={false}
           />
           
-          <Separator className="my-4" />
+          <Separator className="my-3" />
           
           <WIRLocationForm
             newWIR={newWIR}
@@ -131,23 +138,27 @@ const WIRForm: React.FC<WIRFormProps> = ({
         </CardContent>
       </Card>
       
-      {/* Inspection Results */}
-      <Card className="border-orange-200 shadow-sm">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg text-orange-700 flex items-center">
-            <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
-            Inspection Results
-          </CardTitle>
-          <CardDescription>Record the inspection outcome and findings</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <WIRResultForm
-            newWIR={newWIR}
-            setNewWIR={setNewWIR}
-            isResultSubmission={isResultSubmission}
-          />
-        </CardContent>
-      </Card>
+      {/* Inspection Results - Only show for result submission */}
+      {isResultSubmission && (
+        <Card className="border border-orange-200 shadow-sm bg-gradient-to-r from-orange-50 to-orange-25">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold text-orange-800 flex items-center gap-2">
+              <CheckCircle className="w-4 h-4" />
+              Inspection Results
+            </CardTitle>
+            <CardDescription className="text-sm text-orange-600">
+              Record the inspection outcome and findings
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <WIRResultForm
+              newWIR={newWIR}
+              setNewWIR={setNewWIR}
+              isResultSubmission={isResultSubmission}
+            />
+          </CardContent>
+        </Card>
+      )}
       
       <WIRFormActions
         onCancel={onCancel}
