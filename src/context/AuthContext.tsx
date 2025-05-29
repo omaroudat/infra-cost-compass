@@ -36,6 +36,7 @@ interface AuthContextType extends AuthState, UserManagement {
   login: (username: string, password: string) => boolean;
   logout: () => void;
   hasPermission: (roles: UserRole[]) => boolean;
+  loading: boolean;
 }
 
 const initialState: AuthState = {
@@ -46,6 +47,7 @@ const initialState: AuthState = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
+  const [loading, setLoading] = useState(true);
   const [auth, setAuth] = useState<AuthState>(() => {
     // Check if user is already logged in
     const savedUser = localStorage.getItem('user');
@@ -75,6 +77,11 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     }
     return MOCK_USERS;
   });
+
+  // Set loading to false after initial auth check
+  useEffect(() => {
+    setLoading(false);
+  }, []);
 
   // Save auth state to localStorage when it changes
   useEffect(() => {
@@ -152,6 +159,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   return (
     <AuthContext.Provider value={{ 
       ...auth, 
+      loading,
       login, 
       logout, 
       hasPermission, 
