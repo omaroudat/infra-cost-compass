@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { WIR, BOQItem } from '@/types';
 import { useAppContext } from '@/context/AppContext';
@@ -20,23 +21,6 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
     return breakdownItems.filter(item => wir.selectedBreakdownItems?.includes(item.id));
   };
 
-  const getStatusColor = () => {
-    switch (wir.status) {
-      case 'submitted': return '#3B82F6';
-      case 'completed': return '#10B981';
-      default: return '#6B7280';
-    }
-  };
-
-  const getResultColor = () => {
-    switch (wir.result) {
-      case 'A': return '#10B981';
-      case 'B': return '#F59E0B';
-      case 'C': return '#EF4444';
-      default: return '#6B7280';
-    }
-  };
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -57,211 +41,227 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
   const selectedBreakdownItems = getSelectedBreakdownItems();
 
   return (
-    <div className="max-w-4xl mx-auto bg-white p-8 print:p-4 print:max-w-none">
-      {/* Header */}
-      <div className="border-b-4 border-blue-600 pb-6 mb-8">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Work Inspection Request</h1>
-            <h2 className="text-xl text-gray-600">تقرير فحص العمل</h2>
+    <div className="max-w-none mx-auto bg-white p-8 print:p-6 print:max-w-none print:shadow-none">
+      {/* Header with Company Logo and Info */}
+      <div className="border-b-2 border-blue-600 pb-6 mb-8 print:mb-6">
+        <div className="flex justify-between items-start mb-6">
+          <div className="flex items-center space-x-4">
+            <div className="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">
+              SSA
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Saad Saeed Al-Saadi & Sons Company</h1>
+              <h2 className="text-lg text-gray-600">شركة سعد سعيد الصاعدي وأولاده التضامنية</h2>
+              <p className="text-sm text-gray-500 mt-1">Work Inspection Request Document</p>
+            </div>
           </div>
           <div className="text-right">
-            <div className="text-sm text-gray-500 mb-1">WIR ID</div>
-            <div className="text-lg font-bold text-blue-600">{wir.id}</div>
-            <div 
-              className="inline-block px-3 py-1 rounded-full text-white text-sm font-medium mt-2"
-              style={{ backgroundColor: getStatusColor() }}
-            >
-              {wir.status.toUpperCase()}
+            <div className="text-sm text-gray-500 mb-1">WIR Number</div>
+            <div className="text-2xl font-bold text-blue-600">{wir.id}</div>
+            <div className="text-sm text-gray-500 mt-2">
+              Submission Date: {formatDate(wir.submittalDate)}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Information Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        {/* Project Details */}
-        <div className="space-y-6">
-          <div className="bg-blue-50 p-6 rounded-lg">
-            <h3 className="text-lg font-semibold text-blue-800 mb-4 flex items-center">
-              <div className="w-2 h-2 bg-blue-600 rounded-full mr-2"></div>
-              Project Details
-            </h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-600">Contractor:</span>
-                <span className="text-gray-900">{wir.contractor}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-600">Engineer:</span>
-                <span className="text-gray-900">{wir.engineer}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-600">Zone:</span>
-                <span className="text-gray-900">{wir.region}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-600">Value:</span>
-                <span className="text-gray-900 font-semibold">{formatCurrency(wir.value || 0)}</span>
-              </div>
-            </div>
+      {/* BOQ Item Information */}
+      <div className="mb-8 print:mb-6">
+        <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300">
+          BOQ Item Information
+        </h3>
+        {selectedBOQItem && (
+          <div className="bg-gray-50 p-6 rounded-lg print:bg-white print:border print:border-gray-300">
+            <table className="w-full text-sm">
+              <tbody>
+                <tr className="border-b border-gray-200">
+                  <td className="py-3 font-semibold text-gray-700 w-1/4">BOQ Code:</td>
+                  <td className="py-3 text-gray-900 font-mono">{selectedBOQItem.code}</td>
+                </tr>
+                <tr className="border-b border-gray-200">
+                  <td className="py-3 font-semibold text-gray-700">Description:</td>
+                  <td className="py-3 text-gray-900">{selectedBOQItem.description}</td>
+                </tr>
+                <tr className="border-b border-gray-200">
+                  <td className="py-3 font-semibold text-gray-700">Quantity:</td>
+                  <td className="py-3 text-gray-900">{selectedBOQItem.quantity} {selectedBOQItem.unit}</td>
+                </tr>
+                <tr>
+                  <td className="py-3 font-semibold text-gray-700">Unit Rate:</td>
+                  <td className="py-3 text-gray-900 font-semibold">{formatCurrency(selectedBOQItem.unitRate || 0)}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-
-          {/* BOQ Item Details */}
-          {selectedBOQItem && (
-            <div className="bg-green-50 p-6 rounded-lg">
-              <h3 className="text-lg font-semibold text-green-800 mb-4 flex items-center">
-                <div className="w-2 h-2 bg-green-600 rounded-full mr-2"></div>
-                BOQ Item Details
-              </h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="font-medium text-gray-600">Code:</span>
-                  <span className="text-blue-600 font-mono">{selectedBOQItem.code}</span>
-                </div>
-                <div>
-                  <div className="font-medium text-gray-600 mb-1">Description:</div>
-                  <div className="text-gray-900 text-sm">{selectedBOQItem.description}</div>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-medium text-gray-600">Unit Rate:</span>
-                  <span className="text-gray-900">{formatCurrency(selectedBOQItem.unitRate || 0)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-medium text-gray-600">Quantity:</span>
-                  <span className="text-gray-900">{selectedBOQItem.quantity} {selectedBOQItem.unit}</span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Dates and Status */}
-        <div className="space-y-6">
-          <div className="bg-purple-50 p-6 rounded-lg">
-            <h3 className="text-lg font-semibold text-purple-800 mb-4 flex items-center">
-              <div className="w-2 h-2 bg-purple-600 rounded-full mr-2"></div>
-              Timeline & Status
-            </h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-600">Submittal Date:</span>
-                <span className="text-gray-900">{formatDate(wir.submittalDate)}</span>
-              </div>
-              {wir.receivedDate && (
-                <div className="flex justify-between">
-                  <span className="font-medium text-gray-600">Received Date:</span>
-                  <span className="text-gray-900">{formatDate(wir.receivedDate)}</span>
-                </div>
-              )}
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-600">Status:</span>
-                <span 
-                  className="px-2 py-1 rounded text-white text-sm font-medium"
-                  style={{ backgroundColor: getStatusColor() }}
-                >
-                  {wir.status.toUpperCase()}
-                </span>
-              </div>
-              {wir.result && (
-                <div className="flex justify-between">
-                  <span className="font-medium text-gray-600">Result:</span>
-                  <span 
-                    className="px-2 py-1 rounded text-white text-sm font-medium"
-                    style={{ backgroundColor: getResultColor() }}
-                  >
-                    Grade {wir.result}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Calculation Details */}
-          {wir.calculatedAmount && (
-            <div className="bg-orange-50 p-6 rounded-lg">
-              <h3 className="text-lg font-semibold text-orange-800 mb-4 flex items-center">
-                <div className="w-2 h-2 bg-orange-600 rounded-full mr-2"></div>
-                Calculation Details
-              </h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="font-medium text-gray-600">Calculated Amount:</span>
-                  <span className="text-gray-900 font-semibold">{formatCurrency(wir.calculatedAmount)}</span>
-                </div>
-                {wir.calculationEquation && (
-                  <div>
-                    <div className="font-medium text-gray-600 mb-1">Equation:</div>
-                    <div className="text-sm text-gray-700 font-mono bg-white p-2 rounded border">
-                      {wir.calculationEquation}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
-      {/* Description */}
-      <div className="mb-8">
-        <div className="bg-gray-50 p-6 rounded-lg">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-            <div className="w-2 h-2 bg-gray-600 rounded-full mr-2"></div>
-            Work Description
-          </h3>
-          <p className="text-gray-700 leading-relaxed">{wir.description}</p>
-        </div>
-      </div>
-
-      {/* Breakdown Items */}
+      {/* Breakdown Sub-Items */}
       {selectedBreakdownItems.length > 0 && (
-        <div className="mb-8">
-          <div className="bg-indigo-50 p-6 rounded-lg">
-            <h3 className="text-lg font-semibold text-indigo-800 mb-4 flex items-center">
-              <div className="w-2 h-2 bg-indigo-600 rounded-full mr-2"></div>
-              Selected Breakdown Sub-Items
-            </h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-indigo-200">
-                    <th className="text-left py-2 font-medium text-indigo-800">Description</th>
-                    <th className="text-right py-2 font-medium text-indigo-800">Percentage</th>
-                    <th className="text-right py-2 font-medium text-indigo-800">Amount</th>
+        <div className="mb-8 print:mb-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300">
+            Breakdown Sub-Items
+          </h3>
+          <div className="bg-gray-50 p-6 rounded-lg print:bg-white print:border print:border-gray-300">
+            <table className="w-full text-sm border-collapse border border-gray-300">
+              <thead>
+                <tr className="bg-gray-100 print:bg-gray-50">
+                  <th className="border border-gray-300 text-left py-3 px-4 font-semibold text-gray-700">Description</th>
+                  <th className="border border-gray-300 text-center py-3 px-4 font-semibold text-gray-700">Percentage</th>
+                  <th className="border border-gray-300 text-right py-3 px-4 font-semibold text-gray-700">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {selectedBreakdownItems.map((item, index) => (
+                  <tr key={item.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}>
+                    <td className="border border-gray-300 py-3 px-4 text-gray-900">{item.description}</td>
+                    <td className="border border-gray-300 py-3 px-4 text-center text-gray-900">{item.percentage}%</td>
+                    <td className="border border-gray-300 py-3 px-4 text-right text-gray-900 font-semibold">{formatCurrency(item.value || 0)}</td>
                   </tr>
-                </thead>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Work Details */}
+      <div className="mb-8 print:mb-6">
+        <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300">
+          Work Details
+        </h3>
+        <div className="bg-gray-50 p-6 rounded-lg print:bg-white print:border print:border-gray-300">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <table className="w-full text-sm">
                 <tbody>
-                  {selectedBreakdownItems.map((item) => (
-                    <tr key={item.id} className="border-b border-indigo-100">
-                      <td className="py-2 text-gray-700">{item.description}</td>
-                      <td className="py-2 text-right text-gray-700">{item.percentage}%</td>
-                      <td className="py-2 text-right text-gray-700">{formatCurrency(item.value || 0)}</td>
-                    </tr>
-                  ))}
+                  <tr className="border-b border-gray-200">
+                    <td className="py-2 font-semibold text-gray-700">Contractor:</td>
+                    <td className="py-2 text-gray-900">{wir.contractor}</td>
+                  </tr>
+                  <tr className="border-b border-gray-200">
+                    <td className="py-2 font-semibold text-gray-700">Engineer:</td>
+                    <td className="py-2 text-gray-900">{wir.engineer}</td>
+                  </tr>
+                  <tr className="border-b border-gray-200">
+                    <td className="py-2 font-semibold text-gray-700">Zone:</td>
+                    <td className="py-2 text-gray-900">{wir.region}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 font-semibold text-gray-700">Line No:</td>
+                    <td className="py-2 text-gray-900">{wir.lineNo}</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
+            <div>
+              <table className="w-full text-sm">
+                <tbody>
+                  <tr className="border-b border-gray-200">
+                    <td className="py-2 font-semibold text-gray-700">Length:</td>
+                    <td className="py-2 text-gray-900">{wir.lengthOfLine} meters</td>
+                  </tr>
+                  <tr className="border-b border-gray-200">
+                    <td className="py-2 font-semibold text-gray-700">Diameter:</td>
+                    <td className="py-2 text-gray-900">{wir.diameterOfLine} mm</td>
+                  </tr>
+                  <tr className="border-b border-gray-200">
+                    <td className="py-2 font-semibold text-gray-700">WIR Value:</td>
+                    <td className="py-2 text-gray-900 font-semibold">{formatCurrency(wir.value || 0)}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 font-semibold text-gray-700">Status:</td>
+                    <td className="py-2">
+                      <span className="inline-block px-3 py-1 rounded-full text-white text-sm font-medium bg-blue-600">
+                        {wir.status.toUpperCase()}
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          <div>
+            <h4 className="font-semibold text-gray-700 mb-2">Work Description:</h4>
+            <p className="text-gray-900 leading-relaxed bg-white p-4 rounded border">{wir.description}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Calculation Details */}
+      {wir.calculatedAmount && (
+        <div className="mb-8 print:mb-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300">
+            Calculation Details
+          </h3>
+          <div className="bg-gray-50 p-6 rounded-lg print:bg-white print:border print:border-gray-300">
+            <table className="w-full text-sm">
+              <tbody>
+                <tr className="border-b border-gray-200">
+                  <td className="py-3 font-semibold text-gray-700">Calculated Amount:</td>
+                  <td className="py-3 text-gray-900 font-bold text-lg">{formatCurrency(wir.calculatedAmount)}</td>
+                </tr>
+                {wir.calculationEquation && (
+                  <tr>
+                    <td className="py-3 font-semibold text-gray-700">Calculation Formula:</td>
+                    <td className="py-3 text-gray-900 font-mono text-sm bg-white p-2 rounded border">{wir.calculationEquation}</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
 
       {/* Status Conditions */}
       {wir.statusConditions && (
-        <div className="mb-8">
-          <div className="bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-400">
-            <h3 className="text-lg font-semibold text-yellow-800 mb-4 flex items-center">
-              <div className="w-2 h-2 bg-yellow-600 rounded-full mr-2"></div>
-              Status Conditions / Comments
-            </h3>
-            <p className="text-yellow-700 leading-relaxed">{wir.statusConditions}</p>
+        <div className="mb-8 print:mb-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300">
+            Comments / Conditions
+          </h3>
+          <div className="bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-400 print:bg-white print:border print:border-gray-300">
+            <p className="text-gray-900 leading-relaxed">{wir.statusConditions}</p>
           </div>
         </div>
       )}
 
+      {/* Signature Section */}
+      <div className="mt-12 print:mt-8 print:break-inside-avoid">
+        <h3 className="text-lg font-bold text-gray-900 mb-6 pb-2 border-b border-gray-300">
+          Approval & Signatures
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 print:gap-6">
+          <div className="text-center">
+            <div className="border-b-2 border-gray-400 mb-3 pb-8"></div>
+            <div className="space-y-1">
+              <p className="font-semibold text-gray-900">Prepared by</p>
+              <p className="text-sm text-gray-600">Name: _________________</p>
+              <p className="text-sm text-gray-600">Date: _________________</p>
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="border-b-2 border-gray-400 mb-3 pb-8"></div>
+            <div className="space-y-1">
+              <p className="font-semibold text-gray-900">Reviewed by</p>
+              <p className="text-sm text-gray-600">Name: _________________</p>
+              <p className="text-sm text-gray-600">Date: _________________</p>
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="border-b-2 border-gray-400 mb-3 pb-8"></div>
+            <div className="space-y-1">
+              <p className="font-semibold text-gray-900">Approved by</p>
+              <p className="text-sm text-gray-600">Name: _________________</p>
+              <p className="text-sm text-gray-600">Date: _________________</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Footer */}
-      <div className="border-t-2 border-gray-200 pt-6 mt-8">
-        <div className="flex justify-between text-sm text-gray-500">
+      <div className="border-t-2 border-gray-200 pt-6 mt-12 print:mt-8">
+        <div className="flex justify-between text-sm text-gray-500 print:text-xs">
           <div>
             <p>Generated on: {formatDate(new Date().toISOString().split('T')[0])}</p>
             <p>Document ID: WIR-{wir.id}</p>

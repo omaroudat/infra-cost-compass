@@ -1,9 +1,13 @@
 
-import React from 'react';
-import { BOQItem, WIR } from '@/types';
-import StatusBadge from '@/components/StatusBadge';
+import React, { useState } from 'react';
+import { WIR, BOQItem } from '@/types';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { useLanguage } from '@/context/LanguageContext';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Edit, Trash2, CheckCircle, RotateCcw, Printer, Eye } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import StatusBadge from '@/components/StatusBadge';
+import WIRPrintView from './WIRPrintView';
 
 interface WIRTableProps {
   wirs: WIR[];
@@ -24,179 +28,155 @@ const WIRTable: React.FC<WIRTableProps> = ({
   onEdit,
   onDelete,
   onSubmitResult,
-  onRevisionRequest
+  onRevisionRequest,
 }) => {
-  const { language } = useLanguage();
-  
-  // Always use English number formatting for all numbers including currency
-  const formatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'SAR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  });
+  const [printDialogOpen, setPrintDialogOpen] = useState(false);
+  const [selectedWIR, setSelectedWIR] = useState<WIR | null>(null);
 
-  const numberFormatter = new Intl.NumberFormat('en-US');
-
-  const getBOQItemByIdWithLabel = (id: string): string => {
-    const item = flattenedBOQItems.find(item => item.id === id);
-    return item ? `${item.code} - ${item.description}` : 'Unknown';
+  const getBOQItemName = (boqItemId: string) => {
+    const item = flattenedBOQItems.find(item => item.id === boqItemId);
+    return item ? `${item.code} - ${item.description}` : 'Unknown BOQ Item';
   };
 
-  const getWIRDisplayId = (wir: WIR): string => {
-    if (wir.revisionNumber && wir.revisionNumber > 0) {
-      return `${wir.originalWIRId || wir.id}_R${wir.revisionNumber}`;
-    }
-    return wir.id;
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'SAR',
+      minimumFractionDigits: 2,
+    }).format(amount);
+  };
+
+  const handlePrint = (wir: WIR) => {
+    setSelectedWIR(wir);
+    setPrintDialogOpen(true);
+  };
+
+  const handlePrintNow = () => {
+    window.print();
   };
 
   return (
-    <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              WIR ID
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              BOQ Item
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Contractor
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Engineer
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Description
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Value
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Submittal Date
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Status
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Amount & Calculation
-            </th>
-            {(canEdit || canDelete) && (
-              <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            )}
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {wirs.map((wir) => (
-            <tr key={wir.id}>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {getWIRDisplayId(wir)}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {getBOQItemByIdWithLabel(wir.boqItemId)}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {wir.contractor}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {wir.engineer}
-              </td>
-              <td className="px-6 py-4 text-sm text-gray-500">
-                <div>{wir.description}</div>
-                {wir.breakdownApplied && (
-                  <div className="mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    +{numberFormatter.format(wir.breakdownApplied.percentage * 100)}% ({wir.breakdownApplied.keyword})
-                  </div>
-                )}
-                {wir.result === 'B' && wir.statusConditions && (
-                  <div className="mt-1 text-xs text-amber-600">
-                    Conditions: {wir.statusConditions}
-                  </div>
-                )}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {numberFormatter.format(wir.value || 0)}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {new Date(wir.submittalDate).toLocaleDateString()}
-                {wir.receivedDate && (
-                  <div className="text-xs text-gray-400">
-                    Received: {new Date(wir.receivedDate).toLocaleDateString()}
-                  </div>
-                )}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                {wir.result && wir.status === 'completed' ? (
-                  <StatusBadge status={wir.result} />
-                ) : (
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    wir.status === 'submitted' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-blue-100 text-blue-800'
-                  }`}>
-                    {wir.status === 'submitted' ? 'Submitted' : 'Completed'}
-                  </span>
-                )}
-              </td>
-              <td className="px-6 py-4 text-sm">
-                <div className="font-medium">
-                  {wir.calculatedAmount ? formatter.format(wir.calculatedAmount) : '-'}
-                </div>
-                {wir.calculationEquation && (
-                  <div className="text-xs text-gray-500 mt-1 font-mono">
-                    {wir.calculationEquation}
-                  </div>
-                )}
-              </td>
-              {(canEdit || canDelete) && (
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex space-x-2 justify-end">
-                    {wir.status === 'submitted' && !wir.result && onSubmitResult && (
-                      <Button 
-                        variant="default" 
+    <>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>WIR ID</TableHead>
+              <TableHead>BOQ Item</TableHead>
+              <TableHead>Contractor</TableHead>
+              <TableHead>Engineer</TableHead>
+              <TableHead>Zone</TableHead>
+              <TableHead>Value</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Result</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {wirs.map((wir) => (
+              <TableRow key={wir.id}>
+                <TableCell className="font-medium">{wir.id}</TableCell>
+                <TableCell className="max-w-xs truncate">
+                  {getBOQItemName(wir.boqItemId)}
+                </TableCell>
+                <TableCell>{wir.contractor}</TableCell>
+                <TableCell>{wir.engineer}</TableCell>
+                <TableCell>{wir.region}</TableCell>
+                <TableCell>{formatCurrency(wir.value || 0)}</TableCell>
+                <TableCell>
+                  <Badge variant={wir.status === 'completed' ? 'default' : 'secondary'}>
+                    {wir.status.toUpperCase()}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  {wir.result ? <StatusBadge status={wir.result} /> : '-'}
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    {/* Print button for submitted WIRs */}
+                    {wir.status === 'submitted' && (
+                      <Button
+                        variant="outline"
                         size="sm"
-                        onClick={() => onSubmitResult(wir)}
+                        onClick={() => handlePrint(wir)}
+                        className="h-8 w-8 p-0"
+                        title="Print WIR"
                       >
-                        Submit Result
+                        <Printer className="h-4 w-4" />
                       </Button>
                     )}
-                    {wir.status === 'completed' && wir.result === 'C' && onRevisionRequest && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => onRevisionRequest(wir)}
-                      >
-                        Revision Request
-                      </Button>
-                    )}
+                    
                     {canEdit && (
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => onEdit(wir)}
+                        className="h-8 w-8 p-0"
                       >
-                        Edit
+                        <Edit className="h-4 w-4" />
                       </Button>
                     )}
+                    
+                    {canEdit && wir.status === 'submitted' && onSubmitResult && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onSubmitResult(wir)}
+                        className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
+                        title="Submit Result"
+                      >
+                        <CheckCircle className="h-4 w-4" />
+                      </Button>
+                    )}
+                    
+                    {canEdit && wir.status === 'completed' && onRevisionRequest && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onRevisionRequest(wir)}
+                        className="h-8 w-8 p-0 text-orange-600 hover:text-orange-700"
+                        title="Request Revision"
+                      >
+                        <RotateCcw className="h-4 w-4" />
+                      </Button>
+                    )}
+                    
                     {canDelete && (
-                      <Button 
-                        variant="destructive" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => onDelete(wir.id)}
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
                       >
-                        Delete
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
                   </div>
-                </td>
-              )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Print Dialog */}
+      <Dialog open={printDialogOpen} onOpenChange={setPrintDialogOpen}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto print:max-w-none print:overflow-visible print:max-h-none">
+          <DialogHeader className="print:hidden">
+            <DialogTitle className="flex items-center justify-between">
+              <span>Print WIR - {selectedWIR?.id}</span>
+              <Button onClick={handlePrintNow} className="ml-4">
+                <Printer className="h-4 w-4 mr-2" />
+                Print
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          {selectedWIR && (
+            <WIRPrintView wir={selectedWIR} flattenedBOQItems={flattenedBOQItems} />
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
