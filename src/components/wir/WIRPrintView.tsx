@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { WIR, BOQItem } from '@/types';
 import { useAppContext } from '@/context/AppContext';
@@ -25,7 +24,6 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
     switch (wir.status) {
       case 'submitted': return '#3B82F6';
       case 'completed': return '#10B981';
-      case 'rejected': return '#EF4444';
       default: return '#6B7280';
     }
   };
