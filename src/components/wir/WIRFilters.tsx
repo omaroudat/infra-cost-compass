@@ -49,7 +49,10 @@ const WIRFilters: React.FC<WIRFiltersProps> = ({
     <Card className="mb-6">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
-          <div className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50">
+          <Button
+            variant="ghost"
+            className="w-full flex items-center justify-between p-4 hover:bg-gray-50"
+          >
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4" />
               <span className="font-medium">Filters</span>
@@ -60,10 +63,11 @@ const WIRFilters: React.FC<WIRFiltersProps> = ({
               )}
             </div>
             {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </div>
+          </Button>
         </CollapsibleTrigger>
+        
         <CollapsibleContent>
-          <CardContent className="pt-0">
+          <CardContent className="p-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
               {/* Status Filter */}
               <div className="space-y-2">
