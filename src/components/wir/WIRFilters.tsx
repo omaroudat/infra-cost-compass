@@ -65,7 +65,6 @@ const WIRFilters: React.FC<WIRFiltersProps> = ({
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
                 <SelectItem value="submitted">Submitted</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
               </SelectContent>
@@ -80,7 +79,6 @@ const WIRFilters: React.FC<WIRFiltersProps> = ({
                 <SelectValue placeholder="All Results" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Results</SelectItem>
                 <SelectItem value="A">A - Approved</SelectItem>
                 <SelectItem value="B">B - Conditional Approved</SelectItem>
                 <SelectItem value="C">C - Rejected</SelectItem>
@@ -96,7 +94,6 @@ const WIRFilters: React.FC<WIRFiltersProps> = ({
                 <SelectValue placeholder="All Engineers" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Engineers</SelectItem>
                 {engineers.map((engineer) => (
                   <SelectItem key={engineer} value={engineer}>
                     {engineer}
@@ -114,7 +111,6 @@ const WIRFilters: React.FC<WIRFiltersProps> = ({
                 <SelectValue placeholder="All Contractors" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Contractors</SelectItem>
                 {contractors.map((contractor) => (
                   <SelectItem key={contractor} value={contractor}>
                     {contractor}
