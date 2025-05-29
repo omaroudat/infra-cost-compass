@@ -31,7 +31,8 @@ const WIRs = () => {
     handleDeleteWIR,
     handleCancelForm,
     handleSubmitResult,
-    handleRevisionRequest
+    handleRevisionRequest,
+    canRequestRevision
   } = useWIRManagement();
   
   const {

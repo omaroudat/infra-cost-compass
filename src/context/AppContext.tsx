@@ -223,10 +223,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // WIR functions
   const addWIR = (wir: Omit<WIR, 'id' | 'calculatedAmount' | 'breakdownApplied'>) => {
-    const baseId = wir.originalWIRId || `wir-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    // Generate ID based on whether it's a revision
+    let newId: string;
+    if (wir.originalWIRId && wir.revisionNumber) {
+      newId = `${wir.originalWIRId}-R${wir.revisionNumber}`;
+    } else {
+      newId = `wir-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    }
+    
     const newWIR: WIR = {
       ...wir,
-      id: baseId,
+      id: newId,
       calculatedAmount: null,
       breakdownApplied: null,
       linkedBOQItems: wir.linkedBOQItems || [wir.boqItemId]
@@ -234,6 +241,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     console.log('Adding new WIR:', newWIR);
     setWirs(prev => [...prev, newWIR]);
+    return newWIR;
   };
 
   const updateWIR = (id: string, updates: Partial<WIR>) => {

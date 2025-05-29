@@ -55,6 +55,18 @@ const WIRTable: React.FC<WIRTableProps> = ({
     window.print();
   };
 
+  // Check if a WIR can have a revision requested
+  const canRequestRevision = (wir: WIR) => {
+    // Can only request revision for completed WIRs with result 'C' (rejected)
+    if (wir.status !== 'completed' || wir.result !== 'C') {
+      return false;
+    }
+    
+    // Check if this WIR already has revisions
+    const hasRevisions = wirs.some(w => w.parentWIRId === wir.id);
+    return !hasRevisions;
+  };
+
   return (
     <>
       <div className="rounded-md border">
@@ -129,7 +141,7 @@ const WIRTable: React.FC<WIRTableProps> = ({
                       </Button>
                     )}
                     
-                    {canEdit && wir.status === 'completed' && onRevisionRequest && (
+                    {canEdit && canRequestRevision(wir) && onRevisionRequest && (
                       <Button
                         variant="outline"
                         size="sm"

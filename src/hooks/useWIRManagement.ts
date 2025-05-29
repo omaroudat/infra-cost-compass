@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { WIR, BOQItem } from '@/types';
 import { useAppContext } from '@/context/AppContext';
@@ -86,10 +87,37 @@ export const useWIRManagement = () => {
     setIsAddDialogOpen(true);
   };
 
+  // Check if a WIR can have a revision requested
+  const canRequestRevision = (wir: WIR) => {
+    // Can only request revision for completed WIRs with result 'C' (rejected)
+    if (wir.status !== 'completed' || wir.result !== 'C') {
+      return false;
+    }
+    
+    // Check if this WIR already has revisions
+    const hasRevisions = wirs.some(w => w.parentWIRId === wir.id);
+    return !hasRevisions;
+  };
+
   const handleRevisionRequest = (wir: WIR) => {
-    // Create a new revision
-    const revisionNumber = (wir.revisionNumber || 0) + 1;
-    const originalWIRId = wir.originalWIRId || wir.id;
+    // Check if revision can be requested
+    if (!canRequestRevision(wir)) {
+      toast.error('Cannot request revision for this WIR.');
+      return;
+    }
+    
+    // Get the base WIR ID (remove any existing revision suffix)
+    const baseWIRId = wir.originalWIRId || wir.id.split('-R')[0];
+    
+    // Find existing revisions for this base WIR
+    const existingRevisions = wirs.filter(w => {
+      const wOriginalId = w.originalWIRId || w.id.split('-R')[0];
+      return wOriginalId === baseWIRId && w.id.includes('-R');
+    });
+    
+    // Calculate next revision number
+    const revisionNumber = existingRevisions.length + 1;
+    const revisionId = `${baseWIRId}-R${revisionNumber}`;
     
     const revisionWIR = {
       boqItemId: wir.boqItemId,
@@ -105,11 +133,21 @@ export const useWIRManagement = () => {
       linkedBOQItems: wir.linkedBOQItems,
       parentWIRId: wir.id,
       revisionNumber: revisionNumber,
-      originalWIRId: originalWIRId
+      originalWIRId: baseWIRId
     };
 
-    addWIR(revisionWIR as Omit<WIR, 'id' | 'calculatedAmount' | 'breakdownApplied' | 'calculationEquation'>);
-    toast.success(`Revision request created: ${originalWIRId}_R${revisionNumber}`);
+    // Create revision with the specific ID
+    const newRevision = addWIR(revisionWIR as Omit<WIR, 'id' | 'calculatedAmount' | 'breakdownApplied' | 'calculationEquation'>);
+    
+    // Update the revision ID in context after creation
+    setTimeout(() => {
+      const createdRevision = wirs.find(w => w.parentWIRId === wir.id && w.revisionNumber === revisionNumber);
+      if (createdRevision && createdRevision.id !== revisionId) {
+        updateWIR(createdRevision.id, { id: revisionId });
+      }
+    }, 100);
+    
+    toast.success(`Revision request created: ${revisionId}`);
   };
   
   const handleAddWIR = () => {
@@ -192,6 +230,7 @@ export const useWIRManagement = () => {
     handleDeleteWIR,
     handleCancelForm,
     handleSubmitResult,
-    handleRevisionRequest
+    handleRevisionRequest,
+    canRequestRevision
   };
 };
