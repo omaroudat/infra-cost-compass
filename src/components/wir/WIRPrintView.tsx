@@ -158,16 +158,8 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
               <table className="w-full text-sm">
                 <tbody>
                   <tr className="border-b border-gray-200">
-                    <td className="py-2 font-semibold text-gray-700">Length:</td>
-                    <td className="py-2 text-gray-900">{wir.lengthOfLine} meters</td>
-                  </tr>
-                  <tr className="border-b border-gray-200">
-                    <td className="py-2 font-semibold text-gray-700">Diameter:</td>
-                    <td className="py-2 text-gray-900">{wir.diameterOfLine} mm</td>
-                  </tr>
-                  <tr className="border-b border-gray-200">
                     <td className="py-2 font-semibold text-gray-700">WIR Value:</td>
-                    <td className="py-2 text-gray-900 font-semibold">{formatCurrency(wir.value || 0)}</td>
+                    <td className="py-2 text-gray-900 font-semibold">{wir.value || 0}</td>
                   </tr>
                   <tr>
                     <td className="py-2 font-semibold text-gray-700">Status:</td>
