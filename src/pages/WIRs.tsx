@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,7 @@ import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import WIRTable from '@/components/wir/WIRTable';
 import WIRDialog from '@/components/wir/WIRDialog';
+import WIRFilters, { WIRFilterValues } from '@/components/wir/WIRFilters';
 import ContractorTable from '@/components/staff/ContractorTable';
 import ContractorForm from '@/components/staff/ContractorForm';
 import EngineerTable from '@/components/staff/EngineerTable';
@@ -18,6 +18,8 @@ import { useStaffManagement } from '@/hooks/useStaffManagement';
 const WIRs = () => {
   const { hasPermission } = useAuth();
   const { t } = useLanguage();
+  const [filters, setFilters] = useState<WIRFilterValues>({});
+  
   const {
     wirs,
     flattenedBOQItems,
@@ -60,6 +62,63 @@ const WIRs = () => {
   
   const canEdit = hasPermission(['admin', 'dataEntry']);
   const canDelete = hasPermission(['admin']);
+
+  // Filter WIRs based on applied filters
+  const filteredWIRs = useMemo(() => {
+    return wirs.filter(wir => {
+      // Status filter
+      if (filters.status && wir.status !== filters.status) {
+        return false;
+      }
+
+      // Result filter
+      if (filters.result && wir.result !== filters.result) {
+        return false;
+      }
+
+      // Engineer filter
+      if (filters.engineer && wir.engineer !== filters.engineer) {
+        return false;
+      }
+
+      // Contractor filter
+      if (filters.contractor && wir.contractor !== filters.contractor) {
+        return false;
+      }
+
+      // Date range filter
+      if (filters.fromDate || filters.toDate) {
+        const wirDate = new Date(wir.submittalDate);
+        
+        if (filters.fromDate) {
+          const fromDate = new Date(filters.fromDate);
+          if (wirDate < fromDate) {
+            return false;
+          }
+        }
+        
+        if (filters.toDate) {
+          const toDate = new Date(filters.toDate);
+          if (wirDate > toDate) {
+            return false;
+          }
+        }
+      }
+
+      return true;
+    });
+  }, [wirs, filters]);
+
+  // Get unique contractors and engineers from WIRs for filter options
+  const uniqueContractors = useMemo(() => {
+    const contractorSet = new Set(wirs.map(wir => wir.contractor).filter(Boolean));
+    return Array.from(contractorSet).sort();
+  }, [wirs]);
+
+  const uniqueEngineers = useMemo(() => {
+    const engineerSet = new Set(wirs.map(wir => wir.engineer).filter(Boolean));
+    return Array.from(engineerSet).sort();
+  }, [wirs]);
   
   return (
     <div className="space-y-6">
@@ -85,6 +144,13 @@ const WIRs = () => {
               </Dialog>
             )}
           </div>
+
+          {/* WIR Filters */}
+          <WIRFilters
+            contractors={uniqueContractors}
+            engineers={uniqueEngineers}
+            onFiltersChange={setFilters}
+          />
           
           {canEdit && (
             <WIRDialog
@@ -100,7 +166,7 @@ const WIRs = () => {
           )}
           
           <WIRTable
-            wirs={wirs}
+            wirs={filteredWIRs}
             flattenedBOQItems={flattenedBOQItems}
             canEdit={canEdit}
             canDelete={canDelete}

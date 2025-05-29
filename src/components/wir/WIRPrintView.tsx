@@ -185,7 +185,7 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
         </div>
       </div>
 
-      {/* Calculation Details */}
+      {/* Calculation Details - removed calculation formula section */}
       {wir.calculatedAmount && (
         <div className="mb-8 print:mb-6">
           <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300">
@@ -194,16 +194,10 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
           <div className="bg-gray-50 p-6 rounded-lg print:bg-white print:border print:border-gray-300">
             <table className="w-full text-sm">
               <tbody>
-                <tr className="border-b border-gray-200">
+                <tr>
                   <td className="py-3 font-semibold text-gray-700">Calculated Amount:</td>
                   <td className="py-3 text-gray-900 font-bold text-lg">{formatCurrency(wir.calculatedAmount)}</td>
                 </tr>
-                {wir.calculationEquation && (
-                  <tr>
-                    <td className="py-3 font-semibold text-gray-700">Calculation Formula:</td>
-                    <td className="py-3 text-gray-900 font-mono text-sm bg-white p-2 rounded border">{wir.calculationEquation}</td>
-                  </tr>
-                )}
               </tbody>
             </table>
           </div>
