@@ -46,8 +46,12 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
       <div className="border-b-2 border-blue-600 pb-6 mb-8 print:mb-6">
         <div className="flex justify-between items-start mb-6">
           <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">
-              SSA
+            <div className="w-20 h-20 flex items-center justify-center">
+              <img 
+                src="/lovable-uploads/95c8557c-cd51-4f8b-b734-7a87f9249f1a.png" 
+                alt="Company Logo" 
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Saad Saeed Al-Saadi & Sons Company</h1>
@@ -206,47 +210,67 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
         </div>
       )}
 
-      {/* Status Conditions */}
-      {wir.statusConditions && (
-        <div className="mb-8 print:mb-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300">
-            Comments / Conditions
-          </h3>
-          <div className="bg-yellow-50 p-6 rounded-lg border-l-4 border-yellow-400 print:bg-white print:border print:border-gray-300">
-            <p className="text-gray-900 leading-relaxed">{wir.statusConditions}</p>
+      {/* Status and Result Details */}
+      <div className="mb-8 print:mb-6">
+        <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300">
+          Inspection Result
+        </h3>
+        <div className="bg-gray-50 p-6 rounded-lg print:bg-white print:border print:border-gray-300">
+          <div className="mb-6">
+            <h4 className="font-semibold text-gray-700 mb-4">Status:</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  checked={wir.result === 'A'}
+                  readOnly
+                />
+                <span className="text-sm text-gray-900">A - Approved</span>
+              </label>
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  checked={wir.result === 'B'}
+                  readOnly
+                />
+                <span className="text-sm text-gray-900">B - Conditional Approved</span>
+              </label>
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  checked={wir.result === 'C'}
+                  readOnly
+                />
+                <span className="text-sm text-gray-900">C - Rejected</span>
+              </label>
+            </div>
+          </div>
+          
+          <div>
+            <h4 className="font-semibold text-gray-700 mb-2">Result Details:</h4>
+            <div className="bg-white p-4 border border-gray-300 rounded min-h-[120px]">
+              <p className="text-gray-900 leading-relaxed">
+                {wir.statusConditions || ''}
+              </p>
+            </div>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Signature Section */}
       <div className="mt-12 print:mt-8 print:break-inside-avoid">
         <h3 className="text-lg font-bold text-gray-900 mb-6 pb-2 border-b border-gray-300">
           Approval & Signatures
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 print:gap-6">
-          <div className="text-center">
-            <div className="border-b-2 border-gray-400 mb-3 pb-8"></div>
-            <div className="space-y-1">
-              <p className="font-semibold text-gray-900">Prepared by</p>
-              <p className="text-sm text-gray-600">Name: _________________</p>
-              <p className="text-sm text-gray-600">Date: _________________</p>
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="border-b-2 border-gray-400 mb-3 pb-8"></div>
-            <div className="space-y-1">
-              <p className="font-semibold text-gray-900">Reviewed by</p>
-              <p className="text-sm text-gray-600">Name: _________________</p>
-              <p className="text-sm text-gray-600">Date: _________________</p>
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="border-b-2 border-gray-400 mb-3 pb-8"></div>
-            <div className="space-y-1">
-              <p className="font-semibold text-gray-900">Approved by</p>
-              <p className="text-sm text-gray-600">Name: _________________</p>
-              <p className="text-sm text-gray-600">Date: _________________</p>
-            </div>
+        <div className="text-center">
+          <div className="border-b-2 border-gray-400 mb-3 pb-8"></div>
+          <div className="space-y-1">
+            <p className="font-semibold text-gray-900">Approved by</p>
+            <p className="text-sm text-gray-600">Name: _________________</p>
+            <p className="text-sm text-gray-600">Date: _________________</p>
           </div>
         </div>
       </div>
