@@ -35,7 +35,7 @@ const WIRLocationForm: React.FC<WIRLocationFormProps> = ({
         name="region"
         value={newWIR.region || ''}
         onChange={handleInputChange}
-        className="w-full border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+        className="w-full h-10 border-gray-300 focus:border-purple-500 focus:ring-purple-500 rounded-md"
         disabled={isResultSubmission}
         required
         placeholder="Enter project zone or area"

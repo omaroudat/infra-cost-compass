@@ -58,17 +58,20 @@ const WIRForm: React.FC<WIRFormProps> = ({
 
   // Check if this is a result submission (editing an existing submitted WIR)
   const isResultSubmission = editingWIR && newWIR.status === 'submitted';
+  
+  // Check if this is creation mode (no editing WIR)
+  const isCreationMode = !editingWIR;
 
   // Check if BOQ item is selected to show breakdown selection
   const hasBOQItemSelected = newWIR.linkedBOQItems && newWIR.linkedBOQItems.length > 0;
 
   return (
-    <div className="space-y-4 max-h-[80vh] overflow-y-auto pr-2">
+    <div className="space-y-6 max-h-[75vh] overflow-y-auto pr-1">
       {/* BOQ Item Selection */}
-      <Card className="border border-blue-200 shadow-sm bg-gradient-to-r from-blue-50 to-blue-25">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold text-blue-800 flex items-center gap-2">
-            <Package className="w-4 h-4" />
+      <Card className="border-2 border-blue-200 shadow-sm">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-semibold text-blue-800 flex items-center gap-2">
+            <Package className="w-5 h-5" />
             BOQ Item Selection
           </CardTitle>
           <CardDescription className="text-sm text-blue-600">
@@ -86,12 +89,12 @@ const WIRForm: React.FC<WIRFormProps> = ({
         </CardContent>
       </Card>
 
-      {/* Breakdown Selection */}
+      {/* Breakdown Selection - Only show if BOQ item is selected */}
       {hasBOQItemSelected && (
-        <Card className="border border-emerald-200 shadow-sm bg-gradient-to-r from-emerald-50 to-emerald-25">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold text-emerald-800 flex items-center gap-2">
-              <Settings className="w-4 h-4" />
+        <Card className="border-2 border-emerald-200 shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg font-semibold text-emerald-800 flex items-center gap-2">
+              <Settings className="w-5 h-5" />
               Breakdown Sub-Items Selection
             </CardTitle>
             <CardDescription className="text-sm text-emerald-600">
@@ -109,17 +112,17 @@ const WIRForm: React.FC<WIRFormProps> = ({
       )}
 
       {/* Work Details */}
-      <Card className="border border-purple-200 shadow-sm bg-gradient-to-r from-purple-50 to-purple-25">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold text-purple-800 flex items-center gap-2">
-            <MapPin className="w-4 h-4" />
+      <Card className="border-2 border-purple-200 shadow-sm">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-semibold text-purple-800 flex items-center gap-2">
+            <MapPin className="w-5 h-5" />
             Work Details
           </CardTitle>
           <CardDescription className="text-sm text-purple-600">
             Provide comprehensive information about the work inspection
           </CardDescription>
         </CardHeader>
-        <CardContent className="pt-0 space-y-4">
+        <CardContent className="pt-0 space-y-6">
           <WIRBasicInfoForm
             newWIR={newWIR}
             setNewWIR={setNewWIR}
@@ -128,7 +131,7 @@ const WIRForm: React.FC<WIRFormProps> = ({
             showOnlyBOQ={false}
           />
           
-          <Separator className="my-3" />
+          <Separator className="my-4" />
           
           <WIRLocationForm
             newWIR={newWIR}
@@ -138,12 +141,12 @@ const WIRForm: React.FC<WIRFormProps> = ({
         </CardContent>
       </Card>
       
-      {/* Inspection Results - Only show for result submission */}
-      {isResultSubmission && (
-        <Card className="border border-orange-200 shadow-sm bg-gradient-to-r from-orange-50 to-orange-25">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold text-orange-800 flex items-center gap-2">
-              <CheckCircle className="w-4 h-4" />
+      {/* Inspection Results - Only show for result submission, NOT for creation */}
+      {isResultSubmission && !isCreationMode && (
+        <Card className="border-2 border-orange-200 shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg font-semibold text-orange-800 flex items-center gap-2">
+              <CheckCircle className="w-5 h-5" />
               Inspection Results
             </CardTitle>
             <CardDescription className="text-sm text-orange-600">

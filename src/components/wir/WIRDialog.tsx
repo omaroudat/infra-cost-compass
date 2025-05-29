@@ -29,8 +29,8 @@ const WIRDialog: React.FC<WIRDialogProps> = ({
   
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[800px] lg:max-w-[900px] max-h-[90vh] w-[95vw]">
-        <DialogHeader className="border-b border-gray-200 pb-4 mb-2">
+      <DialogContent className="sm:max-w-[900px] lg:max-w-[1000px] max-h-[90vh] w-[95vw] overflow-hidden">
+        <DialogHeader className="border-b border-gray-200 pb-4 mb-4">
           <DialogTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
             {isResultSubmission 
               ? '📋 Submit Inspection Result' 
