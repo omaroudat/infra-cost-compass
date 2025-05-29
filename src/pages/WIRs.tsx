@@ -65,39 +65,56 @@ const WIRs = () => {
 
   // Filter WIRs based on applied filters
   const filteredWIRs = useMemo(() => {
+    console.log('Applying filters:', filters);
+    console.log('All WIRs:', wirs);
+    
     return wirs.filter(wir => {
-      // Status filter
-      if (filters.status && wir.status !== filters.status) {
-        return false;
+      console.log('Checking WIR:', wir.id, 'Status:', wir.status, 'Result:', wir.result);
+      
+      // Status filter - make sure to match exact values
+      if (filters.status && filters.status.trim() !== '') {
+        console.log('Filtering by status:', filters.status, 'WIR status:', wir.status);
+        if (wir.status !== filters.status) {
+          console.log('Status filter excluded WIR:', wir.id);
+          return false;
+        }
       }
 
-      // Result filter
-      if (filters.result && wir.result !== filters.result) {
-        return false;
+      // Result filter - make sure to match exact values
+      if (filters.result && filters.result.trim() !== '') {
+        console.log('Filtering by result:', filters.result, 'WIR result:', wir.result);
+        if (wir.result !== filters.result) {
+          console.log('Result filter excluded WIR:', wir.id);
+          return false;
+        }
       }
 
       // Engineer filter
-      if (filters.engineer && wir.engineer !== filters.engineer) {
-        return false;
+      if (filters.engineer && filters.engineer.trim() !== '') {
+        if (wir.engineer !== filters.engineer) {
+          return false;
+        }
       }
 
       // Contractor filter
-      if (filters.contractor && wir.contractor !== filters.contractor) {
-        return false;
+      if (filters.contractor && filters.contractor.trim() !== '') {
+        if (wir.contractor !== filters.contractor) {
+          return false;
+        }
       }
 
       // Date range filter
       if (filters.fromDate || filters.toDate) {
         const wirDate = new Date(wir.submittalDate);
         
-        if (filters.fromDate) {
+        if (filters.fromDate && filters.fromDate.trim() !== '') {
           const fromDate = new Date(filters.fromDate);
           if (wirDate < fromDate) {
             return false;
           }
         }
         
-        if (filters.toDate) {
+        if (filters.toDate && filters.toDate.trim() !== '') {
           const toDate = new Date(filters.toDate);
           if (wirDate > toDate) {
             return false;
@@ -105,6 +122,7 @@ const WIRs = () => {
         }
       }
 
+      console.log('WIR passed all filters:', wir.id);
       return true;
     });
   }, [wirs, filters]);
@@ -119,6 +137,9 @@ const WIRs = () => {
     const engineerSet = new Set(wirs.map(wir => wir.engineer).filter(Boolean));
     return Array.from(engineerSet).sort();
   }, [wirs]);
+
+  console.log('Filtered WIRs count:', filteredWIRs.length);
+  console.log('Current filters:', filters);
   
   return (
     <div className="space-y-6">
