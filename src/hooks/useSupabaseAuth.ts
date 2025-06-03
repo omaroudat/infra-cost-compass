@@ -1,21 +1,14 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { toast } from 'sonner';
-import { authRateLimiter } from '@/utils/rateLimiter';
+import { useSignUp } from './auth/useSignUp';
+import { useSignIn } from './auth/useSignIn';
+import { useProfileUpdate } from './auth/useProfileUpdate';
+import { useAuthPermissions } from './auth/usePermissions';
+import { Profile } from './auth/types';
 
-export interface Profile {
-  id: string;
-  username: string;
-  full_name: string;
-  email: string;
-  role: 'admin' | 'editor' | 'viewer';
-  department?: string;
-  password?: string;
-  created_at: string;
-  updated_at: string;
-}
+export { Profile } from './auth/types';
 
 export const useSupabaseAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -23,15 +16,19 @@ export const useSupabaseAuth = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const { signUp } = useSignUp();
+  const { signIn } = useSignIn();
+  const { updateProfile: updateProfileService } = useProfileUpdate();
+  const permissions = useAuthPermissions(profile);
+
   useEffect(() => {
-    // Check for existing session from localStorage
     const initializeAuth = async () => {
       try {
         const savedUser = localStorage.getItem('currentUser');
         if (savedUser) {
           const parsedProfile = JSON.parse(savedUser);
           setProfile(parsedProfile);
-          // Create a mock user object for compatibility
+          
           const mockUser = {
             id: parsedProfile.id,
             email: parsedProfile.email,
@@ -42,7 +39,6 @@ export const useSupabaseAuth = () => {
           };
           setUser(mockUser);
           
-          // Create a mock session
           const mockSession = {
             access_token: 'mock_token',
             refresh_token: 'mock_refresh',
@@ -62,143 +58,14 @@ export const useSupabaseAuth = () => {
     initializeAuth();
   }, []);
 
-  const signUp = async (email: string, password: string, username?: string, fullName?: string) => {
-    const identifier = email;
-    
-    if (!authRateLimiter.isAllowed(identifier)) {
-      toast.error('Too many signup attempts. Please try again later.');
-      return { data: null, error: { message: 'Rate limit exceeded' } };
+  const handleSignIn = async (email: string, password: string) => {
+    const result = await signIn(email, password);
+    if (result.data && !result.error) {
+      setUser(result.data.user);
+      setSession(result.data.session);
+      setProfile(result.data.profile);
     }
-
-    try {
-      // Check if user already exists using basic query
-      const existingQuery = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('email', email);
-
-      if (existingQuery.data && existingQuery.data.length > 0) {
-        toast.error('This email is already registered. Try signing in instead.');
-        return { data: null, error: { message: 'User already exists' } };
-      }
-
-      // Create new profile
-      const newProfile = {
-        id: crypto.randomUUID(),
-        username: username || email.split('@')[0],
-        password: password,
-        full_name: fullName || username || email.split('@')[0],
-        email: email,
-        role: 'viewer' as const,
-        department: 'General',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-
-      const insertResult = await supabase
-        .from('profiles')
-        .insert(newProfile);
-
-      if (insertResult.error) throw insertResult.error;
-      
-      toast.success('Account created successfully! Please sign in.');
-      return { data: { user: newProfile }, error: null };
-    } catch (error: any) {
-      console.error('Sign up error:', error);
-      
-      let errorMessage = 'Failed to sign up';
-      if (error.message?.includes('already registered')) {
-        errorMessage = 'This email is already registered. Try signing in instead.';
-      } else if (error.message?.includes('invalid email')) {
-        errorMessage = 'Please enter a valid email address.';
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      toast.error(errorMessage);
-      return { data: null, error };
-    }
-  };
-
-  const signIn = async (email: string, password: string) => {
-    const identifier = email;
-    
-    if (!authRateLimiter.isAllowed(identifier)) {
-      toast.error('Too many login attempts. Please try again later.');
-      return { data: null, error: { message: 'Rate limit exceeded' } };
-    }
-
-    try {
-      // Use basic query to avoid type inference issues
-      const result = await supabase
-        .from('profiles')
-        .select('id, username, full_name, email, role, department, created_at, updated_at')
-        .eq('email', email)
-        .eq('password', password);
-
-      if (result.error) {
-        throw new Error('Invalid username or password');
-      }
-
-      const profiles = result.data || [];
-      if (profiles.length === 0) {
-        throw new Error('Invalid username or password');
-      }
-
-      const profileData = profiles[0];
-
-      // Type-safe profile conversion
-      const typedProfile: Profile = {
-        id: profileData.id,
-        username: profileData.username || '',
-        full_name: profileData.full_name || '',
-        email: profileData.email || '',
-        role: (profileData.role as 'admin' | 'editor' | 'viewer') || 'viewer',
-        department: profileData.department || undefined,
-        created_at: profileData.created_at || new Date().toISOString(),
-        updated_at: profileData.updated_at || new Date().toISOString()
-      };
-
-      // Create mock user and session objects
-      const mockUser = {
-        id: typedProfile.id,
-        email: typedProfile.email,
-        user_metadata: {},
-        app_metadata: {},
-        aud: 'authenticated' as const,
-        created_at: typedProfile.created_at
-      };
-
-      const mockSession = {
-        access_token: 'mock_token',
-        refresh_token: 'mock_refresh',
-        expires_in: 3600,
-        token_type: 'bearer' as const,
-        user: mockUser
-      };
-
-      setUser(mockUser);
-      setSession(mockSession);
-      setProfile(typedProfile);
-      
-      // Save to localStorage for persistence
-      localStorage.setItem('currentUser', JSON.stringify(typedProfile));
-      
-      toast.success('Signed in successfully!');
-      return { data: { user: mockUser, session: mockSession }, error: null };
-    } catch (error: any) {
-      console.error('Sign in error:', error);
-      
-      let errorMessage = 'Invalid username or password';
-      if (error.message?.includes('Invalid login credentials')) {
-        errorMessage = 'Invalid username or password. Please check your credentials.';
-      } else if (error.message?.includes('Too many requests')) {
-        errorMessage = 'Too many login attempts. Please try again later.';
-      }
-      
-      toast.error(errorMessage);
-      return { data: null, error };
-    }
+    return result;
   };
 
   const signOut = async () => {
@@ -216,57 +83,8 @@ export const useSupabaseAuth = () => {
   };
 
   const updateProfile = async (updates: Partial<Profile>) => {
-    if (!profile) {
-      toast.error('You must be logged in to update your profile');
-      return;
-    }
-
-    try {
-      const updateResult = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', profile.id);
-
-      if (updateResult.error) throw updateResult.error;
-      
-      toast.success('Profile updated successfully!');
-      
-      // Refetch profile with basic query
-      const fetchResult = await supabase
-        .from('profiles')
-        .select('id, username, full_name, email, role, department, created_at, updated_at')
-        .eq('id', profile.id);
-      
-      if (fetchResult.error) {
-        console.error('Error refetching profile:', fetchResult.error);
-      } else if (fetchResult.data && fetchResult.data.length > 0) {
-        const profileData = fetchResult.data[0];
-        const typedProfile: Profile = {
-          id: profileData.id,
-          username: profileData.username || '',
-          full_name: profileData.full_name || '',
-          email: profileData.email || '',
-          role: (profileData.role as 'admin' | 'editor' | 'viewer') || 'viewer',
-          department: profileData.department || undefined,
-          created_at: profileData.created_at || new Date().toISOString(),
-          updated_at: profileData.updated_at || new Date().toISOString()
-        };
-        setProfile(typedProfile);
-        localStorage.setItem('currentUser', JSON.stringify(typedProfile));
-      }
-    } catch (error: any) {
-      console.error('Profile update error:', error);
-      toast.error(error.message || 'Failed to update profile');
-    }
+    await updateProfileService(profile, updates, setProfile);
   };
-
-  const hasRole = (roles: string[]) => {
-    return profile && roles.includes(profile.role);
-  };
-
-  const canEdit = () => hasRole(['admin', 'editor']);
-  const canDelete = () => hasRole(['admin']);
-  const isAdmin = () => hasRole(['admin']);
 
   return {
     user,
@@ -274,13 +92,10 @@ export const useSupabaseAuth = () => {
     profile,
     loading,
     signUp,
-    signIn,
+    signIn: handleSignIn,
     signOut,
     updateProfile,
-    hasRole,
-    canEdit,
-    canDelete,
-    isAdmin,
+    ...permissions,
     isAuthenticated: !!user
   };
 };
