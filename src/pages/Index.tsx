@@ -1,7 +1,7 @@
 
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '@/context/SupabaseAuthContext';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -14,7 +14,7 @@ const Index = () => {
     if (isAuthenticated) {
       navigate('/dashboard', { replace: true });
     } else {
-      navigate('/login', { replace: true });
+      navigate('/auth', { replace: true });
     }
   }, [navigate, isAuthenticated, loading]);
   

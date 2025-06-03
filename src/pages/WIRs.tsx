@@ -1,24 +1,26 @@
 import React, { useState, useMemo } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '@/context/SupabaseAuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import WIRTable from '@/components/wir/WIRTable';
 import WIRDialog from '@/components/wir/WIRDialog';
-import WIRFilters, { WIRFilterValues } from '@/components/wir/WIRFilters';
+import AdvancedWIRFilters, { AdvancedWIRFilterValues } from '@/components/wir/AdvancedWIRFilters';
 import ContractorTable from '@/components/staff/ContractorTable';
 import ContractorForm from '@/components/staff/ContractorForm';
 import EngineerTable from '@/components/staff/EngineerTable';
 import EngineerForm from '@/components/staff/EngineerForm';
+import DataExportImport from '@/components/DataExportImport';
+import UserProfileCard from '@/components/UserProfileCard';
 import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useWIRManagement } from '@/hooks/useWIRManagement';
 import { useStaffManagement } from '@/hooks/useStaffManagement';
 
 const WIRs = () => {
-  const { hasPermission } = useAuth();
+  const { canEdit, canDelete } = useAuth();
   const { t } = useLanguage();
-  const [filters, setFilters] = useState<WIRFilterValues>({});
+  const [filters, setFilters] = useState<AdvancedWIRFilterValues>({});
   
   const {
     wirs,
@@ -59,9 +61,6 @@ const WIRs = () => {
     handleDeleteEngineer,
     handleCancelEngineer
   } = useStaffManagement();
-  
-  const canEdit = hasPermission(['admin', 'dataEntry']);
-  const canDelete = hasPermission(['admin']);
 
   // Filter WIRs based on applied filters
   const filteredWIRs = useMemo(() => {
@@ -69,22 +68,33 @@ const WIRs = () => {
     console.log('All WIRs:', wirs);
     
     return wirs.filter(wir => {
-      console.log('Checking WIR:', wir.id, 'Status:', wir.status, 'Result:', wir.result);
-      
-      // Status filter - make sure to match exact values
-      if (filters.status && filters.status.trim() !== '') {
-        console.log('Filtering by status:', filters.status, 'WIR status:', wir.status);
-        if (wir.status !== filters.status) {
-          console.log('Status filter excluded WIR:', wir.id);
+      // Search term filter
+      if (filters.searchTerm && filters.searchTerm.trim() !== '') {
+        const searchTerm = filters.searchTerm.toLowerCase();
+        const searchableText = [
+          wir.description,
+          wir.descriptionAr,
+          wir.lineNo,
+          wir.region,
+          wir.contractor,
+          wir.engineer
+        ].join(' ').toLowerCase();
+        
+        if (!searchableText.includes(searchTerm)) {
           return false;
         }
       }
 
-      // Result filter - make sure to match exact values
+      // Status filter
+      if (filters.status && filters.status.trim() !== '') {
+        if (wir.status !== filters.status) {
+          return false;
+        }
+      }
+
+      // Result filter
       if (filters.result && filters.result.trim() !== '') {
-        console.log('Filtering by result:', filters.result, 'WIR result:', wir.result);
         if (wir.result !== filters.result) {
-          console.log('Result filter excluded WIR:', wir.id);
           return false;
         }
       }
@@ -99,6 +109,20 @@ const WIRs = () => {
       // Contractor filter
       if (filters.contractor && filters.contractor.trim() !== '') {
         if (wir.contractor !== filters.contractor) {
+          return false;
+        }
+      }
+
+      // Region filter
+      if (filters.region && filters.region.trim() !== '') {
+        if (wir.region !== filters.region) {
+          return false;
+        }
+      }
+
+      // Line number filter
+      if (filters.lineNo && filters.lineNo.trim() !== '') {
+        if (!wir.lineNo.toLowerCase().includes(filters.lineNo.toLowerCase())) {
           return false;
         }
       }
@@ -122,12 +146,29 @@ const WIRs = () => {
         }
       }
 
-      console.log('WIR passed all filters:', wir.id);
+      // Value range filter
+      if (filters.minValue !== undefined || filters.maxValue !== undefined) {
+        if (filters.minValue !== undefined && wir.value < filters.minValue) {
+          return false;
+        }
+        if (filters.maxValue !== undefined && wir.value > filters.maxValue) {
+          return false;
+        }
+      }
+
+      // BOQ Item Code filter
+      if (filters.boqItemCode && filters.boqItemCode.trim() !== '') {
+        const boqItem = flattenedBOQItems.find(item => item.id === wir.boqItemId);
+        if (!boqItem || !boqItem.code.toLowerCase().includes(filters.boqItemCode.toLowerCase())) {
+          return false;
+        }
+      }
+
       return true;
     });
-  }, [wirs, filters]);
+  }, [wirs, filters, flattenedBOQItems]);
 
-  // Get unique contractors and engineers from WIRs for filter options
+  // Get unique values for filter options
   const uniqueContractors = useMemo(() => {
     const contractorSet = new Set(wirs.map(wir => wir.contractor).filter(Boolean));
     return Array.from(contractorSet).sort();
@@ -138,26 +179,33 @@ const WIRs = () => {
     return Array.from(engineerSet).sort();
   }, [wirs]);
 
+  const uniqueRegions = useMemo(() => {
+    const regionSet = new Set(wirs.map(wir => wir.region).filter(Boolean));
+    return Array.from(regionSet).sort();
+  }, [wirs]);
+
   console.log('Filtered WIRs count:', filteredWIRs.length);
   console.log('Current filters:', filters);
   
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-start">
         <h2 className="text-xl font-bold">{t('wirs.title')}</h2>
+        <UserProfileCard />
       </div>
       
       <Tabs defaultValue="wirs" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="wirs">{t('nav.wirs')}</TabsTrigger>
           <TabsTrigger value="contractors">{t('wirs.contractors')}</TabsTrigger>
           <TabsTrigger value="engineers">{t('wirs.engineers')}</TabsTrigger>
+          <TabsTrigger value="data">Data Management</TabsTrigger>
         </TabsList>
         
         <TabsContent value="wirs" className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">{t('wirs.management')}</h3>
-            {canEdit && (
+            {canEdit() && (
               <Dialog>
                 <DialogTrigger asChild>
                   <Button onClick={() => setIsAddDialogOpen(true)}>{t('wirs.addNew')}</Button>
@@ -166,12 +214,14 @@ const WIRs = () => {
             )}
           </div>
 
-          {/* WIR Filters - Remove invalid contractors and engineers props */}
-          <WIRFilters
+          <AdvancedWIRFilters
             onFiltersChange={setFilters}
+            engineers={uniqueEngineers}
+            contractors={uniqueContractors}
+            regions={uniqueRegions}
           />
           
-          {canEdit && (
+          {canEdit() && (
             <WIRDialog
               isOpen={isAddDialogOpen}
               setIsOpen={setIsAddDialogOpen}
@@ -187,19 +237,19 @@ const WIRs = () => {
           <WIRTable
             wirs={filteredWIRs}
             flattenedBOQItems={flattenedBOQItems}
-            canEdit={canEdit}
-            canDelete={canDelete}
+            canEdit={canEdit()}
+            canDelete={canDelete()}
             onEdit={handleEditWIR}
             onDelete={handleDeleteWIR}
-            onSubmitResult={canEdit ? handleSubmitResult : undefined}
-            onRevisionRequest={canEdit ? handleRevisionRequest : undefined}
+            onSubmitResult={canEdit() ? handleSubmitResult : undefined}
+            onRevisionRequest={canEdit() ? handleRevisionRequest : undefined}
           />
         </TabsContent>
         
         <TabsContent value="contractors" className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">{t('wirs.contractors')}</h3>
-            {canEdit && (
+            {canEdit() && (
               <Dialog open={isContractorDialogOpen} onOpenChange={setIsContractorDialogOpen}>
                 <DialogTrigger asChild>
                   <Button onClick={() => setIsContractorDialogOpen(true)}>
@@ -231,15 +281,15 @@ const WIRs = () => {
             contractors={contractors}
             onEdit={handleEditContractor}
             onDelete={handleDeleteContractor}
-            canEdit={canEdit}
-            canDelete={canDelete}
+            canEdit={canEdit()}
+            canDelete={canDelete()}
           />
         </TabsContent>
         
         <TabsContent value="engineers" className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">{t('wirs.engineers')}</h3>
-            {canEdit && (
+            {canEdit() && (
               <Dialog open={isEngineerDialogOpen} onOpenChange={setIsEngineerDialogOpen}>
                 <DialogTrigger asChild>
                   <Button onClick={() => setIsEngineerDialogOpen(true)}>
@@ -271,9 +321,16 @@ const WIRs = () => {
             engineers={engineers}
             onEdit={handleEditEngineer}
             onDelete={handleDeleteEngineer}
-            canEdit={canEdit}
-            canDelete={canDelete}
+            canEdit={canEdit()}
+            canDelete={canDelete()}
           />
+        </TabsContent>
+        
+        <TabsContent value="data" className="space-y-4">
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Data Management</h3>
+            <DataExportImport />
+          </div>
         </TabsContent>
       </Tabs>
     </div>
