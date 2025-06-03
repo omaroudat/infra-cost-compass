@@ -71,14 +71,13 @@ export const useSupabaseAuth = () => {
     }
 
     try {
-      // Check if user already exists using any type to avoid complex inference
-      const { data: existingUser } = await supabase
+      // Check if user already exists using direct query
+      const existingQuery = await supabase
         .from('profiles')
         .select('*')
-        .eq('email', email)
-        .maybeSingle();
+        .eq('email', email);
 
-      if (existingUser) {
+      if (existingQuery.data && existingQuery.data.length > 0) {
         toast.error('This email is already registered. Try signing in instead.');
         return { data: null, error: { message: 'User already exists' } };
       }
@@ -96,11 +95,11 @@ export const useSupabaseAuth = () => {
         updated_at: new Date().toISOString()
       };
 
-      const { error: insertError } = await supabase
+      const insertResult = await supabase
         .from('profiles')
         .insert(newProfile);
 
-      if (insertError) throw insertError;
+      if (insertResult.error) throw insertResult.error;
       
       toast.success('Account created successfully! Please sign in.');
       return { data: { user: newProfile }, error: null };
@@ -130,19 +129,17 @@ export const useSupabaseAuth = () => {
     }
 
     try {
-      // Use a simple query without complex type inference
-      const queryResult = await supabase
+      // Use direct query to avoid complex type inference
+      const { data: profiles, error: queryError } = await supabase
         .from('profiles')
         .select('id, username, full_name, email, role, department, created_at, updated_at')
         .eq('email', email)
         .eq('password', password);
 
-      // Handle the result with explicit typing
-      if (queryResult.error) {
+      if (queryError) {
         throw new Error('Invalid username or password');
       }
 
-      const profiles = queryResult.data;
       if (!profiles || profiles.length === 0) {
         throw new Error('Invalid username or password');
       }
@@ -224,25 +221,25 @@ export const useSupabaseAuth = () => {
     }
 
     try {
-      const { error } = await supabase
+      const updateResult = await supabase
         .from('profiles')
         .update(updates)
         .eq('id', profile.id);
 
-      if (error) throw error;
+      if (updateResult.error) throw updateResult.error;
       
       toast.success('Profile updated successfully!');
       
-      // Refetch profile with simple query
-      const queryResult = await supabase
+      // Refetch profile with direct query
+      const { data: profiles, error: fetchError } = await supabase
         .from('profiles')
         .select('id, username, full_name, email, role, department, created_at, updated_at')
         .eq('id', profile.id);
       
-      if (queryResult.error) {
-        console.error('Error refetching profile:', queryResult.error);
-      } else if (queryResult.data && queryResult.data.length > 0) {
-        const profileData = queryResult.data[0];
+      if (fetchError) {
+        console.error('Error refetching profile:', fetchError);
+      } else if (profiles && profiles.length > 0) {
+        const profileData = profiles[0];
         const typedProfile: Profile = {
           id: profileData.id,
           username: profileData.username || '',
