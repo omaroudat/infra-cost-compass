@@ -5,12 +5,12 @@ import { Profile } from './types';
 export const profileService = {
   async checkExistingProfile(email: string) {
     try {
-      const { data, error } = await supabase
+      const result = await supabase
         .from('profiles')
         .select('*')
         .eq('email', email);
       
-      return { data, error };
+      return { data: result.data, error: result.error };
     } catch (error) {
       return { data: null, error };
     }
@@ -18,11 +18,11 @@ export const profileService = {
 
   async createProfile(profileData: Omit<Profile, 'updated_at'>) {
     try {
-      const { data, error } = await supabase
+      const result = await supabase
         .from('profiles')
         .insert(profileData);
       
-      return { data, error };
+      return { data: result.data, error: result.error };
     } catch (error) {
       return { data: null, error };
     }
@@ -30,13 +30,13 @@ export const profileService = {
 
   async findByEmailAndPassword(email: string, password: string) {
     try {
-      const { data, error } = await supabase
+      const result = await supabase
         .from('profiles')
         .select('id, username, full_name, email, role, department, created_at, updated_at')
         .eq('email', email)
         .eq('password', password);
       
-      return { data, error };
+      return { data: result.data, error: result.error };
     } catch (error) {
       return { data: null, error };
     }
@@ -44,12 +44,12 @@ export const profileService = {
 
   async updateProfile(id: string, updates: Partial<Profile>) {
     try {
-      const { data, error } = await supabase
+      const result = await supabase
         .from('profiles')
         .update(updates)
         .eq('id', id);
       
-      return { data, error };
+      return { data: result.data, error: result.error };
     } catch (error) {
       return { data: null, error };
     }
@@ -57,12 +57,12 @@ export const profileService = {
 
   async fetchProfile(id: string) {
     try {
-      const { data, error } = await supabase
+      const result = await supabase
         .from('profiles')
         .select('id, username, full_name, email, role, department, created_at, updated_at')
         .eq('id', id);
       
-      return { data, error };
+      return { data: result.data, error: result.error };
     } catch (error) {
       return { data: null, error };
     }
