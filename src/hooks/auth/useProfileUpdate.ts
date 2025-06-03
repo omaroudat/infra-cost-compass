@@ -27,7 +27,6 @@ export const useProfileUpdate = () => {
           id: profileData.id,
           username: profileData.username || '',
           full_name: profileData.full_name || '',
-          email: profileData.email || '',
           role: (profileData.role as 'admin' | 'editor' | 'viewer') || 'viewer',
           department: profileData.department || undefined,
           created_at: profileData.created_at || new Date().toISOString(),

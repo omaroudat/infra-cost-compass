@@ -111,10 +111,6 @@ const UserProfileCard: React.FC = () => {
               <span className="text-sm">{profile.department}</span>
             </div>
           )}
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-500">Email:</span>
-            <span className="text-sm">{profile.email}</span>
-          </div>
         </div>
       </CardContent>
     </Card>
