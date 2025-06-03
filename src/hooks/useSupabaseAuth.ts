@@ -17,6 +17,18 @@ export interface Profile {
   updated_at: string;
 }
 
+// Simple interface for database profile data
+interface ProfileData {
+  id: string;
+  username: string | null;
+  full_name: string | null;
+  email: string | null;
+  role: string | null;
+  department: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
 export const useSupabaseAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -71,12 +83,12 @@ export const useSupabaseAuth = () => {
     }
 
     try {
-      // Check if user already exists
-      const { data: existingUser, error: checkError } = await supabase
+      // Check if user already exists using any type to avoid complex inference
+      const { data: existingUser } = await supabase
         .from('profiles')
         .select('*')
         .eq('email', email)
-        .single();
+        .maybeSingle();
 
       if (existingUser) {
         toast.error('This email is already registered. Try signing in instead.');
@@ -130,15 +142,16 @@ export const useSupabaseAuth = () => {
     }
 
     try {
-      // Query profiles table for username/password authentication
-      const { data: profileData, error } = await supabase
+      // Use explicit type casting to avoid complex type inference
+      const response = await supabase
         .from('profiles')
         .select('id, username, full_name, email, role, department, created_at, updated_at')
         .eq('email', email)
-        .eq('password', password)
-        .single();
+        .eq('password', password);
 
-      if (error || !profileData) {
+      const profileData = response.data?.[0] as ProfileData | undefined;
+      
+      if (response.error || !profileData) {
         throw new Error('Invalid username or password');
       }
 
