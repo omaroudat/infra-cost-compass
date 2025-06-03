@@ -1,15 +1,14 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Filter, RotateCcw } from 'lucide-react';
+import { useAppContext } from '@/context/AppContext';
 
 interface WIRFiltersProps {
-  contractors: string[];
-  engineers: string[];
   onFiltersChange: (filters: WIRFilterValues) => void;
 }
 
@@ -23,11 +22,14 @@ export interface WIRFilterValues {
 }
 
 const WIRFilters: React.FC<WIRFiltersProps> = ({
-  contractors,
-  engineers,
   onFiltersChange,
 }) => {
+  const { contractors, engineers } = useAppContext();
   const [filters, setFilters] = useState<WIRFilterValues>({});
+
+  // Extract unique contractor and engineer names
+  const contractorNames = [...new Set(contractors.map(c => c.name))];
+  const engineerNames = [...new Set(engineers.map(e => e.name))];
 
   const handleFilterChange = (key: keyof WIRFilterValues, value: string) => {
     console.log('Filter change:', key, 'Value:', value);
@@ -99,7 +101,7 @@ const WIRFilters: React.FC<WIRFiltersProps> = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Engineers</SelectItem>
-                {engineers.map((engineer) => (
+                {engineerNames.map((engineer) => (
                   <SelectItem key={engineer} value={engineer}>
                     {engineer}
                   </SelectItem>
@@ -117,7 +119,7 @@ const WIRFilters: React.FC<WIRFiltersProps> = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Contractors</SelectItem>
-                {contractors.map((contractor) => (
+                {contractorNames.map((contractor) => (
                   <SelectItem key={contractor} value={contractor}>
                     {contractor}
                   </SelectItem>

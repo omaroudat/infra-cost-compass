@@ -5,7 +5,16 @@ import { BreakdownItem } from '../types';
 import { toast } from 'sonner';
 
 export const useBreakdownManagement = () => {
-  const { breakdownItems, boqItems, addBreakdownItem, updateBreakdownItem, deleteBreakdownItem, addBreakdownSubItem } = useAppContext();
+  const { 
+    breakdownItems, 
+    boqItems, 
+    addBreakdownItem, 
+    updateBreakdownItem, 
+    deleteBreakdownItem, 
+    addBreakdownSubItem,
+    loading 
+  } = useAppContext();
+  
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [newItem, setNewItem] = useState<Partial<BreakdownItem>>({
@@ -31,6 +40,8 @@ export const useBreakdownManagement = () => {
 
   // Auto-create breakdown items for leaf items that have quantity > 0
   useEffect(() => {
+    if (loading || !boqItems.length) return;
+
     const allFlatItems = flattenedBOQItems(boqItems);
     
     // Find leaf items (items that don't have children and have quantity > 0)
@@ -42,7 +53,7 @@ export const useBreakdownManagement = () => {
     
     console.log('Leaf items with quantity:', leafItemsWithQuantity.map(item => ({ code: item.code, quantity: item.quantity, hasChildren: item.children?.length > 0 })));
     
-    leafItemsWithQuantity.forEach(boqItem => {
+    leafItemsWithQuantity.forEach(async (boqItem) => {
       const existingBreakdown = breakdownItems?.find(bd => bd.boqItemId === boqItem.id && !bd.parentBreakdownId);
       
       if (!existingBreakdown) {
@@ -60,10 +71,14 @@ export const useBreakdownManagement = () => {
         };
         
         console.log('Creating breakdown item for:', boqItem.code);
-        addBreakdownItem(autoBreakdownItem);
+        try {
+          await addBreakdownItem(autoBreakdownItem);
+        } catch (error) {
+          console.error('Error creating auto breakdown item:', error);
+        }
       }
     });
-  }, [boqItems, breakdownItems, addBreakdownItem]);
+  }, [boqItems, breakdownItems, addBreakdownItem, loading]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -78,7 +93,7 @@ export const useBreakdownManagement = () => {
     return;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editingItem) {
       toast.error('No item selected for editing.');
       return;
@@ -114,10 +129,13 @@ export const useBreakdownManagement = () => {
       quantity: boqItem.quantity
     };
     
-    updateBreakdownItem(editingItem, updatedItem);
-    toast.success('Breakdown item updated successfully.');
-    
-    resetForm();
+    try {
+      await updateBreakdownItem(editingItem, updatedItem);
+      toast.success('Breakdown item updated successfully.');
+      resetForm();
+    } catch (error) {
+      console.error('Error updating breakdown item:', error);
+    }
   };
 
   const resetForm = () => {
@@ -148,7 +166,7 @@ export const useBreakdownManagement = () => {
     setIsAddDialogOpen(true);
   };
 
-  const handleAddSubItem = (parentId: string, subItemData: Omit<BreakdownItem, 'id'>) => {
+  const handleAddSubItem = async (parentId: string, subItemData: Omit<BreakdownItem, 'id'>) => {
     // Get parent breakdown item to inherit BOQ quantity
     const parentBreakdown = breakdownItems?.find(item => item.id === parentId);
     if (parentBreakdown) {
@@ -160,11 +178,10 @@ export const useBreakdownManagement = () => {
           quantity: boqItem.quantity
         };
         
-        if (addBreakdownSubItem) {
-          addBreakdownSubItem(parentId, subItemWithQuantity);
-        } else {
-          // Fallback to regular add if addBreakdownSubItem is not available
-          addBreakdownItem(subItemWithQuantity);
+        try {
+          await addBreakdownSubItem(parentId, subItemWithQuantity);
+        } catch (error) {
+          console.error('Error adding sub-item:', error);
         }
       }
     }
@@ -186,6 +203,7 @@ export const useBreakdownManagement = () => {
     setIsAddDialogOpen,
     editingItem,
     newItem,
+    loading,
     handleInputChange,
     handleSelectChange,
     handleSave,

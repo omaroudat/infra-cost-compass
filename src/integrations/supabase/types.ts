@@ -9,7 +9,294 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      boq_items: {
+        Row: {
+          code: string
+          created_at: string | null
+          description: string
+          description_ar: string | null
+          id: string
+          level: number | null
+          parent_id: string | null
+          quantity: number
+          total_amount: number | null
+          unit: string
+          unit_ar: string | null
+          unit_rate: number
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          description: string
+          description_ar?: string | null
+          id?: string
+          level?: number | null
+          parent_id?: string | null
+          quantity?: number
+          total_amount?: number | null
+          unit: string
+          unit_ar?: string | null
+          unit_rate?: number
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          description?: string
+          description_ar?: string | null
+          id?: string
+          level?: number | null
+          parent_id?: string | null
+          quantity?: number
+          total_amount?: number | null
+          unit?: string
+          unit_ar?: string | null
+          unit_rate?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boq_items_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "boq_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      breakdown_items: {
+        Row: {
+          boq_item_id: string
+          created_at: string | null
+          description: string | null
+          description_ar: string | null
+          id: string
+          is_leaf: boolean | null
+          keyword: string | null
+          keyword_ar: string | null
+          parent_breakdown_id: string | null
+          percentage: number | null
+          quantity: number | null
+          unit_rate: number | null
+          updated_at: string | null
+          value: number | null
+        }
+        Insert: {
+          boq_item_id: string
+          created_at?: string | null
+          description?: string | null
+          description_ar?: string | null
+          id?: string
+          is_leaf?: boolean | null
+          keyword?: string | null
+          keyword_ar?: string | null
+          parent_breakdown_id?: string | null
+          percentage?: number | null
+          quantity?: number | null
+          unit_rate?: number | null
+          updated_at?: string | null
+          value?: number | null
+        }
+        Update: {
+          boq_item_id?: string
+          created_at?: string | null
+          description?: string | null
+          description_ar?: string | null
+          id?: string
+          is_leaf?: boolean | null
+          keyword?: string | null
+          keyword_ar?: string | null
+          parent_breakdown_id?: string | null
+          percentage?: number | null
+          quantity?: number | null
+          unit_rate?: number | null
+          updated_at?: string | null
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "breakdown_items_boq_item_id_fkey"
+            columns: ["boq_item_id"]
+            isOneToOne: false
+            referencedRelation: "boq_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "breakdown_items_parent_breakdown_id_fkey"
+            columns: ["parent_breakdown_id"]
+            isOneToOne: false
+            referencedRelation: "breakdown_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contractors: {
+        Row: {
+          company: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+        }
+        Update: {
+          company?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+        }
+        Relationships: []
+      }
+      engineers: {
+        Row: {
+          created_at: string | null
+          department: string | null
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          specialization: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          department?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          specialization?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          department?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          specialization?: string | null
+        }
+        Relationships: []
+      }
+      wirs: {
+        Row: {
+          boq_item_id: string
+          calculated_amount: number | null
+          calculation_equation: string | null
+          contractor: string
+          created_at: string | null
+          description: string
+          description_ar: string | null
+          diameter_of_line: number
+          engineer: string
+          id: string
+          length_of_line: number
+          line_no: string
+          linked_boq_items: string[] | null
+          original_wir_id: string | null
+          parent_wir_id: string | null
+          received_date: string | null
+          region: string
+          result: Database["public"]["Enums"]["wir_result"] | null
+          revision_number: number | null
+          selected_breakdown_items: string[] | null
+          status: Database["public"]["Enums"]["wir_status"]
+          status_conditions: string | null
+          submittal_date: string
+          updated_at: string | null
+          value: number
+          wir_number: string
+        }
+        Insert: {
+          boq_item_id: string
+          calculated_amount?: number | null
+          calculation_equation?: string | null
+          contractor: string
+          created_at?: string | null
+          description: string
+          description_ar?: string | null
+          diameter_of_line: number
+          engineer: string
+          id?: string
+          length_of_line: number
+          line_no: string
+          linked_boq_items?: string[] | null
+          original_wir_id?: string | null
+          parent_wir_id?: string | null
+          received_date?: string | null
+          region: string
+          result?: Database["public"]["Enums"]["wir_result"] | null
+          revision_number?: number | null
+          selected_breakdown_items?: string[] | null
+          status?: Database["public"]["Enums"]["wir_status"]
+          status_conditions?: string | null
+          submittal_date: string
+          updated_at?: string | null
+          value: number
+          wir_number: string
+        }
+        Update: {
+          boq_item_id?: string
+          calculated_amount?: number | null
+          calculation_equation?: string | null
+          contractor?: string
+          created_at?: string | null
+          description?: string
+          description_ar?: string | null
+          diameter_of_line?: number
+          engineer?: string
+          id?: string
+          length_of_line?: number
+          line_no?: string
+          linked_boq_items?: string[] | null
+          original_wir_id?: string | null
+          parent_wir_id?: string | null
+          received_date?: string | null
+          region?: string
+          result?: Database["public"]["Enums"]["wir_result"] | null
+          revision_number?: number | null
+          selected_breakdown_items?: string[] | null
+          status?: Database["public"]["Enums"]["wir_status"]
+          status_conditions?: string | null
+          submittal_date?: string
+          updated_at?: string | null
+          value?: number
+          wir_number?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wirs_boq_item_id_fkey"
+            columns: ["boq_item_id"]
+            isOneToOne: false
+            referencedRelation: "boq_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wirs_original_wir_id_fkey"
+            columns: ["original_wir_id"]
+            isOneToOne: false
+            referencedRelation: "wirs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wirs_parent_wir_id_fkey"
+            columns: ["parent_wir_id"]
+            isOneToOne: false
+            referencedRelation: "wirs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +305,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      wir_result: "A" | "B" | "C"
+      wir_status: "submitted" | "completed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +421,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      wir_result: ["A", "B", "C"],
+      wir_status: ["submitted", "completed"],
+    },
   },
 } as const
