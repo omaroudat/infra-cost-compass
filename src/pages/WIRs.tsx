@@ -166,10 +166,8 @@ const WIRs = () => {
             )}
           </div>
 
-          {/* WIR Filters */}
+          {/* WIR Filters - Remove invalid contractors and engineers props */}
           <WIRFilters
-            contractors={uniqueContractors}
-            engineers={uniqueEngineers}
             onFiltersChange={setFilters}
           />
           
