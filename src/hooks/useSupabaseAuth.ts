@@ -71,7 +71,7 @@ export const useSupabaseAuth = () => {
     }
 
     try {
-      // Check if user already exists using direct query
+      // Check if user already exists using basic query
       const existingQuery = await supabase
         .from('profiles')
         .select('*')
@@ -129,18 +129,19 @@ export const useSupabaseAuth = () => {
     }
 
     try {
-      // Use direct query to avoid complex type inference
-      const { data: profiles, error: queryError } = await supabase
+      // Use basic query to avoid type inference issues
+      const result = await supabase
         .from('profiles')
         .select('id, username, full_name, email, role, department, created_at, updated_at')
         .eq('email', email)
         .eq('password', password);
 
-      if (queryError) {
+      if (result.error) {
         throw new Error('Invalid username or password');
       }
 
-      if (!profiles || profiles.length === 0) {
+      const profiles = result.data || [];
+      if (profiles.length === 0) {
         throw new Error('Invalid username or password');
       }
 
@@ -230,16 +231,16 @@ export const useSupabaseAuth = () => {
       
       toast.success('Profile updated successfully!');
       
-      // Refetch profile with direct query
-      const { data: profiles, error: fetchError } = await supabase
+      // Refetch profile with basic query
+      const fetchResult = await supabase
         .from('profiles')
         .select('id, username, full_name, email, role, department, created_at, updated_at')
         .eq('id', profile.id);
       
-      if (fetchError) {
-        console.error('Error refetching profile:', fetchError);
-      } else if (profiles && profiles.length > 0) {
-        const profileData = profiles[0];
+      if (fetchResult.error) {
+        console.error('Error refetching profile:', fetchResult.error);
+      } else if (fetchResult.data && fetchResult.data.length > 0) {
+        const profileData = fetchResult.data[0];
         const typedProfile: Profile = {
           id: profileData.id,
           username: profileData.username || '',
