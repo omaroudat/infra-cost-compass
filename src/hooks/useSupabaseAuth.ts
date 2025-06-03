@@ -17,18 +17,6 @@ export interface Profile {
   updated_at: string;
 }
 
-// Simple interface for database profile data
-interface ProfileData {
-  id: string;
-  username: string | null;
-  full_name: string | null;
-  email: string | null;
-  role: string | null;
-  department: string | null;
-  created_at: string | null;
-  updated_at: string | null;
-}
-
 export const useSupabaseAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -142,18 +130,24 @@ export const useSupabaseAuth = () => {
     }
 
     try {
-      // Use explicit type casting to avoid complex type inference
-      const response = await supabase
+      // Use a simple query without complex type inference
+      const queryResult = await supabase
         .from('profiles')
         .select('id, username, full_name, email, role, department, created_at, updated_at')
         .eq('email', email)
         .eq('password', password);
 
-      const profileData = response.data?.[0] as ProfileData | undefined;
-      
-      if (response.error || !profileData) {
+      // Handle the result with explicit typing
+      if (queryResult.error) {
         throw new Error('Invalid username or password');
       }
+
+      const profiles = queryResult.data;
+      if (!profiles || profiles.length === 0) {
+        throw new Error('Invalid username or password');
+      }
+
+      const profileData = profiles[0];
 
       // Type-safe profile conversion
       const typedProfile: Profile = {
@@ -239,16 +233,16 @@ export const useSupabaseAuth = () => {
       
       toast.success('Profile updated successfully!');
       
-      // Refetch profile
-      const { data: profileData, error: fetchError } = await supabase
+      // Refetch profile with simple query
+      const queryResult = await supabase
         .from('profiles')
         .select('id, username, full_name, email, role, department, created_at, updated_at')
-        .eq('id', profile.id)
-        .single();
+        .eq('id', profile.id);
       
-      if (fetchError) {
-        console.error('Error refetching profile:', fetchError);
-      } else if (profileData) {
+      if (queryResult.error) {
+        console.error('Error refetching profile:', queryResult.error);
+      } else if (queryResult.data && queryResult.data.length > 0) {
+        const profileData = queryResult.data[0];
         const typedProfile: Profile = {
           id: profileData.id,
           username: profileData.username || '',
