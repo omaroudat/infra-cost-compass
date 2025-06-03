@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { toast } from 'sonner';
+import { authRateLimiter } from '@/utils/rateLimiter';
 
 export interface Profile {
   id: string;
@@ -25,11 +26,12 @@ export const useSupabaseAuth = () => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user profile
+          // Fetch user profile with proper error handling
           setTimeout(async () => {
             try {
               const { data: profileData, error } = await supabase
@@ -38,8 +40,13 @@ export const useSupabaseAuth = () => {
                 .eq('id', session.user.id)
                 .single();
               
-              if (error && error.code !== 'PGRST116') {
-                console.error('Error fetching profile:', error);
+              if (error) {
+                if (error.code === 'PGRST116') {
+                  console.log('Profile not found, user needs to complete setup');
+                } else {
+                  console.error('Error fetching profile:', error);
+                  toast.error('Failed to load user profile');
+                }
               } else if (profileData) {
                 // Type cast the role to ensure it matches our Profile interface
                 const typedProfile: Profile = {
@@ -50,6 +57,7 @@ export const useSupabaseAuth = () => {
               }
             } catch (error) {
               console.error('Error in profile fetch:', error);
+              toast.error('Failed to load user data');
             }
           }, 0);
         } else {
@@ -61,18 +69,36 @@ export const useSupabaseAuth = () => {
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (!session) {
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Error getting session:', error);
+        }
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (!session) {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Failed to initialize auth:', error);
         setLoading(false);
       }
-    });
+    };
+
+    initializeAuth();
 
     return () => subscription.unsubscribe();
   }, []);
 
   const signUp = async (email: string, password: string, username?: string, fullName?: string) => {
+    const identifier = email;
+    
+    if (!authRateLimiter.isAllowed(identifier)) {
+      toast.error('Too many signup attempts. Please try again later.');
+      return { data: null, error: { message: 'Rate limit exceeded' } };
+    }
+
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -97,12 +123,32 @@ export const useSupabaseAuth = () => {
       return { data, error: null };
     } catch (error: any) {
       console.error('Sign up error:', error);
-      toast.error(error.message || 'Failed to sign up');
+      
+      // Provide user-friendly error messages
+      let errorMessage = 'Failed to sign up';
+      if (error.message?.includes('already registered')) {
+        errorMessage = 'This email is already registered. Try signing in instead.';
+      } else if (error.message?.includes('invalid email')) {
+        errorMessage = 'Please enter a valid email address.';
+      } else if (error.message?.includes('weak password')) {
+        errorMessage = 'Password is too weak. Please use a stronger password.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
       return { data: null, error };
     }
   };
 
   const signIn = async (email: string, password: string) => {
+    const identifier = email;
+    
+    if (!authRateLimiter.isAllowed(identifier)) {
+      toast.error('Too many login attempts. Please try again later.');
+      return { data: null, error: { message: 'Rate limit exceeded' } };
+    }
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -115,7 +161,18 @@ export const useSupabaseAuth = () => {
       return { data, error: null };
     } catch (error: any) {
       console.error('Sign in error:', error);
-      toast.error(error.message || 'Failed to sign in');
+      
+      // Provide user-friendly error messages
+      let errorMessage = 'Failed to sign in';
+      if (error.message?.includes('Invalid login credentials')) {
+        errorMessage = 'Invalid email or password. Please check your credentials.';
+      } else if (error.message?.includes('Email not confirmed')) {
+        errorMessage = 'Please check your email and confirm your account first.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
       return { data: null, error };
     }
   };
@@ -133,7 +190,10 @@ export const useSupabaseAuth = () => {
   };
 
   const updateProfile = async (updates: Partial<Profile>) => {
-    if (!user) return;
+    if (!user) {
+      toast.error('You must be logged in to update your profile');
+      return;
+    }
 
     try {
       const { error } = await supabase
@@ -146,13 +206,15 @@ export const useSupabaseAuth = () => {
       toast.success('Profile updated successfully!');
       
       // Refetch profile
-      const { data: profileData } = await supabase
+      const { data: profileData, error: fetchError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
       
-      if (profileData) {
+      if (fetchError) {
+        console.error('Error refetching profile:', fetchError);
+      } else if (profileData) {
         // Type cast the role to ensure it matches our Profile interface
         const typedProfile: Profile = {
           ...profileData,

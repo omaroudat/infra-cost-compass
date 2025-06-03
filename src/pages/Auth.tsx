@@ -7,7 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye, EyeOff, Lock, User, Mail } from 'lucide-react';
+import { Eye, EyeOff, Lock, User, Mail, AlertTriangle } from 'lucide-react';
+import { validateForm, sanitizeInput } from '@/utils/validation';
+import ValidationErrorDisplay from '@/components/ValidationErrorDisplay';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -16,6 +18,7 @@ const Auth = () => {
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const { signIn, signUp, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -25,11 +28,71 @@ const Auth = () => {
     }
   }, [isAuthenticated, navigate]);
 
+  const validateSignInForm = () => {
+    const errors = validateForm([
+      {
+        field: 'email',
+        value: email,
+        rules: [
+          { type: 'required', message: 'Email is required' },
+          { type: 'email', message: 'Please enter a valid email address' }
+        ]
+      },
+      {
+        field: 'password',
+        value: password,
+        rules: [
+          { type: 'required', message: 'Password is required' },
+          { type: 'min', value: 6, message: 'Password must be at least 6 characters' }
+        ]
+      }
+    ]);
+    
+    setValidationErrors(errors);
+    return errors.length === 0;
+  };
+
+  const validateSignUpForm = () => {
+    const errors = validateForm([
+      {
+        field: 'email',
+        value: email,
+        rules: [
+          { type: 'required', message: 'Email is required' },
+          { type: 'email', message: 'Please enter a valid email address' }
+        ]
+      },
+      {
+        field: 'fullName',
+        value: fullName,
+        rules: [
+          { type: 'required', message: 'Full name is required' },
+          { type: 'min', value: 2, message: 'Full name must be at least 2 characters' }
+        ]
+      },
+      {
+        field: 'password',
+        value: password,
+        rules: [
+          { type: 'required', message: 'Password is required' },
+          { type: 'min', value: 6, message: 'Password must be at least 6 characters' }
+        ]
+      }
+    ]);
+    
+    setValidationErrors(errors);
+    return errors.length === 0;
+  };
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     
-    const result = await signIn(email, password);
+    if (!validateSignInForm()) return;
+    
+    setIsLoading(true);
+    setValidationErrors([]);
+    
+    const result = await signIn(sanitizeInput(email), password);
     if (result.data && !result.error) {
       navigate('/dashboard');
     }
@@ -39,9 +102,18 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     
-    await signUp(email, password, username, fullName);
+    if (!validateSignUpForm()) return;
+    
+    setIsLoading(true);
+    setValidationErrors([]);
+    
+    await signUp(
+      sanitizeInput(email), 
+      password, 
+      sanitizeInput(username || email.split('@')[0]), 
+      sanitizeInput(fullName)
+    );
     setIsLoading(false);
   };
 
@@ -62,6 +134,8 @@ const Auth = () => {
           <TabsContent value="signin">
             <form onSubmit={handleSignIn}>
               <CardContent className="space-y-4">
+                <ValidationErrorDisplay errors={validationErrors} />
+                
                 <div className="space-y-2">
                   <Label htmlFor="signin-email">Email</Label>
                   <div className="relative">
@@ -111,6 +185,8 @@ const Auth = () => {
           <TabsContent value="signup">
             <form onSubmit={handleSignUp}>
               <CardContent className="space-y-4">
+                <ValidationErrorDisplay errors={validationErrors} />
+                
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
                   <div className="relative">
@@ -136,12 +212,13 @@ const Auth = () => {
                       value={fullName} 
                       onChange={(e) => setFullName(e.target.value)} 
                       className="pl-10"
+                      required
                     />
                     <User className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-username">Username</Label>
+                  <Label htmlFor="signup-username">Username (Optional)</Label>
                   <div className="relative">
                     <Input 
                       id="signup-username"
@@ -160,11 +237,12 @@ const Auth = () => {
                     <Input 
                       id="signup-password"
                       type={showPassword ? "text" : "password"} 
-                      placeholder="Create a password" 
+                      placeholder="Create a password (min 6 characters)" 
                       value={password} 
                       onChange={(e) => setPassword(e.target.value)} 
                       className="pl-10"
                       required
+                      minLength={6}
                     />
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                     <button 
@@ -185,6 +263,13 @@ const Auth = () => {
             </form>
           </TabsContent>
         </Tabs>
+        
+        <div className="p-4 text-center">
+          <div className="flex items-center justify-center gap-2 text-sm text-amber-600 bg-amber-50 p-3 rounded-md">
+            <AlertTriangle className="h-4 w-4" />
+            For testing: Disable email confirmation in Supabase Auth settings
+          </div>
+        </div>
       </Card>
     </div>
   );
