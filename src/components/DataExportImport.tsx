@@ -15,6 +15,48 @@ interface DataExportImportProps {
   className?: string;
 }
 
+// Type definitions for Excel row data
+interface ExcelBOQRow {
+  code?: string;
+  description?: string;
+  descriptionAr?: string;
+  quantity?: number;
+  unit?: string;
+  unitAr?: string;
+  unitRate?: number;
+  totalAmount?: number;
+  level?: number;
+}
+
+interface ExcelBreakdownRow {
+  keyword?: string;
+  keywordAr?: string;
+  description?: string;
+  descriptionAr?: string;
+  percentage?: number;
+  value?: number;
+  boqItemId?: string;
+  parentBreakdownId?: string;
+  unitRate?: number;
+  quantity?: number;
+  isLeaf?: boolean;
+}
+
+interface ExcelContractorRow {
+  name?: string;
+  company?: string;
+  email?: string;
+  phone?: string;
+}
+
+interface ExcelEngineerRow {
+  name?: string;
+  department?: string;
+  email?: string;
+  phone?: string;
+  specialization?: string;
+}
+
 const DataExportImport: React.FC<DataExportImportProps> = ({ className }) => {
   const [selectedTable, setSelectedTable] = useState<string>('');
   const [importing, setImporting] = useState(false);
@@ -87,49 +129,53 @@ const DataExportImport: React.FC<DataExportImportProps> = ({ className }) => {
         try {
           switch (selectedTable) {
             case 'boq_items':
+              const boqRow = row as ExcelBOQRow;
               await addBOQItem({
-                code: row.code || '',
-                description: row.description || '',
-                descriptionAr: row.descriptionAr || '',
-                quantity: parseFloat(row.quantity) || 0,
-                unit: row.unit || '',
-                unitAr: row.unitAr || '',
-                unitRate: parseFloat(row.unitRate) || 0,
-                totalAmount: parseFloat(row.totalAmount) || 0,
-                level: parseInt(row.level) || 0,
+                code: boqRow.code || '',
+                description: boqRow.description || '',
+                descriptionAr: boqRow.descriptionAr || '',
+                quantity: Number(boqRow.quantity) || 0,
+                unit: boqRow.unit || '',
+                unitAr: boqRow.unitAr || '',
+                unitRate: Number(boqRow.unitRate) || 0,
+                totalAmount: Number(boqRow.totalAmount) || 0,
+                level: Number(boqRow.level) || 0,
                 children: []
               });
               break;
             case 'breakdown_items':
+              const breakdownRow = row as ExcelBreakdownRow;
               await addBreakdownItem({
-                keyword: row.keyword || '',
-                keywordAr: row.keywordAr || '',
-                description: row.description || '',
-                descriptionAr: row.descriptionAr || '',
-                percentage: parseFloat(row.percentage) || 0,
-                value: parseFloat(row.value) || 0,
-                boqItemId: row.boqItemId || '',
-                parentBreakdownId: row.parentBreakdownId,
-                unitRate: parseFloat(row.unitRate) || 0,
-                quantity: parseFloat(row.quantity) || 0,
-                isLeaf: Boolean(row.isLeaf)
+                keyword: breakdownRow.keyword || '',
+                keywordAr: breakdownRow.keywordAr || '',
+                description: breakdownRow.description || '',
+                descriptionAr: breakdownRow.descriptionAr || '',
+                percentage: Number(breakdownRow.percentage) || 0,
+                value: Number(breakdownRow.value) || 0,
+                boqItemId: breakdownRow.boqItemId || '',
+                parentBreakdownId: breakdownRow.parentBreakdownId,
+                unitRate: Number(breakdownRow.unitRate) || 0,
+                quantity: Number(breakdownRow.quantity) || 0,
+                isLeaf: Boolean(breakdownRow.isLeaf)
               });
               break;
             case 'contractors':
+              const contractorRow = row as ExcelContractorRow;
               await addContractor({
-                name: row.name || '',
-                company: row.company || '',
-                email: row.email || '',
-                phone: row.phone || ''
+                name: contractorRow.name || '',
+                company: contractorRow.company || '',
+                email: contractorRow.email || '',
+                phone: contractorRow.phone || ''
               });
               break;
             case 'engineers':
+              const engineerRow = row as ExcelEngineerRow;
               await addEngineer({
-                name: row.name || '',
-                department: row.department || '',
-                email: row.email || '',
-                phone: row.phone || '',
-                specialization: row.specialization || ''
+                name: engineerRow.name || '',
+                department: engineerRow.department || '',
+                email: engineerRow.email || '',
+                phone: engineerRow.phone || '',
+                specialization: engineerRow.specialization || ''
               });
               break;
             // WIRs import would be more complex due to required fields

@@ -40,8 +40,13 @@ export const useSupabaseAuth = () => {
               
               if (error && error.code !== 'PGRST116') {
                 console.error('Error fetching profile:', error);
-              } else {
-                setProfile(profileData);
+              } else if (profileData) {
+                // Type cast the role to ensure it matches our Profile interface
+                const typedProfile: Profile = {
+                  ...profileData,
+                  role: profileData.role as 'admin' | 'editor' | 'viewer'
+                };
+                setProfile(typedProfile);
               }
             } catch (error) {
               console.error('Error in profile fetch:', error);
@@ -148,7 +153,12 @@ export const useSupabaseAuth = () => {
         .single();
       
       if (profileData) {
-        setProfile(profileData);
+        // Type cast the role to ensure it matches our Profile interface
+        const typedProfile: Profile = {
+          ...profileData,
+          role: profileData.role as 'admin' | 'editor' | 'viewer'
+        };
+        setProfile(typedProfile);
       }
     } catch (error: any) {
       console.error('Profile update error:', error);
