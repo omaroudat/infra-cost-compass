@@ -32,24 +32,24 @@ export const useSupabaseAuth = () => {
           const parsedProfile = JSON.parse(savedUser);
           setProfile(parsedProfile);
           // Create a mock user object for compatibility
-          const mockUser: User = {
+          const mockUser = {
             id: parsedProfile.id,
             email: parsedProfile.email,
             user_metadata: {},
             app_metadata: {},
-            aud: 'authenticated',
+            aud: 'authenticated' as const,
             created_at: parsedProfile.created_at
-          } as User;
+          };
           setUser(mockUser);
           
           // Create a mock session
-          const mockSession: Session = {
+          const mockSession = {
             access_token: 'mock_token',
             refresh_token: 'mock_refresh',
             expires_in: 3600,
-            token_type: 'bearer',
+            token_type: 'bearer' as const,
             user: mockUser
-          } as Session;
+          };
           setSession(mockSession);
         }
         setLoading(false);
@@ -133,7 +133,7 @@ export const useSupabaseAuth = () => {
       // Query profiles table for username/password authentication
       const { data: profileData, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, username, full_name, email, role, department, created_at, updated_at')
         .eq('email', email)
         .eq('password', password)
         .single();
@@ -150,28 +150,27 @@ export const useSupabaseAuth = () => {
         email: profileData.email || '',
         role: (profileData.role as 'admin' | 'editor' | 'viewer') || 'viewer',
         department: profileData.department || undefined,
-        password: profileData.password || undefined,
         created_at: profileData.created_at || new Date().toISOString(),
         updated_at: profileData.updated_at || new Date().toISOString()
       };
 
       // Create mock user and session objects
-      const mockUser: User = {
+      const mockUser = {
         id: typedProfile.id,
         email: typedProfile.email,
         user_metadata: {},
         app_metadata: {},
-        aud: 'authenticated',
+        aud: 'authenticated' as const,
         created_at: typedProfile.created_at
-      } as User;
+      };
 
-      const mockSession: Session = {
+      const mockSession = {
         access_token: 'mock_token',
         refresh_token: 'mock_refresh',
         expires_in: 3600,
-        token_type: 'bearer',
+        token_type: 'bearer' as const,
         user: mockUser
-      } as Session;
+      };
 
       setUser(mockUser);
       setSession(mockSession);
@@ -230,7 +229,7 @@ export const useSupabaseAuth = () => {
       // Refetch profile
       const { data: profileData, error: fetchError } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, username, full_name, email, role, department, created_at, updated_at')
         .eq('id', profile.id)
         .single();
       
@@ -244,7 +243,6 @@ export const useSupabaseAuth = () => {
           email: profileData.email || '',
           role: (profileData.role as 'admin' | 'editor' | 'viewer') || 'viewer',
           department: profileData.department || undefined,
-          password: profileData.password || undefined,
           created_at: profileData.created_at || new Date().toISOString(),
           updated_at: profileData.updated_at || new Date().toISOString()
         };
