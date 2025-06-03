@@ -8,7 +8,7 @@ import { useProfileUpdate } from './auth/useProfileUpdate';
 import { useAuthPermissions } from './auth/usePermissions';
 import { Profile } from './auth/types';
 
-export { Profile } from './auth/types';
+export type { Profile } from './auth/types';
 
 export const useSupabaseAuth = () => {
   const [user, setUser] = useState<User | null>(null);
