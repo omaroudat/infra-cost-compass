@@ -5,8 +5,8 @@ import { profileService } from './profileService';
 import { Profile } from './types';
 
 export const useSignIn = () => {
-  const signIn = async (email: string, password: string) => {
-    const identifier = email;
+  const signIn = async (username: string, password: string) => {
+    const identifier = username;
     
     if (!authRateLimiter.isAllowed(identifier)) {
       toast.error('Too many login attempts. Please try again later.');
@@ -14,7 +14,7 @@ export const useSignIn = () => {
     }
 
     try {
-      const result = await profileService.findByEmailAndPassword(email, password);
+      const result = await profileService.findByUsernameAndPassword(username, password);
 
       if (result.error) {
         throw new Error('Invalid username or password');
@@ -31,7 +31,6 @@ export const useSignIn = () => {
         id: profileData.id,
         username: profileData.username || '',
         full_name: profileData.full_name || '',
-        email: profileData.email || '',
         role: (profileData.role as 'admin' | 'editor' | 'viewer') || 'viewer',
         department: profileData.department || undefined,
         created_at: profileData.created_at || new Date().toISOString(),
@@ -40,7 +39,7 @@ export const useSignIn = () => {
 
       const mockUser = {
         id: typedProfile.id,
-        email: typedProfile.email,
+        email: typedProfile.username,
         user_metadata: {},
         app_metadata: {},
         aud: 'authenticated' as const,

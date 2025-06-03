@@ -5,7 +5,6 @@ export interface Profile {
   id: string;
   username: string;
   full_name: string;
-  email: string;
   role: 'admin' | 'editor' | 'viewer';
   department?: string;
   password?: string;
@@ -22,8 +21,8 @@ export interface AuthState {
 }
 
 export interface AuthActions {
-  signUp: (email: string, password: string, username?: string, fullName?: string) => Promise<any>;
-  signIn: (email: string, password: string) => Promise<any>;
+  signUp: (username: string, password: string, fullName?: string) => Promise<any>;
+  signIn: (username: string, password: string) => Promise<any>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
   hasRole: (roles: string[]) => boolean;

@@ -5,8 +5,8 @@ import { profileService } from './profileService';
 import { Profile } from './types';
 
 export const useSignUp = () => {
-  const signUp = async (email: string, password: string, username?: string, fullName?: string) => {
-    const identifier = email;
+  const signUp = async (username: string, password: string, fullName?: string) => {
+    const identifier = username;
     
     if (!authRateLimiter.isAllowed(identifier)) {
       toast.error('Too many signup attempts. Please try again later.');
@@ -14,19 +14,18 @@ export const useSignUp = () => {
     }
 
     try {
-      const existingQuery = await profileService.checkExistingProfile(email);
+      const existingQuery = await profileService.checkExistingProfile(username);
 
       if (existingQuery.data && existingQuery.data.length > 0) {
-        toast.error('This email is already registered. Try signing in instead.');
+        toast.error('This username is already registered. Try signing in instead.');
         return { data: null, error: { message: 'User already exists' } };
       }
 
       const newProfile: Omit<Profile, 'updated_at'> = {
         id: crypto.randomUUID(),
-        username: username || email.split('@')[0],
+        username: username,
         password: password,
-        full_name: fullName || username || email.split('@')[0],
-        email: email,
+        full_name: fullName || username,
         role: 'viewer' as const,
         department: 'General',
         created_at: new Date().toISOString()
@@ -43,9 +42,7 @@ export const useSignUp = () => {
       
       let errorMessage = 'Failed to sign up';
       if (error.message?.includes('already registered')) {
-        errorMessage = 'This email is already registered. Try signing in instead.';
-      } else if (error.message?.includes('invalid email')) {
-        errorMessage = 'Please enter a valid email address.';
+        errorMessage = 'This username is already registered. Try signing in instead.';
       } else if (error.message) {
         errorMessage = error.message;
       }

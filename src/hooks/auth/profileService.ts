@@ -3,12 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { Profile } from './types';
 
 export const profileService = {
-  async checkExistingProfile(email: string) {
+  async checkExistingProfile(username: string) {
     try {
       const result = await supabase
         .from('profiles')
         .select('*')
-        .eq('email', email);
+        .eq('username', username);
       
       return { data: result.data, error: result.error };
     } catch (error) {
@@ -28,15 +28,13 @@ export const profileService = {
     }
   },
 
-  async findByEmailAndPassword(email: string, password: string) {
+  async findByUsernameAndPassword(username: string, password: string) {
     try {
-      const query = supabase
+      const result = await supabase
         .from('profiles')
-        .select('id, username, full_name, email, role, department, created_at, updated_at')
-        .eq('email', email)
+        .select('id, username, full_name, role, department, created_at, updated_at')
+        .eq('username', username)
         .eq('password', password);
-      
-      const result = await query;
       
       return { data: result.data, error: result.error };
     } catch (error) {
@@ -61,7 +59,7 @@ export const profileService = {
     try {
       const result = await supabase
         .from('profiles')
-        .select('id, username, full_name, email, role, department, created_at, updated_at')
+        .select('id, username, full_name, role, department, created_at, updated_at')
         .eq('id', id);
       
       return { data: result.data, error: result.error };

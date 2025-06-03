@@ -31,7 +31,7 @@ export const useSupabaseAuth = () => {
           
           const mockUser = {
             id: parsedProfile.id,
-            email: parsedProfile.email,
+            email: parsedProfile.username,
             user_metadata: {},
             app_metadata: {},
             aud: 'authenticated' as const,
@@ -58,8 +58,8 @@ export const useSupabaseAuth = () => {
     initializeAuth();
   }, []);
 
-  const handleSignIn = async (email: string, password: string) => {
-    const result = await signIn(email, password);
+  const handleSignIn = async (username: string, password: string) => {
+    const result = await signIn(username, password);
     if (result.data && !result.error) {
       setUser(result.data.user);
       setSession(result.data.session);
