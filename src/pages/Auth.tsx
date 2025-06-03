@@ -6,20 +6,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye, EyeOff, Lock, User, Mail, AlertTriangle } from 'lucide-react';
+import { Eye, EyeOff, Lock, User } from 'lucide-react';
 import { validateForm, sanitizeInput } from '@/utils/validation';
 import ValidationErrorDisplay from '@/components/ValidationErrorDisplay';
 
 const Auth = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
-  const [fullName, setFullName] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
-  const { signIn, signUp, isAuthenticated } = useAuth();
+  const { signIn, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,51 +28,17 @@ const Auth = () => {
   const validateSignInForm = () => {
     const errors = validateForm([
       {
-        field: 'email',
-        value: email,
+        field: 'username',
+        value: username,
         rules: [
-          { type: 'required', message: 'Email is required' },
-          { type: 'email', message: 'Please enter a valid email address' }
+          { type: 'required', message: 'Username is required' }
         ]
       },
       {
         field: 'password',
         value: password,
         rules: [
-          { type: 'required', message: 'Password is required' },
-          { type: 'min', value: 6, message: 'Password must be at least 6 characters' }
-        ]
-      }
-    ]);
-    
-    setValidationErrors(errors);
-    return errors.length === 0;
-  };
-
-  const validateSignUpForm = () => {
-    const errors = validateForm([
-      {
-        field: 'email',
-        value: email,
-        rules: [
-          { type: 'required', message: 'Email is required' },
-          { type: 'email', message: 'Please enter a valid email address' }
-        ]
-      },
-      {
-        field: 'fullName',
-        value: fullName,
-        rules: [
-          { type: 'required', message: 'Full name is required' },
-          { type: 'min', value: 2, message: 'Full name must be at least 2 characters' }
-        ]
-      },
-      {
-        field: 'password',
-        value: password,
-        rules: [
-          { type: 'required', message: 'Password is required' },
-          { type: 'min', value: 6, message: 'Password must be at least 6 characters' }
+          { type: 'required', message: 'Password is required' }
         ]
       }
     ]);
@@ -92,28 +55,14 @@ const Auth = () => {
     setIsLoading(true);
     setValidationErrors([]);
     
-    const result = await signIn(sanitizeInput(email), password);
+    // For the admin user, use a default email format
+    const email = username === 'Admin' ? 'admin@constructfin.local' : `${username}@constructfin.local`;
+    
+    const result = await signIn(email, password);
     if (result.data && !result.error) {
       navigate('/dashboard');
     }
     
-    setIsLoading(false);
-  };
-
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateSignUpForm()) return;
-    
-    setIsLoading(true);
-    setValidationErrors([]);
-    
-    await signUp(
-      sanitizeInput(email), 
-      password, 
-      sanitizeInput(username || email.split('@')[0]), 
-      sanitizeInput(fullName)
-    );
     setIsLoading(false);
   };
 
@@ -125,149 +74,60 @@ const Auth = () => {
           <CardDescription>Construction Financial Management System</CardDescription>
         </CardHeader>
         
-        <Tabs defaultValue="signin" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mx-6">
-            <TabsTrigger value="signin">Sign In</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="signin">
-            <form onSubmit={handleSignIn}>
-              <CardContent className="space-y-4">
-                <ValidationErrorDisplay errors={validationErrors} />
-                
-                <div className="space-y-2">
-                  <Label htmlFor="signin-email">Email</Label>
-                  <div className="relative">
-                    <Input 
-                      id="signin-email"
-                      type="email" 
-                      placeholder="Enter your email" 
-                      value={email} 
-                      onChange={(e) => setEmail(e.target.value)} 
-                      className="pl-10"
-                      required
-                    />
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signin-password">Password</Label>
-                  <div className="relative">
-                    <Input 
-                      id="signin-password"
-                      type={showPassword ? "text" : "password"} 
-                      placeholder="Enter your password" 
-                      value={password} 
-                      onChange={(e) => setPassword(e.target.value)} 
-                      className="pl-10"
-                      required
-                    />
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                    <button 
-                      type="button"
-                      className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Signing In...' : 'Sign In'}
-                </Button>
-              </CardFooter>
-            </form>
-          </TabsContent>
-          
-          <TabsContent value="signup">
-            <form onSubmit={handleSignUp}>
-              <CardContent className="space-y-4">
-                <ValidationErrorDisplay errors={validationErrors} />
-                
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <div className="relative">
-                    <Input 
-                      id="signup-email"
-                      type="email" 
-                      placeholder="Enter your email" 
-                      value={email} 
-                      onChange={(e) => setEmail(e.target.value)} 
-                      className="pl-10"
-                      required
-                    />
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-fullname">Full Name</Label>
-                  <div className="relative">
-                    <Input 
-                      id="signup-fullname"
-                      type="text" 
-                      placeholder="Enter your full name" 
-                      value={fullName} 
-                      onChange={(e) => setFullName(e.target.value)} 
-                      className="pl-10"
-                      required
-                    />
-                    <User className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-username">Username (Optional)</Label>
-                  <div className="relative">
-                    <Input 
-                      id="signup-username"
-                      type="text" 
-                      placeholder="Choose a username" 
-                      value={username} 
-                      onChange={(e) => setUsername(e.target.value)} 
-                      className="pl-10"
-                    />
-                    <User className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
-                  <div className="relative">
-                    <Input 
-                      id="signup-password"
-                      type={showPassword ? "text" : "password"} 
-                      placeholder="Create a password (min 6 characters)" 
-                      value={password} 
-                      onChange={(e) => setPassword(e.target.value)} 
-                      className="pl-10"
-                      required
-                      minLength={6}
-                    />
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                    <button 
-                      type="button"
-                      className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Creating Account...' : 'Create Account'}
-                </Button>
-              </CardFooter>
-            </form>
-          </TabsContent>
-        </Tabs>
+        <form onSubmit={handleSignIn}>
+          <CardContent className="space-y-4">
+            <ValidationErrorDisplay errors={validationErrors} />
+            
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <div className="relative">
+                <Input 
+                  id="username"
+                  type="text" 
+                  placeholder="Enter your username" 
+                  value={username} 
+                  onChange={(e) => setUsername(e.target.value)} 
+                  className="pl-10"
+                  required
+                />
+                <User className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Input 
+                  id="password"
+                  type={showPassword ? "text" : "password"} 
+                  placeholder="Enter your password" 
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)} 
+                  className="pl-10"
+                  required
+                />
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                <button 
+                  type="button"
+                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Signing In...' : 'Sign In'}
+            </Button>
+          </CardFooter>
+        </form>
         
         <div className="p-4 text-center">
-          <div className="flex items-center justify-center gap-2 text-sm text-amber-600 bg-amber-50 p-3 rounded-md">
-            <AlertTriangle className="h-4 w-4" />
-            For testing: Disable email confirmation in Supabase Auth settings
+          <div className="text-sm text-slate-600 bg-slate-50 p-3 rounded-md">
+            <div className="font-medium mb-1">Default Admin Credentials:</div>
+            <div>Username: Admin</div>
+            <div>Password: Admin123</div>
           </div>
         </div>
       </Card>

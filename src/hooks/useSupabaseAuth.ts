@@ -43,6 +43,7 @@ export const useSupabaseAuth = () => {
               if (error) {
                 if (error.code === 'PGRST116') {
                   console.log('Profile not found, user needs to complete setup');
+                  toast.error('User profile not found. Please contact administrator.');
                 } else {
                   console.error('Error fetching profile:', error);
                   toast.error('Failed to load user profile');
@@ -163,13 +164,13 @@ export const useSupabaseAuth = () => {
       console.error('Sign in error:', error);
       
       // Provide user-friendly error messages
-      let errorMessage = 'Failed to sign in';
+      let errorMessage = 'Invalid username or password';
       if (error.message?.includes('Invalid login credentials')) {
-        errorMessage = 'Invalid email or password. Please check your credentials.';
+        errorMessage = 'Invalid username or password. Please check your credentials.';
       } else if (error.message?.includes('Email not confirmed')) {
-        errorMessage = 'Please check your email and confirm your account first.';
-      } else if (error.message) {
-        errorMessage = error.message;
+        errorMessage = 'Account not activated. Please contact administrator.';
+      } else if (error.message?.includes('Too many requests')) {
+        errorMessage = 'Too many login attempts. Please try again later.';
       }
       
       toast.error(errorMessage);
