@@ -11,7 +11,7 @@ import { validateForm, sanitizeInput } from '@/utils/validation';
 import ValidationErrorDisplay from '@/components/ValidationErrorDisplay';
 
 const Auth = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -28,10 +28,10 @@ const Auth = () => {
   const validateSignInForm = () => {
     const errors = validateForm([
       {
-        field: 'username',
-        value: username,
+        field: 'email',
+        value: email,
         rules: [
-          { type: 'required', message: 'Username is required' }
+          { type: 'required', message: 'Email is required' }
         ]
       },
       {
@@ -55,9 +55,6 @@ const Auth = () => {
     setIsLoading(true);
     setValidationErrors([]);
     
-    // For the admin user, use a default email format
-    const email = username === 'Admin' ? 'admin@constructfin.local' : `${username}@constructfin.local`;
-    
     const result = await signIn(email, password);
     if (result.data && !result.error) {
       navigate('/dashboard');
@@ -79,14 +76,14 @@ const Auth = () => {
             <ValidationErrorDisplay errors={validationErrors} />
             
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="email">Email</Label>
               <div className="relative">
                 <Input 
-                  id="username"
-                  type="text" 
-                  placeholder="Enter your username" 
-                  value={username} 
-                  onChange={(e) => setUsername(e.target.value)} 
+                  id="email"
+                  type="email" 
+                  placeholder="Enter your email" 
+                  value={email} 
+                  onChange={(e) => setEmail(e.target.value)} 
                   className="pl-10"
                   required
                 />
@@ -126,7 +123,7 @@ const Auth = () => {
         <div className="p-4 text-center">
           <div className="text-sm text-slate-600 bg-slate-50 p-3 rounded-md">
             <div className="font-medium mb-1">Default Admin Credentials:</div>
-            <div>Username: Admin</div>
+            <div>Email: admin@constructfin.local</div>
             <div>Password: Admin123</div>
           </div>
         </div>

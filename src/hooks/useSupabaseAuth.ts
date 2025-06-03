@@ -12,6 +12,7 @@ export interface Profile {
   email: string;
   role: 'admin' | 'editor' | 'viewer';
   department?: string;
+  password?: string;
   created_at: string;
   updated_at: string;
 }
@@ -23,64 +24,35 @@ export const useSupabaseAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.id);
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Fetch user profile with proper error handling
-          setTimeout(async () => {
-            try {
-              const { data: profileData, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .single();
-              
-              if (error) {
-                if (error.code === 'PGRST116') {
-                  console.log('Profile not found, user needs to complete setup');
-                  toast.error('User profile not found. Please contact administrator.');
-                } else {
-                  console.error('Error fetching profile:', error);
-                  toast.error('Failed to load user profile');
-                }
-              } else if (profileData) {
-                // Type cast the role to ensure it matches our Profile interface
-                const typedProfile: Profile = {
-                  ...profileData,
-                  role: profileData.role as 'admin' | 'editor' | 'viewer'
-                };
-                setProfile(typedProfile);
-              }
-            } catch (error) {
-              console.error('Error in profile fetch:', error);
-              toast.error('Failed to load user data');
-            }
-          }, 0);
-        } else {
-          setProfile(null);
-        }
-        
-        setLoading(false);
-      }
-    );
-
-    // Check for existing session
+    // Check for existing session from localStorage
     const initializeAuth = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error('Error getting session:', error);
+        const savedUser = localStorage.getItem('currentUser');
+        if (savedUser) {
+          const parsedProfile = JSON.parse(savedUser);
+          setProfile(parsedProfile);
+          // Create a mock user object for compatibility
+          const mockUser = {
+            id: parsedProfile.id,
+            email: parsedProfile.email,
+            user_metadata: {},
+            app_metadata: {},
+            aud: 'authenticated',
+            created_at: parsedProfile.created_at
+          } as User;
+          setUser(mockUser);
+          
+          // Create a mock session
+          const mockSession = {
+            access_token: 'mock_token',
+            refresh_token: 'mock_refresh',
+            expires_in: 3600,
+            token_type: 'bearer',
+            user: mockUser
+          } as Session;
+          setSession(mockSession);
         }
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (!session) {
-          setLoading(false);
-        }
+        setLoading(false);
       } catch (error) {
         console.error('Failed to initialize auth:', error);
         setLoading(false);
@@ -88,8 +60,6 @@ export const useSupabaseAuth = () => {
     };
 
     initializeAuth();
-
-    return () => subscription.unsubscribe();
   }, []);
 
   const signUp = async (email: string, password: string, username?: string, fullName?: string) => {
@@ -101,38 +71,47 @@ export const useSupabaseAuth = () => {
     }
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            username: username || email.split('@')[0],
-            full_name: fullName || username || email.split('@')[0]
-          }
-        }
-      });
+      // Check if user already exists
+      const { data: existingUser, error: checkError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('email', email)
+        .single();
 
-      if (error) throw error;
-      
-      if (data.user && !data.session) {
-        toast.success('Check your email for the confirmation link!');
-      } else {
-        toast.success('Account created successfully!');
+      if (existingUser) {
+        toast.error('This email is already registered. Try signing in instead.');
+        return { data: null, error: { message: 'User already exists' } };
       }
+
+      // Create new profile
+      const newProfile = {
+        id: crypto.randomUUID(),
+        username: username || email.split('@')[0],
+        password: password,
+        full_name: fullName || username || email.split('@')[0],
+        email: email,
+        role: 'viewer' as const,
+        department: 'General',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { error: insertError } = await supabase
+        .from('profiles')
+        .insert(newProfile);
+
+      if (insertError) throw insertError;
       
-      return { data, error: null };
+      toast.success('Account created successfully! Please sign in.');
+      return { data: { user: newProfile }, error: null };
     } catch (error: any) {
       console.error('Sign up error:', error);
       
-      // Provide user-friendly error messages
       let errorMessage = 'Failed to sign up';
       if (error.message?.includes('already registered')) {
         errorMessage = 'This email is already registered. Try signing in instead.';
       } else if (error.message?.includes('invalid email')) {
         errorMessage = 'Please enter a valid email address.';
-      } else if (error.message?.includes('weak password')) {
-        errorMessage = 'Password is too weak. Please use a stronger password.';
       } else if (error.message) {
         errorMessage = error.message;
       }
@@ -151,24 +130,51 @@ export const useSupabaseAuth = () => {
     }
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      // Query profiles table for username/password authentication
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('email', email)
+        .eq('password', password)
+        .single();
 
-      if (error) throw error;
+      if (error || !profileData) {
+        throw new Error('Invalid username or password');
+      }
+
+      // Create mock user and session objects
+      const mockUser = {
+        id: profileData.id,
+        email: profileData.email,
+        user_metadata: {},
+        app_metadata: {},
+        aud: 'authenticated',
+        created_at: profileData.created_at
+      } as User;
+
+      const mockSession = {
+        access_token: 'mock_token',
+        refresh_token: 'mock_refresh',
+        expires_in: 3600,
+        token_type: 'bearer',
+        user: mockUser
+      } as Session;
+
+      setUser(mockUser);
+      setSession(mockSession);
+      setProfile(profileData);
+      
+      // Save to localStorage for persistence
+      localStorage.setItem('currentUser', JSON.stringify(profileData));
       
       toast.success('Signed in successfully!');
-      return { data, error: null };
+      return { data: { user: mockUser, session: mockSession }, error: null };
     } catch (error: any) {
       console.error('Sign in error:', error);
       
-      // Provide user-friendly error messages
       let errorMessage = 'Invalid username or password';
       if (error.message?.includes('Invalid login credentials')) {
         errorMessage = 'Invalid username or password. Please check your credentials.';
-      } else if (error.message?.includes('Email not confirmed')) {
-        errorMessage = 'Account not activated. Please contact administrator.';
       } else if (error.message?.includes('Too many requests')) {
         errorMessage = 'Too many login attempts. Please try again later.';
       }
@@ -180,8 +186,10 @@ export const useSupabaseAuth = () => {
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+      localStorage.removeItem('currentUser');
       
       toast.success('Signed out successfully!');
     } catch (error: any) {
@@ -191,7 +199,7 @@ export const useSupabaseAuth = () => {
   };
 
   const updateProfile = async (updates: Partial<Profile>) => {
-    if (!user) {
+    if (!profile) {
       toast.error('You must be logged in to update your profile');
       return;
     }
@@ -200,7 +208,7 @@ export const useSupabaseAuth = () => {
       const { error } = await supabase
         .from('profiles')
         .update(updates)
-        .eq('id', user.id);
+        .eq('id', profile.id);
 
       if (error) throw error;
       
@@ -210,18 +218,18 @@ export const useSupabaseAuth = () => {
       const { data: profileData, error: fetchError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user.id)
+        .eq('id', profile.id)
         .single();
       
       if (fetchError) {
         console.error('Error refetching profile:', fetchError);
       } else if (profileData) {
-        // Type cast the role to ensure it matches our Profile interface
         const typedProfile: Profile = {
           ...profileData,
           role: profileData.role as 'admin' | 'editor' | 'viewer'
         };
         setProfile(typedProfile);
+        localStorage.setItem('currentUser', JSON.stringify(typedProfile));
       }
     } catch (error: any) {
       console.error('Profile update error:', error);
