@@ -30,11 +30,13 @@ export const profileService = {
 
   async findByEmailAndPassword(email: string, password: string) {
     try {
-      const result = await supabase
+      const query = supabase
         .from('profiles')
         .select('id, username, full_name, email, role, department, created_at, updated_at')
         .eq('email', email)
         .eq('password', password);
+      
+      const result = await query;
       
       return { data: result.data, error: result.error };
     } catch (error) {
