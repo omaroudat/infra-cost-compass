@@ -32,7 +32,7 @@ export const useSupabaseAuth = () => {
           const parsedProfile = JSON.parse(savedUser);
           setProfile(parsedProfile);
           // Create a mock user object for compatibility
-          const mockUser = {
+          const mockUser: User = {
             id: parsedProfile.id,
             email: parsedProfile.email,
             user_metadata: {},
@@ -43,7 +43,7 @@ export const useSupabaseAuth = () => {
           setUser(mockUser);
           
           // Create a mock session
-          const mockSession = {
+          const mockSession: Session = {
             access_token: 'mock_token',
             refresh_token: 'mock_refresh',
             expires_in: 3600,
@@ -142,17 +142,30 @@ export const useSupabaseAuth = () => {
         throw new Error('Invalid username or password');
       }
 
-      // Create mock user and session objects
-      const mockUser = {
+      // Type-safe profile conversion
+      const typedProfile: Profile = {
         id: profileData.id,
-        email: profileData.email,
+        username: profileData.username || '',
+        full_name: profileData.full_name || '',
+        email: profileData.email || '',
+        role: (profileData.role as 'admin' | 'editor' | 'viewer') || 'viewer',
+        department: profileData.department || undefined,
+        password: profileData.password || undefined,
+        created_at: profileData.created_at || new Date().toISOString(),
+        updated_at: profileData.updated_at || new Date().toISOString()
+      };
+
+      // Create mock user and session objects
+      const mockUser: User = {
+        id: typedProfile.id,
+        email: typedProfile.email,
         user_metadata: {},
         app_metadata: {},
         aud: 'authenticated',
-        created_at: profileData.created_at
+        created_at: typedProfile.created_at
       } as User;
 
-      const mockSession = {
+      const mockSession: Session = {
         access_token: 'mock_token',
         refresh_token: 'mock_refresh',
         expires_in: 3600,
@@ -162,10 +175,10 @@ export const useSupabaseAuth = () => {
 
       setUser(mockUser);
       setSession(mockSession);
-      setProfile(profileData);
+      setProfile(typedProfile);
       
       // Save to localStorage for persistence
-      localStorage.setItem('currentUser', JSON.stringify(profileData));
+      localStorage.setItem('currentUser', JSON.stringify(typedProfile));
       
       toast.success('Signed in successfully!');
       return { data: { user: mockUser, session: mockSession }, error: null };
@@ -225,8 +238,15 @@ export const useSupabaseAuth = () => {
         console.error('Error refetching profile:', fetchError);
       } else if (profileData) {
         const typedProfile: Profile = {
-          ...profileData,
-          role: profileData.role as 'admin' | 'editor' | 'viewer'
+          id: profileData.id,
+          username: profileData.username || '',
+          full_name: profileData.full_name || '',
+          email: profileData.email || '',
+          role: (profileData.role as 'admin' | 'editor' | 'viewer') || 'viewer',
+          department: profileData.department || undefined,
+          password: profileData.password || undefined,
+          created_at: profileData.created_at || new Date().toISOString(),
+          updated_at: profileData.updated_at || new Date().toISOString()
         };
         setProfile(typedProfile);
         localStorage.setItem('currentUser', JSON.stringify(typedProfile));
