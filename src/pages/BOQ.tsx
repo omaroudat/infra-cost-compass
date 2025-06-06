@@ -133,13 +133,22 @@ const BOQ = () => {
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
         
         console.log('Imported data:', jsonData);
-        console.log('Current BOQ items:', boqItems);
         
-        // Process imported data
+        // Process imported data and build hierarchy
         let importCount = 0;
         let skippedCount = 0;
         
-        jsonData.forEach((row: any) => {
+        // First, sort data by level to ensure parents are created before children
+        const sortedData = jsonData.sort((a: any, b: any) => {
+          const levelA = parseInt(a['Level']) || 0;
+          const levelB = parseInt(b['Level']) || 0;
+          return levelA - levelB;
+        });
+        
+        // Keep track of created items by code for parent lookup
+        const createdItemsMap = new Map<string, string>(); // code -> id
+        
+        for (const row of sortedData) {
           const itemData = {
             code: row['Item Code'] || '',
             description: row['Description (EN)'] || '',
@@ -160,21 +169,31 @@ const BOQ = () => {
             const existingItem = findItemByCode(boqItems, itemData.code);
             if (existingItem) {
               console.log('Item already exists, skipping:', itemData.code);
+              // Add to map even if skipped for parent lookup
+              createdItemsMap.set(itemData.code, existingItem.id);
               skippedCount++;
-              return;
+              continue;
             }
             
             let parentId: string | undefined = undefined;
             
             // Find parent if parentCode is provided
             if (itemData.parentCode) {
-              const parentItem = findItemByCode(boqItems, itemData.parentCode);
-              if (parentItem) {
-                parentId = parentItem.id;
-                console.log('Found parent for', itemData.code, ':', parentItem.code, parentItem.id);
+              // First check in created items map
+              const parentIdFromMap = createdItemsMap.get(itemData.parentCode);
+              if (parentIdFromMap) {
+                parentId = parentIdFromMap;
+                console.log('Found parent from map for', itemData.code, ':', itemData.parentCode, parentIdFromMap);
               } else {
-                console.log('Parent not found for', itemData.code, ', parent code:', itemData.parentCode);
-                console.log('Available items:', boqItems.map(item => ({ code: item.code, id: item.id })));
+                // Fallback to searching existing items
+                const parentItem = findItemByCode(boqItems, itemData.parentCode);
+                if (parentItem) {
+                  parentId = parentItem.id;
+                  createdItemsMap.set(itemData.parentCode, parentItem.id);
+                  console.log('Found parent in existing items for', itemData.code, ':', parentItem.code, parentItem.id);
+                } else {
+                  console.log('Parent not found for', itemData.code, ', parent code:', itemData.parentCode);
+                }
               }
             }
             
@@ -190,13 +209,23 @@ const BOQ = () => {
             };
             
             console.log('Adding item:', itemToAdd, 'with parentId:', parentId);
-            addBOQItem(itemToAdd, parentId);
-            importCount++;
+            
+            try {
+              const createdItem = await addBOQItem(itemToAdd, parentId);
+              // Store the created item ID for future parent lookups
+              if (createdItem && createdItem.id) {
+                createdItemsMap.set(itemData.code, createdItem.id);
+              }
+              importCount++;
+            } catch (error) {
+              console.error('Error adding item:', itemData.code, error);
+              skippedCount++;
+            }
           } else {
             console.log('Skipping item due to missing required fields:', itemData);
             skippedCount++;
           }
-        });
+        }
         
         if (importCount > 0) {
           toast.success(`Successfully imported ${importCount} BOQ items!${skippedCount > 0 ? ` (${skippedCount} items skipped)` : ''}`);
