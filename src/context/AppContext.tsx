@@ -39,6 +39,8 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  console.log('AppProvider: Initializing...');
+
   const {
     boqItems,
     loading: boqLoading,
@@ -81,6 +83,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const loading = boqLoading || breakdownLoading || wirsLoading || staffLoading;
 
+  console.log('AppProvider state:', {
+    boqItems: boqItems.length,
+    breakdownItems: breakdownItems.length,
+    wirs: wirs.length,
+    contractors: contractors.length,
+    engineers: engineers.length,
+    loading
+  });
+
   const addBreakdownSubItem = async (parentId: string, item: Omit<BreakdownItem, 'id'>) => {
     const subItem = {
       ...item,
@@ -90,6 +101,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const refetchAll = async () => {
+    console.log('AppProvider: Refetching all data...');
     await Promise.all([
       refetchBOQ(),
       refetchBreakdown(),
