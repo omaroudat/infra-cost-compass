@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Download, Upload, FileSpreadsheet, Database } from 'lucide-react';
 import { useAppContext } from '@/context/AppContext';
-import { useAuth } from '@/context/SupabaseAuthContext';
+import { useAuth } from '@/context/ManualAuthContext';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 

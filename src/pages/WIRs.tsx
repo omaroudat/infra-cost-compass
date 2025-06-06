@@ -1,5 +1,6 @@
+
 import React, { useState, useMemo } from 'react';
-import { useAuth } from '@/context/SupabaseAuthContext';
+import { useAuth } from '@/context/ManualAuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
