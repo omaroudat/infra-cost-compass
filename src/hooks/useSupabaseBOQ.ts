@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { BOQItem } from '@/types';
@@ -94,38 +95,56 @@ export const useSupabaseBOQ = () => {
     try {
       console.log('Adding BOQ item:', item, 'with parentId:', parentId);
       
-      // Test connection first
+      // First, let's check if we can make a simple query to test connectivity
+      console.log('Testing basic Supabase connectivity...');
       const { data: testData, error: testError } = await supabase
         .from('boq_items')
         .select('count')
-        .limit(1);
+        .limit(1)
+        .single();
       
-      if (testError) {
+      if (testError && testError.code !== 'PGRST116') { // PGRST116 is "no rows returned" which is OK
         console.error('Connection test failed:', testError);
-        throw new Error(`Database connection failed: ${testError.message}`);
+        console.error('Test error details:', {
+          code: testError.code,
+          details: testError.details,
+          hint: testError.hint,
+          message: testError.message
+        });
+        throw new Error(`Database connection test failed: ${testError.message}`);
       }
       
-      console.log('Connection test successful, proceeding with insert...');
+      console.log('Connection test passed, proceeding with insert...');
       
+      const insertData = {
+        code: item.code,
+        description: item.description,
+        description_ar: item.descriptionAr || null,
+        quantity: item.quantity,
+        unit: item.unit,
+        unit_ar: item.unitAr || null,
+        unit_rate: item.unitRate,
+        total_amount: item.totalAmount || (item.quantity * item.unitRate),
+        parent_id: parentId || null,
+        level: item.level || 0
+      };
+      
+      console.log('Inserting BOQ item with data:', insertData);
+
       const { data, error } = await supabase
         .from('boq_items')
-        .insert({
-          code: item.code,
-          description: item.description,
-          description_ar: item.descriptionAr || null,
-          quantity: item.quantity,
-          unit: item.unit,
-          unit_ar: item.unitAr || null,
-          unit_rate: item.unitRate,
-          total_amount: item.totalAmount || (item.quantity * item.unitRate),
-          parent_id: parentId || null,
-          level: item.level || 0
-        })
+        .insert(insertData)
         .select()
         .single();
 
       if (error) {
         console.error('Error adding BOQ item:', error);
+        console.error('Insert error details:', {
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+          message: error.message
+        });
         throw error;
       }
 
@@ -138,10 +157,19 @@ export const useSupabaseBOQ = () => {
       console.error('Error type:', typeof error);
       console.error('Error details:', JSON.stringify(error, null, 2));
       
-      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        toast.error('Network error: Cannot connect to database. Please check your internet connection and Supabase configuration.');
+      // More specific error handling
+      if (error instanceof TypeError) {
+        if (error.message.includes('Failed to fetch')) {
+          const errorMsg = 'Network error: Cannot connect to Supabase. Please check:\n1. Your internet connection\n2. Supabase project is running\n3. CORS settings are correct';
+          toast.error(errorMsg);
+          console.error('Network connectivity issue detected');
+        } else {
+          toast.error('Network error: ' + error.message);
+        }
+      } else if (error && typeof error === 'object' && 'message' in error) {
+        toast.error('Database error: ' + (error as any).message);
       } else {
-        toast.error('Failed to add BOQ item: ' + (error as Error).message);
+        toast.error('Failed to add BOQ item: Unknown error');
       }
       throw error;
     }
