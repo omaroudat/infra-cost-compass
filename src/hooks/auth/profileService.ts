@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Profile } from './types';
 
@@ -10,12 +9,12 @@ type ServiceResult<T> = {
 export const profileService = {
   async checkExistingProfile(username: string): Promise<ServiceResult<Profile[]>> {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
+      const result = await supabase
+        .from<Profile>('profiles')
         .select('*')
         .eq('username', username);
-      
-      return { data: data as Profile[], error };
+
+      return { data: result.data ?? null, error: result.error };
     } catch (error) {
       return { data: null, error };
     }
@@ -23,13 +22,11 @@ export const profileService = {
 
   async createProfile(profileData: Omit<Profile, 'updated_at'>): Promise<ServiceResult<Profile>> {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .insert(profileData)
-        .select('*')
-        .single();
-      
-      return { data: data as Profile, error };
+      const result = await supabase
+        .from<Profile>('profiles')
+        .insert(profileData);
+
+      return { data: result.data ? result.data[0] : null, error: result.error };
     } catch (error) {
       return { data: null, error };
     }
@@ -37,13 +34,13 @@ export const profileService = {
 
   async findByUsernameAndPassword(username: string, password: string): Promise<ServiceResult<Profile[]>> {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
+      const result = await supabase
+        .from<Profile>('profiles')
         .select('id, username, full_name, role, department, created_at, updated_at')
         .eq('username', username)
         .eq('password', password);
-      
-      return { data: data as Profile[], error };
+
+      return { data: result.data ?? null, error: result.error };
     } catch (error) {
       return { data: null, error };
     }
@@ -51,28 +48,25 @@ export const profileService = {
 
   async updateProfile(id: string, updates: Partial<Profile>): Promise<ServiceResult<Profile>> {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
+      const result = await supabase
+        .from<Profile>('profiles')
         .update(updates)
-        .eq('id', id)
-        .select('*')
-        .single();
-      
-      return { data: data as Profile, error };
+        .eq('id', id);
+
+      return { data: result.data ? result.data[0] : null, error: result.error };
     } catch (error) {
       return { data: null, error };
     }
   },
 
-  async fetchProfile(id: string): Promise<ServiceResult<Profile>> {
+  async fetchProfile(id: string): Promise<ServiceResult<Profile[]>> {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
+      const result = await supabase
+        .from<Profile>('profiles')
         .select('id, username, full_name, role, department, created_at, updated_at')
-        .eq('id', id)
-        .single();
-      
-      return { data: data as Profile, error };
+        .eq('id', id);
+
+      return { data: result.data ?? null, error: result.error };
     } catch (error) {
       return { data: null, error };
     }
