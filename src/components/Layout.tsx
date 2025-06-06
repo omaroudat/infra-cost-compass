@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '@/context/ManualAuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -44,26 +44,25 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { LanguageSelector } from './LanguageSelector';
-import { UserRole } from '../types/auth';
 
 const AppSidebar = () => {
-  const { user, logout, hasPermission } = useAuth();
+  const { profile, signOut, hasRole } = useAuth();
   const { t } = useLanguage();
   const location = useLocation();
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: Home, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[], color: 'from-blue-500 to-blue-600' },
-    { name: 'BOQ Items', href: '/boq', icon: FileSpreadsheet, roles: ['admin', 'dataEntry'] as UserRole[], color: 'from-green-500 to-green-600' },
-    { name: 'Break-Down', href: '/breakdown', icon: Calculator, roles: ['admin', 'dataEntry'] as UserRole[], color: 'from-purple-500 to-purple-600' },
-    { name: 'WIRs', href: '/wirs', icon: FileCheck, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[], color: 'from-orange-500 to-orange-600' },
-    { name: 'Reports', href: '/reports', icon: BarChart3, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[], color: 'from-red-500 to-red-600' },
-    { name: 'Progress Tracking', href: '/progress', icon: TrendingUp, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[], color: 'from-indigo-500 to-indigo-600' },
-    { name: 'Invoices', href: '/invoices', icon: Receipt, roles: ['admin', 'dataEntry', 'viewer'] as UserRole[], color: 'from-cyan-500 to-cyan-600' },
-    { name: 'Users', href: '/users', icon: Users, roles: ['admin'] as UserRole[], color: 'from-pink-500 to-pink-600' },
+    { name: 'Dashboard', href: '/dashboard', icon: Home, roles: ['admin', 'editor', 'viewer'], color: 'from-blue-500 to-blue-600' },
+    { name: 'BOQ Items', href: '/boq', icon: FileSpreadsheet, roles: ['admin', 'editor'], color: 'from-green-500 to-green-600' },
+    { name: 'Break-Down', href: '/breakdown', icon: Calculator, roles: ['admin', 'editor'], color: 'from-purple-500 to-purple-600' },
+    { name: 'WIRs', href: '/wirs', icon: FileCheck, roles: ['admin', 'editor', 'viewer'], color: 'from-orange-500 to-orange-600' },
+    { name: 'Reports', href: '/reports', icon: BarChart3, roles: ['admin', 'editor', 'viewer'], color: 'from-red-500 to-red-600' },
+    { name: 'Progress Tracking', href: '/progress', icon: TrendingUp, roles: ['admin', 'editor', 'viewer'], color: 'from-indigo-500 to-indigo-600' },
+    { name: 'Invoices', href: '/invoices', icon: Receipt, roles: ['admin', 'editor', 'viewer'], color: 'from-cyan-500 to-cyan-600' },
+    { name: 'Users', href: '/users', icon: Users, roles: ['admin'], color: 'from-pink-500 to-pink-600' },
   ];
 
   const filteredNavigation = navigation.filter(item => 
-    hasPermission(item.roles)
+    hasRole(item.roles)
   );
 
   return (
@@ -174,14 +173,14 @@ const AppSidebar = () => {
                     <div className="relative">
                       <Avatar className="h-8 w-8 border-2 border-gray-200 shadow-md">
                         <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-xs">
-                          {user?.name?.charAt(0) || user?.username?.charAt(0) || 'U'}
+                          {profile?.full_name?.charAt(0) || profile?.username?.charAt(0) || 'U'}
                         </AvatarFallback>
                       </Avatar>
                       <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-white shadow-sm"></div>
                     </div>
                     <div className="flex-1 text-left">
-                      <div className="font-semibold text-gray-900 truncate text-xs">{user?.name || user?.username}</div>
-                      <div className="text-xs text-gray-500 truncate capitalize font-medium">{user?.role}</div>
+                      <div className="font-semibold text-gray-900 truncate text-xs">{profile?.full_name || profile?.username}</div>
+                      <div className="text-xs text-gray-500 truncate capitalize font-medium">{profile?.role}</div>
                     </div>
                     <ChevronRight className="w-3 h-3 text-gray-400 group-hover:text-gray-600 transition-colors" />
                   </div>
@@ -189,11 +188,11 @@ const AppSidebar = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" className="w-64 bg-white/95 backdrop-blur-md border border-gray-200 shadow-2xl rounded-2xl">
                 <div className="px-4 py-3 text-sm text-gray-600 border-b border-gray-100">
-                  <div className="font-semibold text-gray-900">{user?.name || user?.username}</div>
-                  <div className="text-xs text-gray-500">{user?.email || user?.username}</div>
+                  <div className="font-semibold text-gray-900">{profile?.full_name || profile?.username}</div>
+                  <div className="text-xs text-gray-500">{profile?.username}</div>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} className="text-red-600 hover:bg-red-50 focus:bg-red-50 transition-colors m-2 rounded-xl">
+                <DropdownMenuItem onClick={signOut} className="text-red-600 hover:bg-red-50 focus:bg-red-50 transition-colors m-2 rounded-xl">
                   <LogOut className="mr-3 h-4 w-4" />
                   {t('auth.logout') || 'Logout'}
                 </DropdownMenuItem>
