@@ -37,9 +37,10 @@ export const ManualAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           const parsedProfile = JSON.parse(savedUser);
           setProfile(parsedProfile);
         }
-        setLoading(false);
       } catch (error) {
         console.error('Failed to initialize auth:', error);
+        localStorage.removeItem('currentUser'); // Clear corrupted data
+      } finally {
         setLoading(false);
       }
     };
@@ -48,12 +49,17 @@ export const ManualAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   }, []);
 
   const signIn = async (username: string, password: string) => {
-    const result = await authSignIn(username, password);
-    if (result.data?.profile) {
-      setProfile(result.data.profile);
-      localStorage.setItem('currentUser', JSON.stringify(result.data.profile));
+    try {
+      const result = await authSignIn(username, password);
+      if (result.data?.profile) {
+        setProfile(result.data.profile);
+        localStorage.setItem('currentUser', JSON.stringify(result.data.profile));
+      }
+      return result;
+    } catch (error) {
+      console.error('Sign in error:', error);
+      return { data: null, error };
     }
-    return result;
   };
 
   const signOut = async () => {
