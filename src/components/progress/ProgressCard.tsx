@@ -22,6 +22,7 @@ interface ProgressCardProps {
   isParent?: boolean;
   childrenApprovedAmount?: number;
   childrenTotalAmount?: number;
+  calculateChildrenApprovedAmount?: (boqItem: BOQItem) => number;
 }
 
 export const ProgressCard: React.FC<ProgressCardProps> = ({
@@ -36,7 +37,8 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({
   level = 0,
   isParent = false,
   childrenApprovedAmount = 0,
-  childrenTotalAmount = 0
+  childrenTotalAmount = 0,
+  calculateChildrenApprovedAmount
 }) => {
   const { t } = useLanguage();
   const [isExpanded, setIsExpanded] = useState(true);
@@ -52,21 +54,37 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({
     maximumFractionDigits: 2,
   });
 
-  // Calculate cost progress (approved cost / total estimated cost)
-  const approvedAmount = relatedWIRs
-    .filter(wir => wir.result === 'A')
-    .reduce((sum, wir) => sum + getWIRAmountForBOQ(wir, boqItem.id), 0);
-  const costProgress = boqTotalAmount > 0 ? (approvedAmount / boqTotalAmount) * 100 : 0;
+  // Calculate approved amount based on whether it's a parent or leaf item
+  let approvedAmount = 0;
+  let totalAmount = 0;
+  let costProgress = 0;
 
-  // For parent items, calculate progress based on children
-  const parentCostProgress = isParent && childrenTotalAmount > 0 
-    ? (childrenApprovedAmount / childrenTotalAmount) * 100 
-    : 0;
+  if (isParent && calculateChildrenApprovedAmount) {
+    // For parent items, use the summation of children's approved amounts
+    approvedAmount = calculateChildrenApprovedAmount(boqItem);
+    totalAmount = calculateTotalAmountIncludingChildren(boqItem);
+    costProgress = totalAmount > 0 ? (approvedAmount / totalAmount) * 100 : 0;
+  } else {
+    // For leaf items, calculate from direct WIRs
+    approvedAmount = relatedWIRs
+      .filter(wir => wir.result === 'A')
+      .reduce((sum, wir) => sum + getWIRAmountForBOQ(wir, boqItem.id), 0);
+    totalAmount = boqTotalAmount;
+    costProgress = totalAmount > 0 ? (approvedAmount / totalAmount) * 100 : 0;
+  }
 
-  // Get breakdown sub-items for this BOQ item
-  const breakdownSubItems = breakdownItems?.filter(item => 
+  // Calculate total amount including children recursively
+  const calculateTotalAmountIncludingChildren = (item: BOQItem): number => {
+    if (item.children && item.children.length > 0) {
+      return item.children.reduce((sum, child) => sum + calculateTotalAmountIncludingChildren(child), 0);
+    }
+    return item.quantity * item.unitRate;
+  };
+
+  // Get breakdown sub-items for this BOQ item (only for leaf items)
+  const breakdownSubItems = !isParent ? (breakdownItems?.filter(item => 
     item.boqItemId === boqItem.id && item.isLeaf
-  ) || [];
+  ) || []) : [];
 
   const paddingLeft = level * 2; // 2rem per level
 
@@ -94,31 +112,35 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-500">{boqItem.code}</span>
                   <span className="text-sm font-medium">
-                    {isParent ? `${parentCostProgress.toFixed(1)}%` : `${costProgress.toFixed(1)}%`}
+                    {costProgress.toFixed(1)}%
                   </span>
                 </div>
                 <h3 className="text-lg font-semibold">
                   {language === 'en' ? boqItem.description : (boqItem.descriptionAr || boqItem.description)}
                 </h3>
                 <div className="text-sm text-gray-600 mt-1">
-                  {t('progress.quantity')}: {boqItem.quantity} {language === 'en' ? boqItem.unit : (boqItem.unitAr || boqItem.unit)} | 
-                  {' '}{t('progress.unitRate')}: {englishFormatter.format(boqItem.unitRate)} | 
-                  {' '}{t('progress.totalValue')}: {englishFormatter.format(boqTotalAmount)}
+                  {!isParent && (
+                    <>
+                      {t('progress.quantity')}: {boqItem.quantity} {language === 'en' ? boqItem.unit : (boqItem.unitAr || boqItem.unit)} | 
+                      {' '}{t('progress.unitRate')}: {englishFormatter.format(boqItem.unitRate)} | 
+                    </>
+                  )}
+                  {' '}{t('progress.totalValue')}: {englishFormatter.format(totalAmount)}
                 </div>
               </div>
             </div>
           </CardTitle>
           
-          {/* Progress Bar - Only Cost Progress */}
+          {/* Progress Bar - Cost Progress */}
           <div className="space-y-3 mt-4">
             <div>
               <div className="flex justify-between text-xs text-gray-600 mb-1">
                 <span>
-                  Cost Progress (Approved): {englishFormatter.format(isParent ? childrenApprovedAmount : approvedAmount)} / {englishFormatter.format(isParent ? childrenTotalAmount : boqTotalAmount)}
+                  Cost Progress (Approved): {englishFormatter.format(approvedAmount)} / {englishFormatter.format(totalAmount)}
                 </span>
-                <span>{(isParent ? parentCostProgress : costProgress).toFixed(1)}%</span>
+                <span>{costProgress.toFixed(1)}%</span>
               </div>
-              <Progress value={isParent ? parentCostProgress : costProgress} className="h-2" />
+              <Progress value={costProgress} className="h-2" />
             </div>
           </div>
         </CardHeader>
