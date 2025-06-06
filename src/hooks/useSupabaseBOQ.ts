@@ -12,6 +12,8 @@ export const useSupabaseBOQ = () => {
     try {
       setLoading(true);
       console.log('Fetching BOQ items from Supabase...');
+      console.log('Supabase URL:', supabase.supabaseUrl);
+      console.log('Supabase Key present:', !!supabase.supabaseKey);
       
       const { data, error } = await supabase
         .from('boq_items')
@@ -36,7 +38,14 @@ export const useSupabaseBOQ = () => {
       }
     } catch (error) {
       console.error('Error fetching BOQ items:', error);
-      toast.error('Failed to fetch BOQ items: ' + (error as Error).message);
+      console.error('Error type:', typeof error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        toast.error('Network error: Cannot connect to database. Please check your internet connection and Supabase configuration.');
+      } else {
+        toast.error('Failed to fetch BOQ items: ' + (error as Error).message);
+      }
     } finally {
       setLoading(false);
     }
@@ -87,6 +96,20 @@ export const useSupabaseBOQ = () => {
   const addBOQItem = async (item: Omit<BOQItem, 'id'>, parentId?: string) => {
     try {
       console.log('Adding BOQ item:', item, 'with parentId:', parentId);
+      console.log('Supabase connection test - URL:', supabase.supabaseUrl);
+      
+      // Test connection first
+      const { data: testData, error: testError } = await supabase
+        .from('boq_items')
+        .select('count')
+        .limit(1);
+      
+      if (testError) {
+        console.error('Connection test failed:', testError);
+        throw new Error(`Database connection failed: ${testError.message}`);
+      }
+      
+      console.log('Connection test successful, proceeding with insert...');
       
       const { data, error } = await supabase
         .from('boq_items')
@@ -116,7 +139,14 @@ export const useSupabaseBOQ = () => {
       return data;
     } catch (error) {
       console.error('Error adding BOQ item:', error);
-      toast.error('Failed to add BOQ item: ' + (error as Error).message);
+      console.error('Error type:', typeof error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        toast.error('Network error: Cannot connect to database. Please check your internet connection and Supabase configuration.');
+      } else {
+        toast.error('Failed to add BOQ item: ' + (error as Error).message);
+      }
       throw error;
     }
   };
@@ -150,7 +180,11 @@ export const useSupabaseBOQ = () => {
       toast.success('BOQ item updated successfully');
     } catch (error) {
       console.error('Error updating BOQ item:', error);
-      toast.error('Failed to update BOQ item: ' + (error as Error).message);
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        toast.error('Network error: Cannot connect to database. Please check your internet connection and Supabase configuration.');
+      } else {
+        toast.error('Failed to update BOQ item: ' + (error as Error).message);
+      }
       throw error;
     }
   };
@@ -174,7 +208,11 @@ export const useSupabaseBOQ = () => {
       toast.success('BOQ item deleted successfully');
     } catch (error) {
       console.error('Error deleting BOQ item:', error);
-      toast.error('Failed to delete BOQ item: ' + (error as Error).message);
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        toast.error('Network error: Cannot connect to database. Please check your internet connection and Supabase configuration.');
+      } else {
+        toast.error('Failed to delete BOQ item: ' + (error as Error).message);
+      }
       throw error;
     }
   };
