@@ -31,13 +31,17 @@ const WIRForm: React.FC<WIRFormProps> = ({
   const handleSubmit = () => {
     const required = [
       'description', 'submittalDate', 'status', 
-      'contractor', 'engineer', 'region', 'value'
+      'contractor', 'engineer', 'region', 'value',
+      'lineNo', 'lengthOfLine', 'diameterOfLine'
     ];
     
-    const missing = required.filter(field => !newWIR[field as keyof typeof newWIR]);
+    const missing = required.filter(field => {
+      const value = newWIR[field as keyof typeof newWIR];
+      return !value || (typeof value === 'number' && value <= 0);
+    });
     
     if (missing.length > 0) {
-      toast.error('Please fill in all required fields.');
+      toast.error(`Please fill in all required fields: ${missing.join(', ')}`);
       return;
     }
 
@@ -50,6 +54,17 @@ const WIRForm: React.FC<WIRFormProps> = ({
     // Validate value is greater than 0
     if (!newWIR.value || newWIR.value <= 0) {
       toast.error('Value must be greater than 0.');
+      return;
+    }
+
+    // Validate length and diameter are greater than 0
+    if (!newWIR.lengthOfLine || newWIR.lengthOfLine <= 0) {
+      toast.error('Length of line must be greater than 0.');
+      return;
+    }
+
+    if (!newWIR.diameterOfLine || newWIR.diameterOfLine <= 0) {
+      toast.error('Diameter of line must be greater than 0.');
       return;
     }
     

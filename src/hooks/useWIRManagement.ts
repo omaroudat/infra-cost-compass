@@ -21,7 +21,10 @@ export const useWIRManagement = () => {
     engineer: '',
     region: '',
     value: 0,
-    linkedBOQItems: []
+    linkedBOQItems: [],
+    lengthOfLine: 0,
+    diameterOfLine: 0,
+    lineNo: ''
   });
   
   // Filter to show leaf BOQ items with quantity > 0 (same logic as breakdown)
@@ -60,7 +63,10 @@ export const useWIRManagement = () => {
       engineer: wir.engineer || '',
       region: wir.region || '',
       value: wir.value || 0,
-      linkedBOQItems: wir.linkedBOQItems || [wir.boqItemId]
+      linkedBOQItems: wir.linkedBOQItems || [wir.boqItemId],
+      lengthOfLine: wir.lengthOfLine || 0,
+      diameterOfLine: wir.diameterOfLine || 0,
+      lineNo: wir.lineNo || ''
     });
     setEditingWIR(wir.id);
     setIsSubmittingResult(false);
@@ -80,7 +86,10 @@ export const useWIRManagement = () => {
       engineer: wir.engineer || '',
       region: wir.region || '',
       value: wir.value || 0,
-      linkedBOQItems: wir.linkedBOQItems || [wir.boqItemId]
+      linkedBOQItems: wir.linkedBOQItems || [wir.boqItemId],
+      lengthOfLine: wir.lengthOfLine || 0,
+      diameterOfLine: wir.diameterOfLine || 0,
+      lineNo: wir.lineNo || ''
     });
     setEditingWIR(wir.id);
     setIsSubmittingResult(true);
@@ -185,7 +194,10 @@ export const useWIRManagement = () => {
       engineer: '',
       region: '',
       value: 0,
-      linkedBOQItems: []
+      linkedBOQItems: [],
+      lengthOfLine: 0,
+      diameterOfLine: 0,
+      lineNo: ''
     });
     setEditingWIR(null);
     setIsSubmittingResult(false);
@@ -212,8 +224,77 @@ export const useWIRManagement = () => {
       engineer: '',
       region: '',
       value: 0,
-      linkedBOQItems: []
+      linkedBOQItems: [],
+      lengthOfLine: 0,
+      diameterOfLine: 0,
+      lineNo: ''
     });
+  };
+
+  // Check if a WIR can have a revision requested
+  const canRequestRevision = (wir: WIR) => {
+    // Can only request revision for completed WIRs with result 'C' (rejected)
+    if (wir.status !== 'completed' || wir.result !== 'C') {
+      return false;
+    }
+    
+    // Check if this WIR already has revisions
+    const hasRevisions = wirs.some(w => w.parentWIRId === wir.id);
+    return !hasRevisions;
+  };
+
+  const handleRevisionRequest = (wir: WIR) => {
+    // Check if revision can be requested
+    if (!canRequestRevision(wir)) {
+      toast.error('Cannot request revision for this WIR.');
+      return;
+    }
+    
+    // Get the base WIR ID (remove any existing revision suffix)
+    const baseWIRId = wir.originalWIRId || wir.id.split('-R')[0];
+    
+    // Find existing revisions for this base WIR
+    const existingRevisions = wirs.filter(w => {
+      const wOriginalId = w.originalWIRId || w.id.split('-R')[0];
+      return wOriginalId === baseWIRId && w.id.includes('-R');
+    });
+    
+    // Calculate next revision number
+    const revisionNumber = existingRevisions.length + 1;
+    const revisionId = `${baseWIRId}-R${revisionNumber}`;
+    
+    const revisionWIR = {
+      boqItemId: wir.boqItemId,
+      description: wir.description,
+      submittalDate: new Date().toISOString().split('T')[0],
+      receivedDate: null,
+      status: 'submitted' as const,
+      statusConditions: '',
+      contractor: wir.contractor,
+      engineer: wir.engineer,
+      region: wir.region,
+      value: wir.value,
+      linkedBOQItems: wir.linkedBOQItems,
+      parentWIRId: wir.id,
+      revisionNumber: revisionNumber,
+      originalWIRId: baseWIRId,
+      lengthOfLine: wir.lengthOfLine,
+      diameterOfLine: wir.diameterOfLine,
+      lineNo: wir.lineNo
+    };
+
+    // Create revision with the specific ID
+    const newRevision = addWIR(revisionWIR as Omit<WIR, 'id' | 'calculatedAmount' | 'breakdownApplied' | 'calculationEquation'>);
+    
+    // Update the revision ID in context after creation
+    setTimeout(() => {
+      const createdRevision = wirs.find(w => w.parentWIRId === wir.id && w.revisionNumber === revisionNumber);
+      if (createdRevision && createdRevision.id !== revisionId) {
+        updateWIR(createdRevision.id, { id: revisionId });
+      }
+    }, 100);
+    
+    toast.success(`Revision request created: ${revisionId}`);
   };
   
   return {

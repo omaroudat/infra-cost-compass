@@ -37,21 +37,26 @@ export const useStaffManagement = () => {
   });
 
   // Contractor handlers
-  const handleAddContractor = () => {
+  const handleAddContractor = async () => {
     if (!newContractor.name?.trim()) {
       toast.error('Please enter contractor name');
       return;
     }
 
-    if (editingContractor) {
-      updateContractor(editingContractor, newContractor);
-      toast.success('Contractor updated successfully');
-    } else {
-      addContractor(newContractor as Omit<Contractor, 'id' | 'createdAt'>);
-      toast.success('Contractor added successfully');
+    try {
+      if (editingContractor) {
+        await updateContractor(editingContractor, newContractor);
+        toast.success('Contractor updated successfully');
+      } else {
+        await addContractor(newContractor as Omit<Contractor, 'id' | 'createdAt'>);
+        toast.success('Contractor added successfully');
+      }
+      
+      handleCancelContractor();
+    } catch (error) {
+      console.error('Error managing contractor:', error);
+      toast.error('Failed to save contractor. Please try again.');
     }
-    
-    handleCancelContractor();
   };
 
   const handleEditContractor = (contractor: Contractor) => {
@@ -65,9 +70,14 @@ export const useStaffManagement = () => {
     setIsContractorDialogOpen(true);
   };
 
-  const handleDeleteContractor = (id: string) => {
-    deleteContractor(id);
-    toast.success('Contractor deleted successfully');
+  const handleDeleteContractor = async (id: string) => {
+    try {
+      await deleteContractor(id);
+      toast.success('Contractor deleted successfully');
+    } catch (error) {
+      console.error('Error deleting contractor:', error);
+      toast.error('Failed to delete contractor. Please try again.');
+    }
   };
 
   const handleCancelContractor = () => {
@@ -82,21 +92,26 @@ export const useStaffManagement = () => {
   };
 
   // Engineer handlers
-  const handleAddEngineer = () => {
+  const handleAddEngineer = async () => {
     if (!newEngineer.name?.trim()) {
       toast.error('Please enter engineer name');
       return;
     }
 
-    if (editingEngineer) {
-      updateEngineer(editingEngineer, newEngineer);
-      toast.success('Engineer updated successfully');
-    } else {
-      addEngineer(newEngineer as Omit<Engineer, 'id' | 'createdAt'>);
-      toast.success('Engineer added successfully');
+    try {
+      if (editingEngineer) {
+        await updateEngineer(editingEngineer, newEngineer);
+        toast.success('Engineer updated successfully');
+      } else {
+        await addEngineer(newEngineer as Omit<Engineer, 'id' | 'createdAt'>);
+        toast.success('Engineer added successfully');
+      }
+      
+      handleCancelEngineer();
+    } catch (error) {
+      console.error('Error managing engineer:', error);
+      toast.error('Failed to save engineer. Please try again.');
     }
-    
-    handleCancelEngineer();
   };
 
   const handleEditEngineer = (engineer: Engineer) => {
@@ -111,9 +126,14 @@ export const useStaffManagement = () => {
     setIsEngineerDialogOpen(true);
   };
 
-  const handleDeleteEngineer = (id: string) => {
-    deleteEngineer(id);
-    toast.success('Engineer deleted successfully');
+  const handleDeleteEngineer = async (id: string) => {
+    try {
+      await deleteEngineer(id);
+      toast.success('Engineer deleted successfully');
+    } catch (error) {
+      console.error('Error deleting engineer:', error);
+      toast.error('Failed to delete engineer. Please try again.');
+    }
   };
 
   const handleCancelEngineer = () => {
