@@ -8,63 +8,71 @@ type ServiceResult<T> = {
 };
 
 export const profileService = {
-  async checkExistingProfile(username: string): Promise<ServiceResult<any[]>> {
+  async checkExistingProfile(username: string): Promise<ServiceResult<Profile[]>> {
     try {
-      const query = supabase.from('profiles').select('*');
-      const filteredQuery = query.eq('username', username);
-      const result = await filteredQuery;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*' as const)
+        .eq('username', username);
       
-      return { data: result.data, error: result.error };
+      return { data: data as Profile[], error };
     } catch (error) {
       return { data: null, error };
     }
   },
 
-  async createProfile(profileData: Omit<Profile, 'updated_at'>): Promise<ServiceResult<any>> {
+  async createProfile(profileData: Omit<Profile, 'updated_at'>): Promise<ServiceResult<Profile>> {
     try {
-      const query = supabase.from('profiles').insert(profileData);
-      const result = await query;
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert(profileData)
+        .select('*' as const)
+        .single();
       
-      return { data: result.data, error: result.error };
+      return { data: data as Profile, error };
     } catch (error) {
       return { data: null, error };
     }
   },
 
-  async findByUsernameAndPassword(username: string, password: string): Promise<ServiceResult<any[]>> {
+  async findByUsernameAndPassword(username: string, password: string): Promise<ServiceResult<Profile[]>> {
     try {
-      const baseQuery = supabase.from('profiles');
-      const selectQuery = baseQuery.select('id, username, full_name, role, department, created_at, updated_at');
-      const usernameFilter = selectQuery.eq('username', username);
-      const passwordFilter = usernameFilter.eq('password', password);
-      const result = await passwordFilter;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, username, full_name, role, department, created_at, updated_at' as const)
+        .eq('username', username)
+        .eq('password', password);
       
-      return { data: result.data, error: result.error };
+      return { data: data as Profile[], error };
     } catch (error) {
       return { data: null, error };
     }
   },
 
-  async updateProfile(id: string, updates: Partial<Profile>): Promise<ServiceResult<any>> {
+  async updateProfile(id: string, updates: Partial<Profile>): Promise<ServiceResult<Profile>> {
     try {
-      const query = supabase.from('profiles').update(updates);
-      const filteredQuery = query.eq('id', id);
-      const result = await filteredQuery;
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', id)
+        .select('*' as const)
+        .single();
       
-      return { data: result.data, error: result.error };
+      return { data: data as Profile, error };
     } catch (error) {
       return { data: null, error };
     }
   },
 
-  async fetchProfile(id: string): Promise<ServiceResult<any[]>> {
+  async fetchProfile(id: string): Promise<ServiceResult<Profile>> {
     try {
-      const baseQuery = supabase.from('profiles');
-      const selectQuery = baseQuery.select('id, username, full_name, role, department, created_at, updated_at');
-      const filteredQuery = selectQuery.eq('id', id);
-      const result = await filteredQuery;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, username, full_name, role, department, created_at, updated_at' as const)
+        .eq('id', id)
+        .single();
       
-      return { data: result.data, error: result.error };
+      return { data: data as Profile, error };
     } catch (error) {
       return { data: null, error };
     }
