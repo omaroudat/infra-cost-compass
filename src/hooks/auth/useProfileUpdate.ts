@@ -21,8 +21,8 @@ export const useProfileUpdate = () => {
       
       if (fetchResult.error) {
         console.error('Error refetching profile:', fetchResult.error);
-      } else if (fetchResult.data && fetchResult.data.length > 0) {
-        const profileData = fetchResult.data[0];
+      } else if (fetchResult.data) {
+        const profileData = fetchResult.data;
         const typedProfile: Profile = {
           id: profileData.id,
           username: profileData.username || '',
