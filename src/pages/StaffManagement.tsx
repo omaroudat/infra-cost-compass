@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '@/context/ManualAuthContext';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,7 +11,7 @@ import EngineerForm from '@/components/staff/EngineerForm';
 import { useStaffManagement } from '@/hooks/useStaffManagement';
 
 const StaffManagement = () => {
-  const { hasPermission } = useAuth();
+  const { hasRole } = useAuth();
   const {
     contractors,
     engineers,
@@ -35,8 +35,8 @@ const StaffManagement = () => {
     handleCancelEngineer
   } = useStaffManagement();
   
-  const canEdit = hasPermission(['admin', 'dataEntry']);
-  const canDelete = hasPermission(['admin']);
+  const canEdit = hasRole(['admin', 'editor']);
+  const canDelete = hasRole(['admin']);
   
   return (
     <div className="space-y-6">

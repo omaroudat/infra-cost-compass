@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '@/context/ManualAuthContext';
 import { UserRole, User } from '../types/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,10 +12,31 @@ import { toast } from 'sonner';
 import { UserPlus, UserX, UserCheck } from 'lucide-react';
 
 const UserManagement = () => {
-  const { addUser, getAllUsers, hasPermission } = useAuth();
+  const { hasRole } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<UserRole>('dataEntry');
+  const [role, setRole] = useState<UserRole>('viewer');
+
+  // Mock user management functions (replace with actual implementation)
+  const addUser = (username: string, password: string, role: UserRole): boolean => {
+    // This is a placeholder - implement actual user creation logic
+    toast.success(`User ${username} created successfully with role ${role}`);
+    return true;
+  };
+
+  const getAllUsers = (): User[] => {
+    // This is a placeholder - implement actual user fetching logic
+    return [
+      {
+        id: '1',
+        username: 'admin',
+        password: 'Admin123',
+        role: 'admin',
+        name: 'Administrator',
+        email: 'admin@example.com'
+      }
+    ];
+  };
 
   const users = getAllUsers();
 
@@ -34,11 +55,11 @@ const UserManagement = () => {
       // Reset form
       setUsername('');
       setPassword('');
-      setRole('dataEntry');
+      setRole('viewer');
     }
   };
 
-  if (!hasPermission(['admin'])) {
+  if (!hasRole(['admin'])) {
     return (
       <div className="p-4">
         <Card>
@@ -94,7 +115,8 @@ const UserManagement = () => {
                   <SelectGroup>
                     <SelectLabel>Roles</SelectLabel>
                     <SelectItem value="admin">Administrator</SelectItem>
-                    <SelectItem value="dataEntry">Data Entry</SelectItem>
+                    <SelectItem value="editor">Editor</SelectItem>
+                    <SelectItem value="viewer">Viewer</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -128,7 +150,10 @@ const UserManagement = () => {
               {users.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">{user.username}</TableCell>
-                  <TableCell>{user.role === 'admin' ? 'Administrator' : 'Data Entry'}</TableCell>
+                  <TableCell>
+                    {user.role === 'admin' ? 'Administrator' : 
+                     user.role === 'editor' ? 'Editor' : 'Viewer'}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
