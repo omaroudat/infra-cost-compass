@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '@/context/ManualAuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,15 +12,20 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { login } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const { signIn } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = login(username, password);
-    if (success) {
-      navigate('/');
+    setIsLoading(true);
+    
+    const result = await signIn(username, password);
+    if (result.data && !result.error) {
+      navigate('/dashboard');
     }
+    
+    setIsLoading(false);
   };
 
   return (
@@ -75,13 +80,14 @@ const Login = () => {
             </div>
           </CardContent>
           <CardFooter>
-            <Button type="submit" className="w-full">Log In</Button>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Logging In...' : 'Log In'}
+            </Button>
           </CardFooter>
         </form>
         <div className="p-4 text-center text-sm text-slate-400">
           <div className="mb-2">Demo Credentials:</div>
-          <div>Username: admin / Password: admin123</div>
-          <div>Username: dataentry / Password: data123</div>
+          <div>Username: Admin / Password: Admin123</div>
         </div>
       </Card>
     </div>
