@@ -2,10 +2,9 @@
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { toast } from 'sonner';
-import { useSignUp } from './auth/useSignUp';
-import { useSignIn } from './auth/useSignIn';
-import { useProfileUpdate } from './auth/useProfileUpdate';
-import { useAuthPermissions } from './auth/usePermissions';
+import { useAuthSignIn } from './auth/useAuthSignIn';
+import { useAuthProfileUpdate } from './auth/useAuthProfileUpdate';
+import { useAuthPermissions } from './auth/useAuthPermissions';
 import { Profile } from './auth/types';
 
 export type { Profile } from './auth/types';
@@ -16,9 +15,8 @@ export const useSupabaseAuth = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const { signUp } = useSignUp();
-  const { signIn } = useSignIn();
-  const { updateProfile: updateProfileService } = useProfileUpdate();
+  const { signIn } = useAuthSignIn();
+  const { updateProfile: updateProfileService } = useAuthProfileUpdate();
   const permissions = useAuthPermissions(profile);
 
   useEffect(() => {
@@ -91,7 +89,6 @@ export const useSupabaseAuth = () => {
     session,
     profile,
     loading,
-    signUp,
     signIn: handleSignIn,
     signOut,
     updateProfile,

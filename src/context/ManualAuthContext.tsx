@@ -3,7 +3,6 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Profile } from '@/hooks/auth/types';
 import { useAuthSignIn } from '@/hooks/auth/useAuthSignIn';
-import { useAuthSignUp } from '@/hooks/auth/useAuthSignUp';
 import { useAuthProfileUpdate } from '@/hooks/auth/useAuthProfileUpdate';
 import { useAuthPermissions } from '@/hooks/auth/useAuthPermissions';
 
@@ -11,7 +10,6 @@ interface ManualAuthContextType {
   profile: Profile | null;
   loading: boolean;
   signIn: (username: string, password: string) => Promise<{ data: any; error: any }>;
-  signUp: (username: string, password: string, fullName?: string) => Promise<{ data: any; error: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
   hasRole: (roles: string[]) => boolean;
@@ -28,7 +26,6 @@ export const ManualAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [loading, setLoading] = useState(true);
 
   const { signIn: authSignIn } = useAuthSignIn();
-  const { signUp: authSignUp } = useAuthSignUp();
   const { updateProfile: authUpdateProfile } = useAuthProfileUpdate();
   const { hasRole, canEdit, canDelete, isAdmin } = useAuthPermissions(profile);
 
@@ -59,10 +56,6 @@ export const ManualAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return result;
   };
 
-  const signUp = async (username: string, password: string, fullName?: string) => {
-    return await authSignUp(username, password, fullName);
-  };
-
   const signOut = async () => {
     try {
       setProfile(null);
@@ -83,7 +76,6 @@ export const ManualAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       profile,
       loading,
       signIn,
-      signUp,
       signOut,
       updateProfile,
       hasRole,
