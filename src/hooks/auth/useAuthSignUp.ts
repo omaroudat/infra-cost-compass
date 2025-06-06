@@ -1,18 +1,10 @@
 
 import { toast } from 'sonner';
-import { authRateLimiter } from '@/utils/rateLimiter';
 import { profileService } from './profileService';
 import { Profile } from './types';
 
-export const useSignUp = () => {
+export const useAuthSignUp = () => {
   const signUp = async (username: string, password: string, fullName?: string) => {
-    const identifier = username;
-    
-    if (!authRateLimiter.isAllowed(identifier)) {
-      toast.error('Too many signup attempts. Please try again later.');
-      return { data: null, error: { message: 'Rate limit exceeded' } };
-    }
-
     try {
       const existingQuery = await profileService.checkExistingProfile(username);
 
@@ -24,9 +16,8 @@ export const useSignUp = () => {
       const newProfile: Omit<Profile, 'updated_at'> = {
         id: crypto.randomUUID(),
         username: username,
-        password: password,
         full_name: fullName || username,
-        role: 'viewer' as const,
+        role: 'viewer',
         department: 'General',
         created_at: new Date().toISOString()
       };
@@ -39,15 +30,7 @@ export const useSignUp = () => {
       return { data: { user: newProfile }, error: null };
     } catch (error: any) {
       console.error('Sign up error:', error);
-      
-      let errorMessage = 'Failed to sign up';
-      if (error.message?.includes('already registered')) {
-        errorMessage = 'This username is already registered. Try signing in instead.';
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      toast.error(errorMessage);
+      toast.error('Failed to sign up');
       return { data: null, error };
     }
   };

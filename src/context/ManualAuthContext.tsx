@@ -1,8 +1,11 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { profileService } from '@/hooks/auth/profileService';
 import { Profile } from '@/hooks/auth/types';
+import { useAuthSignIn } from '@/hooks/auth/useAuthSignIn';
+import { useAuthSignUp } from '@/hooks/auth/useAuthSignUp';
+import { useAuthProfileUpdate } from '@/hooks/auth/useAuthProfileUpdate';
+import { useAuthPermissions } from '@/hooks/auth/useAuthPermissions';
 
 interface ManualAuthContextType {
   profile: Profile | null;
@@ -24,6 +27,11 @@ export const ManualAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const { signIn: authSignIn } = useAuthSignIn();
+  const { signUp: authSignUp } = useAuthSignUp();
+  const { updateProfile: authUpdateProfile } = useAuthProfileUpdate();
+  const { hasRole, canEdit, canDelete, isAdmin } = useAuthPermissions(profile);
+
   useEffect(() => {
     const initializeAuth = async () => {
       try {
@@ -43,89 +51,16 @@ export const ManualAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   }, []);
 
   const signIn = async (username: string, password: string) => {
-    try {
-      // Simple hardcoded admin check for demo purposes
-      if (username === 'Admin' && password === 'Admin123') {
-        const adminProfile: Profile = {
-          id: 'admin-id',
-          username: 'Admin',
-          full_name: 'Administrator',
-          role: 'admin',
-          department: 'Management',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-
-        setProfile(adminProfile);
-        localStorage.setItem('currentUser', JSON.stringify(adminProfile));
-        toast.success('Signed in successfully!');
-        return { data: { profile: adminProfile }, error: null };
-      }
-
-      // For other users, check the database
-      const result = await profileService.findByUsernameAndPassword(username, password);
-
-      if (result.error) {
-        throw new Error('Invalid username or password');
-      }
-
-      const profiles = result.data || [];
-      if (profiles.length === 0) {
-        throw new Error('Invalid username or password');
-      }
-
-      const profileData = profiles[0];
-      const typedProfile: Profile = {
-        id: profileData.id,
-        username: profileData.username || '',
-        full_name: profileData.full_name || '',
-        role: (profileData.role as 'admin' | 'editor' | 'viewer') || 'viewer',
-        department: profileData.department || '',
-        created_at: profileData.created_at || new Date().toISOString(),
-        updated_at: profileData.updated_at || new Date().toISOString()
-      };
-
-      setProfile(typedProfile);
-      localStorage.setItem('currentUser', JSON.stringify(typedProfile));
-      
-      toast.success('Signed in successfully!');
-      return { data: { profile: typedProfile }, error: null };
-    } catch (error: any) {
-      console.error('Sign in error:', error);
-      toast.error('Invalid username or password');
-      return { data: null, error };
+    const result = await authSignIn(username, password);
+    if (result.data?.profile) {
+      setProfile(result.data.profile);
+      localStorage.setItem('currentUser', JSON.stringify(result.data.profile));
     }
+    return result;
   };
 
   const signUp = async (username: string, password: string, fullName?: string) => {
-    try {
-      const existingQuery = await profileService.checkExistingProfile(username);
-
-      if (existingQuery.data && existingQuery.data.length > 0) {
-        toast.error('This username is already registered. Try signing in instead.');
-        return { data: null, error: { message: 'User already exists' } };
-      }
-
-      const newProfile: Omit<Profile, 'updated_at'> = {
-        id: crypto.randomUUID(),
-        username: username,
-        full_name: fullName || username,
-        role: 'viewer',
-        department: 'General',
-        created_at: new Date().toISOString()
-      };
-
-      const insertResult = await profileService.createProfile(newProfile);
-
-      if (insertResult.error) throw insertResult.error;
-      
-      toast.success('Account created successfully! Please sign in.');
-      return { data: { user: newProfile }, error: null };
-    } catch (error: any) {
-      console.error('Sign up error:', error);
-      toast.error('Failed to sign up');
-      return { data: null, error };
-    }
+    return await authSignUp(username, password, fullName);
   };
 
   const signOut = async () => {
@@ -140,49 +75,8 @@ export const ManualAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const updateProfile = async (updates: Partial<Profile>) => {
-    if (!profile) {
-      toast.error('You must be logged in to update your profile');
-      return;
-    }
-
-    try {
-      const updateResult = await profileService.updateProfile(profile.id, updates);
-
-      if (updateResult.error) throw updateResult.error;
-      
-      toast.success('Profile updated successfully!');
-      
-      const fetchResult = await profileService.fetchProfile(profile.id);
-      
-      if (fetchResult.error) {
-        console.error('Error refetching profile:', fetchResult.error);
-      } else if (fetchResult.data) {
-        const profileData = fetchResult.data;
-        const typedProfile: Profile = {
-          id: profileData.id,
-          username: profileData.username || '',
-          full_name: profileData.full_name || '',
-          role: (profileData.role as 'admin' | 'editor' | 'viewer') || 'viewer',
-          department: profileData.department || '',
-          created_at: profileData.created_at || new Date().toISOString(),
-          updated_at: profileData.updated_at || new Date().toISOString()
-        };
-        setProfile(typedProfile);
-        localStorage.setItem('currentUser', JSON.stringify(typedProfile));
-      }
-    } catch (error: any) {
-      console.error('Profile update error:', error);
-      toast.error(error.message || 'Failed to update profile');
-    }
+    await authUpdateProfile(profile, updates, setProfile);
   };
-
-  const hasRole = (roles: string[]) => {
-    return profile && roles.includes(profile.role);
-  };
-
-  const canEdit = () => hasRole(['admin', 'editor']);
-  const canDelete = () => hasRole(['admin']);
-  const isAdmin = () => hasRole(['admin']);
 
   return (
     <ManualAuthContext.Provider value={{

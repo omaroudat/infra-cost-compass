@@ -3,8 +3,12 @@ import { toast } from 'sonner';
 import { profileService } from './profileService';
 import { Profile } from './types';
 
-export const useProfileUpdate = () => {
-  const updateProfile = async (profile: Profile | null, updates: Partial<Profile>, setProfile: (profile: Profile) => void) => {
+export const useAuthProfileUpdate = () => {
+  const updateProfile = async (
+    profile: Profile | null, 
+    updates: Partial<Profile>,
+    setProfile: (profile: Profile) => void
+  ) => {
     if (!profile) {
       toast.error('You must be logged in to update your profile');
       return;
@@ -28,7 +32,7 @@ export const useProfileUpdate = () => {
           username: profileData.username || '',
           full_name: profileData.full_name || '',
           role: (profileData.role as 'admin' | 'editor' | 'viewer') || 'viewer',
-          department: profileData.department || undefined,
+          department: profileData.department || '',
           created_at: profileData.created_at || new Date().toISOString(),
           updated_at: profileData.updated_at || new Date().toISOString()
         };
