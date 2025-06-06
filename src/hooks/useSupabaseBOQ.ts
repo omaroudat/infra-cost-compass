@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { BOQItem } from '@/types';
@@ -103,9 +104,9 @@ export const useSupabaseBOQ = () => {
         unit: item.unit,
         unit_ar: item.unitAr || null,
         unit_rate: item.unitRate,
-        total_amount: item.totalAmount || (item.quantity * item.unitRate),
         parent_id: parentId || null,
         level: item.level || 0
+        // Removed total_amount since it's a generated column
       };
       
       console.log('Inserting BOQ item with data:', insertData);
@@ -159,19 +160,21 @@ export const useSupabaseBOQ = () => {
     try {
       console.log('Updating BOQ item:', id, updates);
       
+      const updateData: any = {
+        code: updates.code,
+        description: updates.description,
+        description_ar: updates.descriptionAr || null,
+        quantity: updates.quantity,
+        unit: updates.unit,
+        unit_ar: updates.unitAr || null,
+        unit_rate: updates.unitRate,
+        level: updates.level
+        // Removed total_amount since it's a generated column
+      };
+
       const { error } = await supabase
         .from('boq_items')
-        .update({
-          code: updates.code,
-          description: updates.description,
-          description_ar: updates.descriptionAr || null,
-          quantity: updates.quantity,
-          unit: updates.unit,
-          unit_ar: updates.unitAr || null,
-          unit_rate: updates.unitRate,
-          total_amount: updates.totalAmount,
-          level: updates.level
-        })
+        .update(updateData)
         .eq('id', id);
 
       if (error) {
