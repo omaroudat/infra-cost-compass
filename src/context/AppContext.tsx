@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext } from 'react';
 import { BOQItem, BreakdownItem, WIR, Contractor, Engineer } from '../types';
 import { useSupabaseBOQ } from '../hooks/useSupabaseBOQ';
@@ -102,12 +101,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const refetchAll = async () => {
     console.log('AppProvider: Refetching all data...');
-    await Promise.all([
-      refetchBOQ(),
-      refetchBreakdown(),
-      refetchWIRs(),
-      refetchStaff()
-    ]);
+    try {
+      await Promise.all([
+        refetchBOQ(),
+        refetchBreakdown(),
+        refetchWIRs(),
+        refetchStaff()
+      ]);
+      console.log('AppProvider: All data refetched successfully');
+    } catch (error) {
+      console.error('AppProvider: Error refetching data:', error);
+    }
   };
 
   const value = {

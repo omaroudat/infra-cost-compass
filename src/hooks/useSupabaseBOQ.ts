@@ -18,17 +18,22 @@ export const useSupabaseBOQ = () => {
         .select('*')
         .order('created_at');
 
-      console.log('Supabase response:', { data, error });
-
       if (error) {
         console.error('Supabase error:', error);
-        throw error;
+        toast.error('Failed to fetch BOQ items: ' + error.message);
+        return;
       }
+
+      console.log('Raw BOQ data from Supabase:', data);
 
       // Transform database data to match our type structure
       const transformedData = buildHierarchy(data || []);
       console.log('Transformed BOQ data:', transformedData);
       setBOQItems(transformedData);
+      
+      if (data && data.length > 0) {
+        toast.success(`Loaded ${data.length} BOQ items successfully`);
+      }
     } catch (error) {
       console.error('Error fetching BOQ items:', error);
       toast.error('Failed to fetch BOQ items: ' + (error as Error).message);
@@ -46,11 +51,11 @@ export const useSupabaseBOQ = () => {
     items.forEach(item => {
       const boqItem: BOQItem = {
         id: item.id,
-        code: item.code,
-        description: item.description,
+        code: item.code || '',
+        description: item.description || '',
         descriptionAr: item.description_ar || '',
         quantity: parseFloat(item.quantity) || 0,
-        unit: item.unit,
+        unit: item.unit || '',
         unitAr: item.unit_ar || '',
         unitRate: parseFloat(item.unit_rate) || 0,
         totalAmount: parseFloat(item.total_amount) || 0,
