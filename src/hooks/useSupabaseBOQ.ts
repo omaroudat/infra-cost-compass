@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { BOQItem } from '@/types';
@@ -12,8 +11,6 @@ export const useSupabaseBOQ = () => {
     try {
       setLoading(true);
       console.log('Fetching BOQ items from Supabase...');
-      console.log('Supabase URL:', supabase.supabaseUrl);
-      console.log('Supabase Key present:', !!supabase.supabaseKey);
       
       const { data, error } = await supabase
         .from('boq_items')
@@ -96,7 +93,6 @@ export const useSupabaseBOQ = () => {
   const addBOQItem = async (item: Omit<BOQItem, 'id'>, parentId?: string) => {
     try {
       console.log('Adding BOQ item:', item, 'with parentId:', parentId);
-      console.log('Supabase connection test - URL:', supabase.supabaseUrl);
       
       // Test connection first
       const { data: testData, error: testError } = await supabase
