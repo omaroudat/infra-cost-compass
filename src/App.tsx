@@ -2,7 +2,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
-import { SupabaseAuthProvider } from './context/SupabaseAuthContext';
+import { ManualAuthProvider } from './context/ManualAuthContext';
 import { AppProvider } from './context/AppContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { useRealtime } from './hooks/useRealtime';
@@ -53,7 +53,7 @@ function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <SupabaseAuthProvider>
+        <ManualAuthProvider>
           <AppProvider>
             <LanguageProvider>
               <RealtimeProvider>
@@ -174,7 +174,7 @@ function App() {
               />
             </LanguageProvider>
           </AppProvider>
-        </SupabaseAuthProvider>
+        </ManualAuthProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   );

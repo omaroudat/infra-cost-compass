@@ -1,7 +1,7 @@
 
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/SupabaseAuthContext';
+import { useAuth } from '@/context/ManualAuthContext';
 
 const Index = () => {
   const navigate = useNavigate();

@@ -1,5 +1,5 @@
 
-import { useAuth } from '@/context/SupabaseAuthContext';
+import { useAuth } from '@/context/ManualAuthContext';
 
 export const usePermissions = () => {
   const { profile, canEdit, canDelete, isAdmin } = useAuth();
