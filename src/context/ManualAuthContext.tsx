@@ -44,6 +44,25 @@ export const ManualAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const signIn = async (username: string, password: string) => {
     try {
+      // Simple hardcoded admin check for demo purposes
+      if (username === 'Admin' && password === 'Admin123') {
+        const adminProfile: Profile = {
+          id: 'admin-id',
+          username: 'Admin',
+          full_name: 'Administrator',
+          role: 'admin',
+          department: 'Management',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
+        setProfile(adminProfile);
+        localStorage.setItem('currentUser', JSON.stringify(adminProfile));
+        toast.success('Signed in successfully!');
+        return { data: { profile: adminProfile }, error: null };
+      }
+
+      // For other users, check the database
       const result = await profileService.findByUsernameAndPassword(username, password);
 
       if (result.error) {
@@ -90,7 +109,6 @@ export const ManualAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       const newProfile: Omit<Profile, 'updated_at'> = {
         id: crypto.randomUUID(),
         username: username,
-        password: password,
         full_name: fullName || username,
         role: 'viewer',
         department: 'General',
