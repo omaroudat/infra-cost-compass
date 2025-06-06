@@ -54,6 +54,14 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({
     maximumFractionDigits: 2,
   });
 
+  // Calculate total amount including children recursively
+  const calculateTotalAmountIncludingChildren = (item: BOQItem): number => {
+    if (item.children && item.children.length > 0) {
+      return item.children.reduce((sum, child) => sum + calculateTotalAmountIncludingChildren(child), 0);
+    }
+    return item.quantity * item.unitRate;
+  };
+
   // Calculate approved amount based on whether it's a parent or leaf item
   let approvedAmount = 0;
   let totalAmount = 0;
@@ -72,14 +80,6 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({
     totalAmount = boqTotalAmount;
     costProgress = totalAmount > 0 ? (approvedAmount / totalAmount) * 100 : 0;
   }
-
-  // Calculate total amount including children recursively
-  const calculateTotalAmountIncludingChildren = (item: BOQItem): number => {
-    if (item.children && item.children.length > 0) {
-      return item.children.reduce((sum, child) => sum + calculateTotalAmountIncludingChildren(child), 0);
-    }
-    return item.quantity * item.unitRate;
-  };
 
   // Get breakdown sub-items for this BOQ item (only for leaf items)
   const breakdownSubItems = !isParent ? (breakdownItems?.filter(item => 
