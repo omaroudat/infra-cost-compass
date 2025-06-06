@@ -1,5 +1,5 @@
 
-export type UserRole = 'admin' | 'dataEntry' | 'viewer';
+export type UserRole = 'admin' | 'editor' | 'viewer';
 
 export interface User {
   id: string;

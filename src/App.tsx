@@ -8,7 +8,7 @@ import { LanguageProvider } from './context/LanguageContext';
 import { useRealtime } from './hooks/useRealtime';
 import ErrorBoundary from './components/ErrorBoundary';
 import Layout from './components/Layout';
-import ProtectedRouteSupabase from './components/ProtectedRouteSupabase';
+import ProtectedRoute from './components/ProtectedRoute';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import BOQ from './pages/BOQ';
@@ -22,6 +22,7 @@ import StaffManagement from './pages/StaffManagement';
 import UserManagement from './pages/UserManagement';
 import NotFound from './pages/NotFound';
 import Unauthorized from './pages/Unauthorized';
+import Index from './pages/Index';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -59,107 +60,107 @@ function App() {
               <RealtimeProvider>
                 <Router>
                   <Routes>
+                    <Route path="/" element={<Index />} />
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/unauthorized" element={<Unauthorized />} />
-                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
                     <Route
                       path="/dashboard"
                       element={
-                        <ProtectedRouteSupabase>
+                        <ProtectedRoute>
                           <Layout>
                             <Dashboard />
                           </Layout>
-                        </ProtectedRouteSupabase>
+                        </ProtectedRoute>
                       }
                     />
                     <Route
                       path="/boq"
                       element={
-                        <ProtectedRouteSupabase requiredRoles={['admin', 'editor']}>
+                        <ProtectedRoute requiredRoles={['admin', 'editor']}>
                           <Layout>
                             <BOQ />
                           </Layout>
-                        </ProtectedRouteSupabase>
+                        </ProtectedRoute>
                       }
                     />
                     <Route
                       path="/breakdown"
                       element={
-                        <ProtectedRouteSupabase requiredRoles={['admin', 'editor']}>
+                        <ProtectedRoute requiredRoles={['admin', 'editor']}>
                           <Layout>
                             <Breakdown />
                           </Layout>
-                        </ProtectedRouteSupabase>
+                        </ProtectedRoute>
                       }
                     />
                     <Route
                       path="/adjustments"
                       element={
-                        <ProtectedRouteSupabase requiredRoles={['admin', 'editor']}>
+                        <ProtectedRoute requiredRoles={['admin', 'editor']}>
                           <Layout>
                             <Adjustments />
                           </Layout>
-                        </ProtectedRouteSupabase>
+                        </ProtectedRoute>
                       }
                     />
                     <Route
                       path="/wirs"
                       element={
-                        <ProtectedRouteSupabase>
+                        <ProtectedRoute>
                           <Layout>
                             <WIRs />
                           </Layout>
-                        </ProtectedRouteSupabase>
+                        </ProtectedRoute>
                       }
                     />
                     <Route
                       path="/progress"
                       element={
-                        <ProtectedRouteSupabase>
+                        <ProtectedRoute>
                           <Layout>
                             <ProgressTracking />
                           </Layout>
-                        </ProtectedRouteSupabase>
+                        </ProtectedRoute>
                       }
                     />
                     <Route
                       path="/reports"
                       element={
-                        <ProtectedRouteSupabase>
+                        <ProtectedRoute>
                           <Layout>
                             <Reports />
                           </Layout>
-                        </ProtectedRouteSupabase>
+                        </ProtectedRoute>
                       }
                     />
                     <Route
                       path="/invoices"
                       element={
-                        <ProtectedRouteSupabase>
+                        <ProtectedRoute>
                           <Layout>
                             <Invoices />
                           </Layout>
-                        </ProtectedRouteSupabase>
+                        </ProtectedRoute>
                       }
                     />
                     <Route
                       path="/staff"
                       element={
-                        <ProtectedRouteSupabase requiredRoles={['admin']}>
+                        <ProtectedRoute requiredRoles={['admin']}>
                           <Layout>
                             <StaffManagement />
                           </Layout>
-                        </ProtectedRouteSupabase>
+                        </ProtectedRoute>
                       }
                     />
                     <Route
                       path="/users"
                       element={
-                        <ProtectedRouteSupabase requiredRoles={['admin']}>
+                        <ProtectedRoute requiredRoles={['admin']}>
                           <Layout>
                             <UserManagement />
                           </Layout>
-                        </ProtectedRouteSupabase>
+                        </ProtectedRoute>
                       }
                     />
                     <Route path="*" element={<NotFound />} />
