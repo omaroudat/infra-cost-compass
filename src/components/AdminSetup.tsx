@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/context/SupabaseAuthContext';
 import { toast } from 'sonner';
 import { Shield } from 'lucide-react';
 
@@ -13,7 +12,6 @@ const AdminSetup: React.FC = () => {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { signUp } = useAuth();
 
   const handleSetupAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,14 +29,8 @@ const AdminSetup: React.FC = () => {
     setIsLoading(true);
     
     try {
-      const result = await signUp(email, password, 'admin', fullName);
-      
-      if (result.error) {
-        toast.error(result.error.message);
-        return;
-      }
-      
-      toast.success('Admin account created! Please check your email to confirm.');
+      // Since signUp is not available, show a message that admin setup is not implemented
+      toast.info('Admin setup functionality is not available. Please contact system administrator.');
     } catch (error: any) {
       toast.error('Failed to create admin account');
     } finally {
