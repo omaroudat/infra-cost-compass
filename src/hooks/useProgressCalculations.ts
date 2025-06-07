@@ -40,15 +40,15 @@ export const useProgressCalculations = (
     const flattened = flattenedBOQItems(boqItems);
     
     return flattened.map(boqItem => {
-      let totalSubmittedAmount = 0;
+      let totalApprovedAmount = 0;
       
       // Check if this item has children (is a parent)
       const hasChildren = boqItem.children && boqItem.children.length > 0;
       
       if (hasChildren) {
         // For parent items, sum up approved amounts from all children recursively
-        totalSubmittedAmount = calculateChildrenApprovedAmount(boqItem);
-        console.log(`Parent item ${boqItem.code} approved amount: ${totalSubmittedAmount}`);
+        totalApprovedAmount = calculateChildrenApprovedAmount(boqItem);
+        console.log(`Parent item ${boqItem.code} approved amount: ${totalApprovedAmount}`);
       } else {
         // For leaf items, calculate from direct WIRs
         const relatedWIRs = wirs.filter(wir => 
@@ -56,22 +56,24 @@ export const useProgressCalculations = (
           (wir.boqItemId === boqItem.id && (wir.result === 'A' || wir.result === 'B'))
         );
         
-        totalSubmittedAmount = relatedWIRs.reduce((sum, wir) => {
+        totalApprovedAmount = relatedWIRs.reduce((sum, wir) => {
           const wirAmount = getWIRAmountForBOQ(wir, boqItem.id);
           console.log(`Leaf item ${boqItem.code}, WIR ${wir.id} amount: ${wirAmount}`);
           return sum + wirAmount;
         }, 0);
         
-        console.log(`Leaf item ${boqItem.code} total approved amount: ${totalSubmittedAmount}`);
+        console.log(`Leaf item ${boqItem.code} total approved amount: ${totalApprovedAmount}`);
       }
       
-      // Calculate BOQ total amount
+      // Calculate BOQ total amount - FIXED: Use correct calculation for parents
       const boqTotalAmount = calculateBOQTotalAmount(boqItem);
       
-      // Calculate completion percentage based on amount
+      // Calculate completion percentage based on amount - FIXED: Use totalApprovedAmount directly
       const completionPercentage = boqTotalAmount > 0 
-        ? Math.min((totalSubmittedAmount / boqTotalAmount) * 100, 100)
+        ? Math.min((totalApprovedAmount / boqTotalAmount) * 100, 100)
         : 0;
+      
+      console.log(`Item ${boqItem.code}: approved=${totalApprovedAmount}, total=${boqTotalAmount}, percentage=${completionPercentage}%`);
       
       // Calculate breakdown progress for leaf items only
       const breakdownProgress = hasChildren ? [] : calculateBreakdownProgress(boqItem, boqTotalAmount);
@@ -79,7 +81,7 @@ export const useProgressCalculations = (
       return {
         boqItemId: boqItem.id,
         totalQuantity: boqItem.quantity,
-        completedQuantity: totalSubmittedAmount,
+        completedQuantity: totalApprovedAmount, // This represents the approved amount, not quantity
         completionPercentage,
         breakdownProgress
       };
@@ -185,7 +187,8 @@ export const useProgressCalculations = (
       return 0;
     }
     
-    // Use calculatedAmount if available, otherwise use value
+    // FIXED: Use the WIR value directly as the approved amount
+    // The calculatedAmount should represent the monetary value, not a calculation based on unit rates
     const amount = wir.calculatedAmount || wir.value || 0;
     console.log(`WIR ${wir.id} approved amount: ${amount} (calculatedAmount: ${wir.calculatedAmount}, value: ${wir.value})`);
     
