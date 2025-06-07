@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { generateFinancialSummary } from '../utils/calculations';
+import { WIR } from '../types';
 import StatCard from '../components/StatCard';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
