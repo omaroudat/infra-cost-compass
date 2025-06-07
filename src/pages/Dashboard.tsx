@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { generateFinancialSummary } from '../utils/calculations';
@@ -35,6 +36,21 @@ const Dashboard = () => {
     return true;
   });
   
+  // Calculate approved amount properly - use calculatedAmount if available, otherwise use value
+  const getApprovedAmount = (wir: WIR) => {
+    if (wir.result === 'A') {
+      return wir.calculatedAmount || wir.value || 0;
+    }
+    return 0;
+  };
+  
+  const getConditionalAmount = (wir: WIR) => {
+    if (wir.result === 'B') {
+      return wir.calculatedAmount || wir.value || 0;
+    }
+    return 0;
+  };
+  
   const statusData = [
     { name: 'Approved', value: filteredWirs.filter(w => w.result === 'A').length, color: '#10b981' },
     { name: 'Conditional', value: filteredWirs.filter(w => w.result === 'B').length, color: '#f59e0b' },
@@ -47,10 +63,10 @@ const Dashboard = () => {
   }));
   
   const wirStatusData = filteredWirs
-    .filter(wir => wir.calculatedAmount !== null)
+    .filter(wir => (wir.calculatedAmount !== null && wir.calculatedAmount > 0) || (wir.value && wir.value > 0))
     .map(wir => ({
       name: wir.description.length > 20 ? wir.description.substring(0, 20) + '...' : wir.description,
-      value: wir.calculatedAmount || 0
+      value: wir.calculatedAmount || wir.value || 0
     }));
   
   // Data for contractor/engineer performance
@@ -61,7 +77,7 @@ const Dashboard = () => {
       approved: contractorWirs.filter(w => w.result === 'A').length,
       conditional: contractorWirs.filter(w => w.result === 'B').length,
       rejected: contractorWirs.filter(w => w.result === 'C').length,
-      total: contractorWirs.reduce((sum, w) => sum + (w.calculatedAmount || 0), 0),
+      total: contractorWirs.reduce((sum, w) => sum + (getApprovedAmount(w) + getConditionalAmount(w)), 0),
     };
   });
   
@@ -72,7 +88,7 @@ const Dashboard = () => {
       approved: engineerWirs.filter(w => w.result === 'A').length,
       conditional: engineerWirs.filter(w => w.result === 'B').length,
       rejected: engineerWirs.filter(w => w.result === 'C').length,
-      total: engineerWirs.reduce((sum, w) => sum + (w.calculatedAmount || 0), 0),
+      total: engineerWirs.reduce((sum, w) => sum + (getApprovedAmount(w) + getConditionalAmount(w)), 0),
     };
   });
   
@@ -134,14 +150,14 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard 
           title="Approved WIRs Amount" 
-          value={formatter.format(filteredWirs.filter(w => w.result === 'A').reduce((sum, w) => sum + (w.calculatedAmount || 0), 0))}
+          value={formatter.format(filteredWirs.reduce((sum, w) => sum + getApprovedAmount(w), 0))}
           icon={
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-status-approved"><path d="M12 22V8"></path><path d="m5 12 7-4 7 4"></path><path d="M5 16l7-4 7 4"></path><path d="M5 20l7-4 7 4"></path></svg>
           }
         />
         <StatCard 
           title="Conditional WIRs Amount" 
-          value={formatter.format(filteredWirs.filter(w => w.result === 'B').reduce((sum, w) => sum + (w.calculatedAmount || 0), 0))}
+          value={formatter.format(filteredWirs.reduce((sum, w) => sum + getConditionalAmount(w), 0))}
           icon={
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-status-conditional"><path d="M12 22V8"></path><path d="m5 12 7-4 7 4"></path><path d="M5 16l7-4 7 4"></path><path d="M5 20l7-4 7 4"></path></svg>
           }
@@ -307,7 +323,7 @@ const Dashboard = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {wir.calculatedAmount ? formatter.format(wir.calculatedAmount) : '-'}
+                      {(wir.calculatedAmount || wir.value) ? formatter.format(wir.calculatedAmount || wir.value || 0) : '-'}
                     </td>
                   </tr>
                 );

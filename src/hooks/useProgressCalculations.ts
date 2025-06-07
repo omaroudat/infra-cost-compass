@@ -179,19 +179,30 @@ export const useProgressCalculations = (
   };
 
   const getWIRAmountForBOQ = (wir: WIR, boqId: string) => {
-    // Only count approved WIRs
+    // Only count approved WIRs (A) or conditional approved (B)
     if (wir.result !== 'A' && wir.result !== 'B') {
+      console.log(`WIR ${wir.id} not approved (result: ${wir.result}), returning 0`);
       return 0;
     }
     
+    // Use calculatedAmount if available, otherwise use value
+    const amount = wir.calculatedAmount || wir.value || 0;
+    console.log(`WIR ${wir.id} approved amount: ${amount} (calculatedAmount: ${wir.calculatedAmount}, value: ${wir.value})`);
+    
     // If WIR is linked to multiple BOQ items, divide the amount proportionally
     if (wir.linkedBOQItems && wir.linkedBOQItems.length > 1 && wir.linkedBOQItems.includes(boqId)) {
-      return (wir.calculatedAmount || 0) / wir.linkedBOQItems.length;
+      const proportionalAmount = amount / wir.linkedBOQItems.length;
+      console.log(`WIR ${wir.id} proportional amount for BOQ ${boqId}: ${proportionalAmount}`);
+      return proportionalAmount;
     }
+    
     // If it's the primary BOQ item or single linked item
     if (wir.boqItemId === boqId || (wir.linkedBOQItems && wir.linkedBOQItems.includes(boqId))) {
-      return wir.calculatedAmount || 0;
+      console.log(`WIR ${wir.id} full amount for BOQ ${boqId}: ${amount}`);
+      return amount;
     }
+    
+    console.log(`WIR ${wir.id} not related to BOQ ${boqId}, returning 0`);
     return 0;
   };
 
