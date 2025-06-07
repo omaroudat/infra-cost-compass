@@ -1,11 +1,15 @@
+
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { generateFinancialSummary } from '../utils/calculations';
+import { WIR } from '../types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
+import { TrendingUp, TrendingDown, DollarSign, CheckCircle, Clock, XCircle, FileText, Download } from 'lucide-react';
 
 type FilterEntity = 'all' | 'contractor' | 'engineer';
 
@@ -29,23 +33,44 @@ const Reports = () => {
     return true;
   });
   
-  const formatter = new Intl.NumberFormat('ar-SA', {
+  // Always use English number formatting for executives
+  const formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'SAR',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   });
   
+  // Calculate approved amount properly - use calculatedAmount if available, otherwise use value
+  const getApprovedAmount = (wir: WIR) => {
+    if (wir.result === 'A') {
+      return wir.calculatedAmount || wir.value || 0;
+    }
+    return 0;
+  };
+  
+  const getConditionalAmount = (wir: WIR) => {
+    if (wir.result === 'B') {
+      return wir.calculatedAmount || wir.value || 0;
+    }
+    return 0;
+  };
+  
+  // Calculate totals with proper amount handling
+  const totalApprovedAmount = filteredWirs.reduce((sum, w) => sum + getApprovedAmount(w), 0);
+  const totalConditionalAmount = filteredWirs.reduce((sum, w) => sum + getConditionalAmount(w), 0);
+  const totalRejectedCount = filteredWirs.filter(w => w.result === 'C').length;
+  
   // Prepare data for charts
   const statusChartData = [
-    { name: 'Approved', value: filteredWirs.filter(w => w.result === 'A').length, color: '#10b981' },
-    { name: 'Conditional', value: filteredWirs.filter(w => w.result === 'B').length, color: '#f59e0b' },
-    { name: 'Rejected', value: filteredWirs.filter(w => w.result === 'C').length, color: '#ef4444' },
+    { name: 'Approved', value: filteredWirs.filter(w => w.result === 'A').length, color: '#10b981', amount: totalApprovedAmount },
+    { name: 'Conditional', value: filteredWirs.filter(w => w.result === 'B').length, color: '#f59e0b', amount: totalConditionalAmount },
+    { name: 'Rejected', value: totalRejectedCount, color: '#ef4444', amount: 0 },
   ];
   
   const amountChartData = [
-    { name: 'Approved', amount: filteredWirs.filter(w => w.result === 'A').reduce((sum, w) => sum + (w.calculatedAmount || 0), 0) },
-    { name: 'Conditional', amount: filteredWirs.filter(w => w.result === 'B').reduce((sum, w) => sum + (w.calculatedAmount || 0), 0) },
+    { name: 'Approved', amount: totalApprovedAmount },
+    { name: 'Conditional', amount: totalConditionalAmount },
   ];
   
   // Create BOQ category data
@@ -64,7 +89,7 @@ const Reports = () => {
         }
         return false;
       })
-      .reduce((sum, wir) => sum + (wir.calculatedAmount || 0), 0);
+      .reduce((sum, wir) => sum + (getApprovedAmount(wir) + getConditionalAmount(wir)), 0);
     
     return {
       name: item.description,
@@ -82,7 +107,7 @@ const Reports = () => {
       approved: contractorWirs.filter(w => w.result === 'A').length,
       conditional: contractorWirs.filter(w => w.result === 'B').length,
       rejected: contractorWirs.filter(w => w.result === 'C').length,
-      totalAmount: contractorWirs.reduce((sum, w) => sum + (w.calculatedAmount || 0), 0),
+      totalAmount: contractorWirs.reduce((sum, w) => sum + (getApprovedAmount(w) + getConditionalAmount(w)), 0),
     };
   });
   
@@ -93,13 +118,12 @@ const Reports = () => {
       approved: engineerWirs.filter(w => w.result === 'A').length,
       conditional: engineerWirs.filter(w => w.result === 'B').length,
       rejected: engineerWirs.filter(w => w.result === 'C').length,
-      totalAmount: engineerWirs.reduce((sum, w) => sum + (w.calculatedAmount || 0), 0),
+      totalAmount: engineerWirs.reduce((sum, w) => sum + (getApprovedAmount(w) + getConditionalAmount(w)), 0),
     };
   });
   
   // Function to export report
   const handleExport = () => {
-    // In a real application, this would generate a PDF or Excel file
     alert('Export functionality would be implemented here in a real application.');
   };
   
@@ -108,594 +132,531 @@ const Reports = () => {
     setSelectedEntity('');
   };
   
+  const totalBOQValue = boqCategoryData.reduce((sum, item) => sum + item.boqAmount, 0);
+  const totalProjectValue = totalApprovedAmount + totalConditionalAmount;
+  const completionRate = totalBOQValue > 0 ? (totalProjectValue / totalBOQValue) * 100 : 0;
+  const approvalRate = filteredWirs.length > 0 ? (filteredWirs.filter(w => w.result === 'A').length / filteredWirs.length) * 100 : 0;
+  
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold">Financial Reports</h2>
-        <div className="flex space-x-4">
-          <Select value={reportType} onValueChange={setReportType}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select report type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="financial">Financial Summary</SelectItem>
-              <SelectItem value="status">Status Analysis</SelectItem>
-              <SelectItem value="boq">BOQ Variance</SelectItem>
-              <SelectItem value="contractor">Contractor Analysis</SelectItem>
-              <SelectItem value="engineer">Engineer Analysis</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button onClick={handleExport}>Export Report</Button>
-        </div>
-      </div>
-      
-      <div className="bg-white p-4 rounded-lg shadow mb-6">
-        <div className="flex items-center space-x-4">
-          <h3 className="text-lg font-medium">Filter Reports:</h3>
-          <div className="flex items-center space-x-2">
-            <Select value={filterEntity} onValueChange={(value: FilterEntity) => handleFilterChange(value)}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All WIRs</SelectItem>
-                <SelectItem value="contractor">By Contractor</SelectItem>
-                <SelectItem value="engineer">By Engineer</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            {filterEntity === 'contractor' && (
-              <Select value={selectedEntity} onValueChange={setSelectedEntity}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Select Contractor" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Executive Header */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900 mb-2">Executive Financial Report</h1>
+              <p className="text-slate-600 text-lg">Comprehensive project performance analysis</p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Select value={reportType} onValueChange={setReportType}>
+                <SelectTrigger className="w-[200px] h-11">
+                  <SelectValue placeholder="Select report type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {contractors.map((contractor) => (
-                    <SelectItem key={contractor} value={contractor}>
-                      {contractor}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="financial">Financial Summary</SelectItem>
+                  <SelectItem value="status">Status Analysis</SelectItem>
+                  <SelectItem value="boq">BOQ Variance</SelectItem>
+                  <SelectItem value="contractor">Contractor Analysis</SelectItem>
+                  <SelectItem value="engineer">Engineer Analysis</SelectItem>
                 </SelectContent>
               </Select>
-            )}
-            
-            {filterEntity === 'engineer' && (
-              <Select value={selectedEntity} onValueChange={setSelectedEntity}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Select Engineer" />
-                </SelectTrigger>
-                <SelectContent>
-                  {engineers.map((engineer) => (
-                    <SelectItem key={engineer} value={engineer}>
-                      {engineer}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+              <Button onClick={handleExport} className="h-11 px-6 bg-blue-600 hover:bg-blue-700">
+                <Download className="w-4 h-4 mr-2" />
+                Export Report
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
-      
-      <Tabs defaultValue="summary" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="summary">Summary</TabsTrigger>
-          <TabsTrigger value="charts">Charts</TabsTrigger>
-          <TabsTrigger value="details">Details</TabsTrigger>
-          <TabsTrigger value="variance">Variance Analysis</TabsTrigger>
-          <TabsTrigger value="personnel">Personnel Analysis</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="summary">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle>Approved WIRs</CardTitle>
-                <CardDescription>Total value of approved work</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">
-                  {formatter.format(filteredWirs.filter(w => w.result === 'A').reduce((sum, w) => sum + (w.calculatedAmount || 0), 0))}
+
+        {/* Key Performance Indicators */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-700 text-sm font-medium mb-1">Approved Value</p>
+                  <p className="text-2xl font-bold text-green-900">{formatter.format(totalApprovedAmount)}</p>
+                  <p className="text-green-600 text-sm mt-1">{filteredWirs.filter(w => w.result === 'A').length} WIRs</p>
                 </div>
-                <p className="text-sm text-muted-foreground mt-2">Count: {filteredWirs.filter(w => w.result === 'A').length}</p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle>Conditional WIRs</CardTitle>
-                <CardDescription>Total value with conditions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">
-                  {formatter.format(filteredWirs.filter(w => w.result === 'B').reduce((sum, w) => sum + (w.calculatedAmount || 0), 0))}
+                <div className="p-3 bg-green-100 rounded-full">
+                  <CheckCircle className="w-6 h-6 text-green-600" />
                 </div>
-                <p className="text-sm text-muted-foreground mt-2">Count: {filteredWirs.filter(w => w.result === 'B').length}</p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle>Total Cost Variance</CardTitle>
-                <CardDescription>Variance against BOQ</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className={`text-3xl font-bold ${financialSummary.costVarianceAgainstBOQ >= 0 ? 'text-status-approved' : 'text-status-rejected'}`}>
-                  {formatter.format(financialSummary.costVarianceAgainstBOQ)}
-                </div>
-                <p className="text-sm text-muted-foreground mt-2">
-                  {financialSummary.costVarianceAgainstBOQ >= 0 ? 'Over budget' : 'Under budget'}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
           
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Project Financial Health</CardTitle>
-              <CardDescription>Overall financial metrics for the project</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Total BOQ Value</span>
-                  <span className="font-semibold">{formatter.format(boqCategoryData.reduce((sum, item) => sum + item.boqAmount, 0))}</span>
+          <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-amber-700 text-sm font-medium mb-1">Conditional Value</p>
+                  <p className="text-2xl font-bold text-amber-900">{formatter.format(totalConditionalAmount)}</p>
+                  <p className="text-amber-600 text-sm mt-1">{filteredWirs.filter(w => w.result === 'B').length} WIRs</p>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Total Approved + Conditional WIRs</span>
-                  <span className="font-semibold">
-                    {formatter.format(
-                      filteredWirs
-                        .filter(w => w.result === 'A' || w.result === 'B')
-                        .reduce((sum, w) => sum + (w.calculatedAmount || 0), 0)
-                    )}
-                  </span>
+                <div className="p-3 bg-amber-100 rounded-full">
+                  <Clock className="w-6 h-6 text-amber-600" />
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Rejected WIRs Count</span>
-                  <span className="font-semibold">{filteredWirs.filter(w => w.result === 'C').length}</span>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-700 text-sm font-medium mb-1">Project Completion</p>
+                  <p className="text-2xl font-bold text-blue-900">{completionRate.toFixed(1)}%</p>
+                  <p className="text-blue-600 text-sm mt-1">of total BOQ value</p>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Average Adjustment Rate</span>
-                  <span className="font-semibold">
-                    {filteredWirs.filter(w => w.adjustmentApplied).length > 0 
-                      ? `+${(filteredWirs.filter(w => w.adjustmentApplied).reduce((sum, w) => sum + (w.adjustmentApplied?.percentage || 0), 0) / filteredWirs.filter(w => w.adjustmentApplied).length * 100).toFixed(1)}%` 
-                      : 'N/A'}
-                  </span>
+                <div className="p-3 bg-blue-100 rounded-full">
+                  <TrendingUp className="w-6 h-6 text-blue-600" />
                 </div>
-                {filterEntity !== 'all' && (
-                  <div className="border-t pt-4 mt-4">
-                    <div className="text-sm font-medium mb-2">
-                      {filterEntity === 'contractor' ? 'Contractor' : 'Engineer'} Performance
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Total WIRs</span>
-                      <span className="font-semibold">{filteredWirs.length}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Approval Rate</span>
-                      <span className="font-semibold">
-                        {filteredWirs.length > 0 
-                          ? `${((filteredWirs.filter(w => w.result === 'A').length / filteredWirs.length) * 100).toFixed(1)}%` 
-                          : 'N/A'}
-                      </span>
-                    </div>
-                  </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-purple-700 text-sm font-medium mb-1">Approval Rate</p>
+                  <p className="text-2xl font-bold text-purple-900">{approvalRate.toFixed(1)}%</p>
+                  <p className="text-purple-600 text-sm mt-1">success rate</p>
+                </div>
+                <div className="p-3 bg-purple-100 rounded-full">
+                  <FileText className="w-6 h-6 text-purple-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filter Section */}
+        <Card className="bg-white shadow-sm border border-slate-200">
+          <CardContent className="p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <h3 className="text-lg font-semibold text-slate-900">Filter Analysis:</h3>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Select value={filterEntity} onValueChange={(value: FilterEntity) => handleFilterChange(value)}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter by..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All WIRs</SelectItem>
+                    <SelectItem value="contractor">By Contractor</SelectItem>
+                    <SelectItem value="engineer">By Engineer</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                {filterEntity === 'contractor' && (
+                  <Select value={selectedEntity} onValueChange={setSelectedEntity}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Select Contractor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {contractors.map((contractor) => (
+                        <SelectItem key={contractor} value={contractor}>
+                          {contractor}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                
+                {filterEntity === 'engineer' && (
+                  <Select value={selectedEntity} onValueChange={setSelectedEntity}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Select Engineer" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {engineers.map((engineer) => (
+                        <SelectItem key={engineer} value={engineer}>
+                          {engineer}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 )}
               </div>
-            </CardContent>
-            <CardFooter>
-              <p className="text-sm text-muted-foreground">
-                Last updated: {new Date().toLocaleDateString()}
-              </p>
-            </CardFooter>
-          </Card>
-        </TabsContent>
+            </div>
+          </CardContent>
+        </Card>
         
-        <TabsContent value="charts">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>WIR Status Distribution</CardTitle>
-                <CardDescription>Breakdown by approval status</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={statusChartData}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={100}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {statusChartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value: any) => [`Count: ${value}`, 'WIRs']} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>WIR Amounts by Status</CardTitle>
-                <CardDescription>Financial value by approval status</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={amountChartData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip formatter={(value: any) => {
-                        const numValue = typeof value === 'number' ? value : Number(value);
-                        return [formatter.format(numValue), 'Amount'];
-                      }} />
-                      <Bar dataKey="amount" fill="#0a192f" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="details">
-          <Card>
-            <CardHeader>
-              <CardTitle>Detailed WIR Status Report</CardTitle>
-              <CardDescription>Breakdown of all work inspection requests</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        WIR ID
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        BOQ Item
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Contractor
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Engineer
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Submittal
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Amount
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredWirs.map((wir) => {
-                      const boqItem = boqItems.flatMap(item => 
-                        [item, ...(item.children || [])]
-                      ).find(item => item.id === wir.boqItemId);
-                      
-                      const statusClass = 
-                        wir.result === 'A' ? 'bg-green-100 text-green-800' : 
-                        wir.result === 'B' ? 'bg-yellow-100 text-yellow-800' : 
-                        'bg-red-100 text-red-800';
-                      
-                      return (
-                        <tr key={wir.id}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {wir.id}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {boqItem ? `${boqItem.code} - ${boqItem.description}` : 'Unknown'}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {wir.contractor}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {wir.engineer}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}`}>
-                              {wir.result === 'A' ? 'Approved' : 
-                               wir.result === 'B' ? 'Conditional' : 'Rejected'}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {new Date(wir.submittalDate).toLocaleDateString()}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {wir.calculatedAmount ? formatter.format(wir.calculatedAmount) : '-'}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="variance">
-          <Card>
-            <CardHeader>
-              <CardTitle>BOQ Variance Analysis</CardTitle>
-              <CardDescription>Comparison of BOQ values versus actual WIR amounts</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[400px] mb-6">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={boqCategoryData}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip formatter={(value: any) => {
-                      const numValue = typeof value === 'number' ? value : Number(value);
-                      return [formatter.format(numValue), 'Amount'];
-                    }} />
-                    <Legend />
-                    <Bar dataKey="boqAmount" name="BOQ Amount" fill="#8884d8" />
-                    <Bar dataKey="wirAmount" name="WIR Amount" fill="#82ca9d" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+        <Tabs defaultValue="summary" className="w-full">
+          <TabsList className="grid w-full grid-cols-5 bg-slate-100 p-1 rounded-lg">
+            <TabsTrigger value="summary" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Executive Summary</TabsTrigger>
+            <TabsTrigger value="charts" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Performance Charts</TabsTrigger>
+            <TabsTrigger value="details" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Detailed Analysis</TabsTrigger>
+            <TabsTrigger value="variance" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Budget Variance</TabsTrigger>
+            <TabsTrigger value="personnel" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Team Performance</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="summary" className="mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="bg-white shadow-sm border border-slate-200">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-xl text-slate-900">Financial Overview</CardTitle>
+                  <CardDescription>Key financial metrics and project health indicators</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between items-center py-3 border-b border-slate-100">
+                    <span className="text-slate-600 font-medium">Total BOQ Value</span>
+                    <span className="font-bold text-slate-900">{formatter.format(totalBOQValue)}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-3 border-b border-slate-100">
+                    <span className="text-slate-600 font-medium">Approved + Conditional</span>
+                    <span className="font-bold text-green-600">{formatter.format(totalProjectValue)}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-3 border-b border-slate-100">
+                    <span className="text-slate-600 font-medium">Budget Variance</span>
+                    <span className={`font-bold ${financialSummary.costVarianceAgainstBOQ >= 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      {formatter.format(financialSummary.costVarianceAgainstBOQ)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-3">
+                    <span className="text-slate-600 font-medium">Rejected WIRs</span>
+                    <span className="font-bold text-red-600">{totalRejectedCount}</span>
+                  </div>
+                </CardContent>
+                <CardFooter className="bg-slate-50 text-sm text-slate-500">
+                  Last updated: {new Date().toLocaleDateString()}
+                </CardFooter>
+              </Card>
               
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      BOQ Category
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      BOQ Amount
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      WIR Amount
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Variance
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      % Variance
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {boqCategoryData.map((item, index) => {
-                    const percentVariance = item.boqAmount > 0 ? 
-                      ((item.variance / item.boqAmount) * 100).toFixed(1) : 
-                      'N/A';
-                    
-                    return (
-                      <tr key={index}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {item.name}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {formatter.format(item.boqAmount)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {formatter.format(item.wirAmount)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <span className={item.variance >= 0 ? 'text-status-approved' : 'text-status-rejected'}>
-                            {formatter.format(item.variance)}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <span className={item.variance >= 0 ? 'text-status-approved' : 'text-status-rejected'}>
-                            {percentVariance !== 'N/A' ? `${percentVariance}%` : 'N/A'}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="personnel">
-          <div className="grid grid-cols-1 gap-6">
-            <Card>
+              <Card className="bg-white shadow-sm border border-slate-200">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-xl text-slate-900">Project Status Distribution</CardTitle>
+                  <CardDescription>Breakdown of WIR approval status</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={statusChartData}
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={100}
+                          fill="#8884d8"
+                          dataKey="value"
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        >
+                          {statusChartData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value: any, name) => [`${value} WIRs`, name]} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="charts" className="mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="bg-white shadow-sm border border-slate-200">
+                <CardHeader>
+                  <CardTitle className="text-xl text-slate-900">Financial Value by Status</CardTitle>
+                  <CardDescription>Monetary value breakdown by approval status</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={amountChartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                        <XAxis dataKey="name" stroke="#64748b" />
+                        <YAxis stroke="#64748b" />
+                        <Tooltip formatter={(value: any) => {
+                          const numValue = typeof value === 'number' ? value : Number(value);
+                          return [formatter.format(numValue), 'Amount'];
+                        }} />
+                        <Bar dataKey="amount" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white shadow-sm border border-slate-200">
+                <CardHeader>
+                  <CardTitle className="text-xl text-slate-900">BOQ vs WIR Comparison</CardTitle>
+                  <CardDescription>Budget versus actual completion values</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={boqCategoryData.slice(0, 5)} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                        <XAxis dataKey="name" stroke="#64748b" />
+                        <YAxis stroke="#64748b" />
+                        <Tooltip formatter={(value: any) => {
+                          const numValue = typeof value === 'number' ? value : Number(value);
+                          return [formatter.format(numValue), 'Amount'];
+                        }} />
+                        <Legend />
+                        <Bar dataKey="boqAmount" name="BOQ Budget" fill="#8b5cf6" radius={[2, 2, 0, 0]} />
+                        <Bar dataKey="wirAmount" name="WIR Actual" fill="#10b981" radius={[2, 2, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="details" className="mt-6">
+            <Card className="bg-white shadow-sm border border-slate-200">
               <CardHeader>
-                <CardTitle>Contractor Performance Analysis</CardTitle>
-                <CardDescription>Comparison of WIRs and amounts by contractor</CardDescription>
+                <CardTitle className="text-xl text-slate-900">Detailed WIR Analysis</CardTitle>
+                <CardDescription>Comprehensive breakdown of all work inspection requests</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-[400px] mb-6">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={contractorComparisonData}
-                      margin={{ top: 20, right: 30, left: 20, bottom: 70 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" angle={-45} textAnchor="end" height={70} />
-                      <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
-                      <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
-                      <Tooltip formatter={(value: any, name) => {
-                        if (name === 'totalAmount') {
-                          return [formatter.format(value), 'Total Amount'];
-                        }
-                        const nameStr = name ? name.toString() : '';
-                        return [value, nameStr.charAt(0).toUpperCase() + nameStr.slice(1) + ' WIRs'];
-                      }} />
-                      <Legend />
-                      <Bar yAxisId="left" dataKey="approved" name="Approved" fill="#10b981" />
-                      <Bar yAxisId="left" dataKey="conditional" name="Conditional" fill="#f59e0b" />
-                      <Bar yAxisId="left" dataKey="rejected" name="Rejected" fill="#ef4444" />
-                      <Bar yAxisId="right" dataKey="totalAmount" name="Total Amount" fill="#82ca9d" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-slate-50">
+                        <TableHead className="font-semibold text-slate-700">WIR ID</TableHead>
+                        <TableHead className="font-semibold text-slate-700">BOQ Item</TableHead>
+                        <TableHead className="font-semibold text-slate-700">Contractor</TableHead>
+                        <TableHead className="font-semibold text-slate-700">Engineer</TableHead>
+                        <TableHead className="font-semibold text-slate-700">Status</TableHead>
+                        <TableHead className="font-semibold text-slate-700">Submittal Date</TableHead>
+                        <TableHead className="font-semibold text-slate-700 text-right">Amount</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredWirs.slice(0, 10).map((wir) => {
+                        const boqItem = boqItems.flatMap(item => 
+                          [item, ...(item.children || [])]
+                        ).find(item => item.id === wir.boqItemId);
+                        
+                        const statusClass = 
+                          wir.result === 'A' ? 'bg-green-100 text-green-800' : 
+                          wir.result === 'B' ? 'bg-yellow-100 text-yellow-800' : 
+                          wir.result === 'C' ? 'bg-red-100 text-red-800' :
+                          'bg-gray-100 text-gray-800';
+                        
+                        return (
+                          <TableRow key={wir.id} className="hover:bg-slate-50">
+                            <TableCell className="font-medium">{wir.id.slice(0, 8)}...</TableCell>
+                            <TableCell>
+                              <div className="max-w-[200px]">
+                                <div className="font-medium text-slate-900 truncate">
+                                  {boqItem ? boqItem.code : 'Unknown'}
+                                </div>
+                                <div className="text-sm text-slate-500 truncate">
+                                  {boqItem ? boqItem.description : 'Unknown BOQ Item'}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-slate-700">{wir.contractor}</TableCell>
+                            <TableCell className="text-slate-700">{wir.engineer}</TableCell>
+                            <TableCell>
+                              <span className={`px-3 py-1 text-xs font-semibold rounded-full ${statusClass}`}>
+                                {wir.result === 'A' ? 'Approved' : 
+                                 wir.result === 'B' ? 'Conditional' : 
+                                 wir.result === 'C' ? 'Rejected' : 'Pending'}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-slate-600">
+                              {new Date(wir.submittalDate).toLocaleDateString()}
+                            </TableCell>
+                            <TableCell className="text-right font-semibold">
+                              {(wir.calculatedAmount || wir.value) ? formatter.format(wir.calculatedAmount || wir.value || 0) : '-'}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
                 </div>
-                
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Contractor
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Approved
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Conditional
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Rejected
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Total Amount
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Approval Rate
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {contractorComparisonData.map((item, index) => {
-                      const totalWirs = item.approved + item.conditional + item.rejected;
-                      const approvalRate = totalWirs > 0 ? 
-                        ((item.approved / totalWirs) * 100).toFixed(1) + '%' :
-                        'N/A';
-                      
-                      return (
-                        <tr key={index}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {item.name}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {item.approved}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {item.conditional}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {item.rejected}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {formatter.format(item.totalAmount)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {approvalRate}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
               </CardContent>
             </Card>
-            
-            <Card className="mt-6">
+          </TabsContent>
+          
+          <TabsContent value="variance" className="mt-6">
+            <Card className="bg-white shadow-sm border border-slate-200">
               <CardHeader>
-                <CardTitle>Engineer Performance Analysis</CardTitle>
-                <CardDescription>Comparison of WIRs and amounts by engineer</CardDescription>
+                <CardTitle className="text-xl text-slate-900">Budget Variance Analysis</CardTitle>
+                <CardDescription>Detailed comparison of BOQ budget versus actual WIR values</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-[400px] mb-6">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={engineerComparisonData}
-                      margin={{ top: 20, right: 30, left: 20, bottom: 70 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" angle={-45} textAnchor="end" height={70} />
-                      <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
-                      <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
-                      <Tooltip formatter={(value: any, name) => {
-                        if (name === 'totalAmount') {
-                          return [formatter.format(value), 'Total Amount'];
-                        }
-                        const nameStr = name ? name.toString() : '';
-                        return [value, nameStr.charAt(0).toUpperCase() + nameStr.slice(1) + ' WIRs'];
-                      }} />
-                      <Legend />
-                      <Bar yAxisId="left" dataKey="approved" name="Approved" fill="#10b981" />
-                      <Bar yAxisId="left" dataKey="conditional" name="Conditional" fill="#f59e0b" />
-                      <Bar yAxisId="left" dataKey="rejected" name="Rejected" fill="#ef4444" />
-                      <Bar yAxisId="right" dataKey="totalAmount" name="Total Amount" fill="#82ca9d" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-slate-50">
+                        <TableHead className="font-semibold text-slate-700">BOQ Category</TableHead>
+                        <TableHead className="font-semibold text-slate-700 text-right">Budget Amount</TableHead>
+                        <TableHead className="font-semibold text-slate-700 text-right">Actual Amount</TableHead>
+                        <TableHead className="font-semibold text-slate-700 text-right">Variance</TableHead>
+                        <TableHead className="font-semibold text-slate-700 text-right">% Variance</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {boqCategoryData.map((item, index) => {
+                        const percentVariance = item.boqAmount > 0 ? 
+                          ((item.variance / item.boqAmount) * 100).toFixed(1) : 
+                          'N/A';
+                        
+                        return (
+                          <TableRow key={index} className="hover:bg-slate-50">
+                            <TableCell className="font-medium text-slate-900 max-w-[200px] truncate">
+                              {item.name}
+                            </TableCell>
+                            <TableCell className="text-right font-semibold">
+                              {formatter.format(item.boqAmount)}
+                            </TableCell>
+                            <TableCell className="text-right font-semibold">
+                              {formatter.format(item.wirAmount)}
+                            </TableCell>
+                            <TableCell className="text-right font-semibold">
+                              <span className={item.variance >= 0 ? 'text-red-600' : 'text-green-600'}>
+                                {formatter.format(Math.abs(item.variance))}
+                                {item.variance >= 0 ? ' over' : ' under'}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right font-semibold">
+                              <span className={item.variance >= 0 ? 'text-red-600' : 'text-green-600'}>
+                                {percentVariance !== 'N/A' ? `${percentVariance}%` : 'N/A'}
+                              </span>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
                 </div>
-                
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Engineer
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Approved
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Conditional
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Rejected
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Total Amount
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Approval Rate
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {engineerComparisonData.map((item, index) => {
-                      const totalWirs = item.approved + item.conditional + item.rejected;
-                      const approvalRate = totalWirs > 0 ? 
-                        ((item.approved / totalWirs) * 100).toFixed(1) + '%' :
-                        'N/A';
-                      
-                      return (
-                        <tr key={index}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {item.name}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {item.approved}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {item.conditional}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {item.rejected}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {formatter.format(item.totalAmount)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {approvalRate}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
               </CardContent>
             </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+          </TabsContent>
+          
+          <TabsContent value="personnel" className="mt-6">
+            <div className="space-y-6">
+              <Card className="bg-white shadow-sm border border-slate-200">
+                <CardHeader>
+                  <CardTitle className="text-xl text-slate-900">Contractor Performance Analysis</CardTitle>
+                  <CardDescription>Performance metrics and financial impact by contractor</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-slate-50">
+                          <TableHead className="font-semibold text-slate-700">Contractor</TableHead>
+                          <TableHead className="font-semibold text-slate-700 text-center">Approved</TableHead>
+                          <TableHead className="font-semibold text-slate-700 text-center">Conditional</TableHead>
+                          <TableHead className="font-semibold text-slate-700 text-center">Rejected</TableHead>
+                          <TableHead className="font-semibold text-slate-700 text-right">Total Value</TableHead>
+                          <TableHead className="font-semibold text-slate-700 text-right">Success Rate</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {contractorComparisonData.map((item, index) => {
+                          const totalWirs = item.approved + item.conditional + item.rejected;
+                          const approvalRate = totalWirs > 0 ? 
+                            ((item.approved / totalWirs) * 100).toFixed(1) + '%' :
+                            'N/A';
+                          
+                          return (
+                            <TableRow key={index} className="hover:bg-slate-50">
+                              <TableCell className="font-medium text-slate-900">{item.name}</TableCell>
+                              <TableCell className="text-center">
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                  {item.approved}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                  {item.conditional}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                  {item.rejected}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-right font-semibold">
+                                {formatter.format(item.totalAmount)}
+                              </TableCell>
+                              <TableCell className="text-right font-semibold">
+                                <span className={`${parseFloat(approvalRate) >= 70 ? 'text-green-600' : parseFloat(approvalRate) >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>
+                                  {approvalRate}
+                                </span>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white shadow-sm border border-slate-200">
+                <CardHeader>
+                  <CardTitle className="text-xl text-slate-900">Engineer Performance Analysis</CardTitle>
+                  <CardDescription>Review efficiency and decision patterns by engineer</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-slate-50">
+                          <TableHead className="font-semibold text-slate-700">Engineer</TableHead>
+                          <TableHead className="font-semibold text-slate-700 text-center">Approved</TableHead>
+                          <TableHead className="font-semibold text-slate-700 text-center">Conditional</TableHead>
+                          <TableHead className="font-semibold text-slate-700 text-center">Rejected</TableHead>
+                          <TableHead className="font-semibold text-slate-700 text-right">Total Value</TableHead>
+                          <TableHead className="font-semibold text-slate-700 text-right">Approval Rate</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {engineerComparisonData.map((item, index) => {
+                          const totalWirs = item.approved + item.conditional + item.rejected;
+                          const approvalRate = totalWirs > 0 ? 
+                            ((item.approved / totalWirs) * 100).toFixed(1) + '%' :
+                            'N/A';
+                          
+                          return (
+                            <TableRow key={index} className="hover:bg-slate-50">
+                              <TableCell className="font-medium text-slate-900">{item.name}</TableCell>
+                              <TableCell className="text-center">
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                  {item.approved}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                  {item.conditional}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                  {item.rejected}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-right font-semibold">
+                                {formatter.format(item.totalAmount)}
+                              </TableCell>
+                              <TableCell className="text-right font-semibold">
+                                <span className={`${parseFloat(approvalRate) >= 70 ? 'text-green-600' : parseFloat(approvalRate) >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>
+                                  {approvalRate}
+                                </span>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };

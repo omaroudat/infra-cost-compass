@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { generateFinancialSummary } from '../utils/calculations';
@@ -6,6 +7,9 @@ import StatCard from '../components/StatCard';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { TrendingUp, TrendingDown, Activity, Users, FileText, CheckCircle, Clock, XCircle, BarChart3 } from 'lucide-react';
 
 type FilterCriteria = 'all' | 'contractor' | 'engineer';
 
@@ -16,7 +20,7 @@ const Dashboard = () => {
   
   const financialSummary = generateFinancialSummary(wirs);
   
-  // Always use English number formatting
+  // Always use English number formatting for executives
   const formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'SAR',
@@ -51,10 +55,15 @@ const Dashboard = () => {
     return 0;
   };
   
+  // Calculate totals
+  const totalApprovedAmount = filteredWirs.reduce((sum, w) => sum + getApprovedAmount(w), 0);
+  const totalConditionalAmount = filteredWirs.reduce((sum, w) => sum + getConditionalAmount(w), 0);
+  const totalProjectValue = totalApprovedAmount + totalConditionalAmount;
+  
   const statusData = [
-    { name: 'Approved', value: filteredWirs.filter(w => w.result === 'A').length, color: '#10b981' },
-    { name: 'Conditional', value: filteredWirs.filter(w => w.result === 'B').length, color: '#f59e0b' },
-    { name: 'Rejected', value: filteredWirs.filter(w => w.result === 'C').length, color: '#ef4444' },
+    { name: 'Approved', value: filteredWirs.filter(w => w.result === 'A').length, color: '#10b981', amount: totalApprovedAmount },
+    { name: 'Conditional', value: filteredWirs.filter(w => w.result === 'B').length, color: '#f59e0b', amount: totalConditionalAmount },
+    { name: 'Rejected', value: filteredWirs.filter(w => w.result === 'C').length, color: '#ef4444', amount: 0 },
   ];
   
   const boqCategoryData = boqItems.map(item => ({
@@ -97,240 +106,353 @@ const Dashboard = () => {
     setSelectedValue('');
   };
   
+  // Calculate performance metrics
+  const totalBOQValue = boqCategoryData.reduce((sum, item) => sum + item.amount, 0);
+  const completionRate = totalBOQValue > 0 ? (totalProjectValue / totalBOQValue) * 100 : 0;
+  const approvalRate = filteredWirs.length > 0 ? (filteredWirs.filter(w => w.result === 'A').length / filteredWirs.length) * 100 : 0;
+  
   return (
-    <div className="space-y-6">
-      <div className="bg-white p-4 rounded-lg shadow mb-6">
-        <div className="flex items-center space-x-4">
-          <h3 className="text-lg font-medium">Filter Dashboard:</h3>
-          <div className="flex items-center space-x-2">
-            <Select value={filterCriteria} onValueChange={(value: FilterCriteria) => handleFilterChange(value)}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All WIRs</SelectItem>
-                <SelectItem value="contractor">By Contractor</SelectItem>
-                <SelectItem value="engineer">By Engineer</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            {filterCriteria === 'contractor' && (
-              <Select value={selectedValue} onValueChange={setSelectedValue}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Select Contractor" />
-                </SelectTrigger>
-                <SelectContent>
-                  {contractors.map((contractor) => (
-                    <SelectItem key={contractor} value={contractor}>
-                      {contractor}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-            
-            {filterCriteria === 'engineer' && (
-              <Select value={selectedValue} onValueChange={setSelectedValue}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Select Engineer" />
-                </SelectTrigger>
-                <SelectContent>
-                  {engineers.map((engineer) => (
-                    <SelectItem key={engineer} value={engineer}>
-                      {engineer}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Executive Header */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900 mb-2">Executive Dashboard</h1>
+              <p className="text-slate-600 text-lg">Real-time project performance monitoring</p>
+            </div>
+            <div className="flex items-center space-x-4 text-sm text-slate-500">
+              <div className="flex items-center space-x-2">
+                <Activity className="w-4 h-4" />
+                <span>Live Data</span>
+              </div>
+              <div className="h-4 w-px bg-slate-300"></div>
+              <span>Last updated: {new Date().toLocaleTimeString()}</span>
+            </div>
           </div>
         </div>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard 
-          title="Approved WIRs Amount" 
-          value={formatter.format(filteredWirs.reduce((sum, w) => sum + getApprovedAmount(w), 0))}
-          icon={
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-status-approved"><path d="M12 22V8"></path><path d="m5 12 7-4 7 4"></path><path d="M5 16l7-4 7 4"></path><path d="M5 20l7-4 7 4"></path></svg>
-          }
-        />
-        <StatCard 
-          title="Conditional WIRs Amount" 
-          value={formatter.format(filteredWirs.reduce((sum, w) => sum + getConditionalAmount(w), 0))}
-          icon={
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-status-conditional"><path d="M12 22V8"></path><path d="m5 12 7-4 7 4"></path><path d="M5 16l7-4 7 4"></path><path d="M5 20l7-4 7 4"></path></svg>
-          }
-        />
-        <StatCard 
-          title="Total WIRs" 
-          value={filteredWirs.length.toString()}
-          icon={
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect><path d="M9 14h.01"></path><path d="M13 14h.01"></path><path d="M9 18h.01"></path><path d="M13 18h.01"></path></svg>
-          }
-        />
-      </div>
-      
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="contractors">Contractors</TabsTrigger>
-          <TabsTrigger value="engineers">Engineers</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="overview">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white p-6 rounded-lg shadow">
-              <h3 className="text-lg font-semibold mb-4">WIR Status Overview</h3>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={wirStatusData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip formatter={(value: any) => {
-                      // Ensure value is a number before formatting
-                      const numValue = typeof value === 'number' ? value : Number(value);
-                      return [formatter.format(numValue), 'Amount'];
-                    }} />
-                    <Legend />
-                    <Bar name="Amount" dataKey="value" fill="#0a192f" />
-                  </BarChart>
-                </ResponsiveContainer>
+
+        {/* Key Performance Indicators */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 shadow-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-700 text-sm font-medium mb-1">Approved Value</p>
+                  <p className="text-2xl font-bold text-green-900">{formatter.format(totalApprovedAmount)}</p>
+                  <p className="text-green-600 text-sm mt-1 flex items-center">
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    {filteredWirs.filter(w => w.result === 'A').length} WIRs
+                  </p>
+                </div>
+                <div className="p-3 bg-green-100 rounded-full">
+                  <TrendingUp className="w-6 h-6 text-green-600" />
+                </div>
               </div>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow">
-              <h3 className="text-lg font-semibold mb-4">BOQ Categories</h3>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={boqCategoryData} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
-                    <YAxis dataKey="name" type="category" width={100} />
-                    <Tooltip formatter={(value) => {
-                      // Ensure value is a number before formatting
-                      const numValue = typeof value === 'number' ? value : Number(value);
-                      return [formatter.format(numValue), 'Amount'];
-                    }} />
-                    <Bar dataKey="amount" fill="#0a192f" />
-                  </BarChart>
-                </ResponsiveContainer>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200 shadow-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-amber-700 text-sm font-medium mb-1">Conditional Value</p>
+                  <p className="text-2xl font-bold text-amber-900">{formatter.format(totalConditionalAmount)}</p>
+                  <p className="text-amber-600 text-sm mt-1 flex items-center">
+                    <Clock className="w-3 h-3 mr-1" />
+                    {filteredWirs.filter(w => w.result === 'B').length} WIRs
+                  </p>
+                </div>
+                <div className="p-3 bg-amber-100 rounded-full">
+                  <Clock className="w-6 h-6 text-amber-600" />
+                </div>
               </div>
-            </div>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="contractors">
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-4">Contractor Performance</h3>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={contractorData} margin={{ top: 20, right: 30, left: 20, bottom: 70 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={70} />
-                  <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
-                  <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
-                  <Tooltip formatter={(value, name) => {
-                    if (name === 'total') {
-                      return [formatter.format(value as number), 'Total Amount'];
-                    }
-                    const nameStr = name ? name.toString() : '';
-                    return [value, nameStr.charAt(0).toUpperCase() + nameStr.slice(1) + ' WIRs'];
-                  }} />
-                  <Legend />
-                  <Bar yAxisId="left" dataKey="approved" name="Approved" fill="#10b981" />
-                  <Bar yAxisId="left" dataKey="conditional" name="Conditional" stackId="a" fill="#f59e0b" />
-                  <Bar yAxisId="left" dataKey="rejected" name="Rejected" stackId="a" fill="#ef4444" />
-                  <Bar yAxisId="right" dataKey="total" name="Total Amount" fill="#82ca9d" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="engineers">
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-4">Engineer Performance</h3>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={engineerData} margin={{ top: 20, right: 30, left: 20, bottom: 70 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={70} />
-                  <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
-                  <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
-                  <Tooltip formatter={(value, name) => {
-                    if (name === 'total') {
-                      return [formatter.format(value as number), 'Total Amount'];
-                    }
-                    const nameStr = name ? name.toString() : '';
-                    return [value, nameStr.charAt(0).toUpperCase() + nameStr.slice(1) + ' WIRs'];
-                  }} />
-                  <Legend />
-                  <Bar yAxisId="left" dataKey="approved" name="Approved" fill="#10b981" />
-                  <Bar yAxisId="left" dataKey="conditional" name="Conditional" stackId="a" fill="#f59e0b" />
-                  <Bar yAxisId="left" dataKey="rejected" name="Rejected" stackId="a" fill="#ef4444" />
-                  <Bar yAxisId="right" dataKey="total" name="Total Amount" fill="#82ca9d" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
-      
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-lg font-semibold mb-4">Recent Work Inspection Requests</h3>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contractor</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Engineer</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredWirs.slice(0, 5).map((wir) => {
-                const boqItem = boqItems.flatMap(item => 
-                  [item, ...(item.children || [])]
-                ).find(item => item.id === wir.boqItemId);
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 shadow-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-700 text-sm font-medium mb-1">Project Completion</p>
+                  <p className="text-2xl font-bold text-blue-900">{completionRate.toFixed(1)}%</p>
+                  <p className="text-blue-600 text-sm mt-1 flex items-center">
+                    <BarChart3 className="w-3 h-3 mr-1" />
+                    of BOQ value
+                  </p>
+                </div>
+                <div className="p-3 bg-blue-100 rounded-full">
+                  <Activity className="w-6 h-6 text-blue-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200 shadow-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-purple-700 text-sm font-medium mb-1">Total WIRs</p>
+                  <p className="text-2xl font-bold text-purple-900">{filteredWirs.length}</p>
+                  <p className="text-purple-600 text-sm mt-1 flex items-center">
+                    <FileText className="w-3 h-3 mr-1" />
+                    {approvalRate.toFixed(1)}% approved
+                  </p>
+                </div>
+                <div className="p-3 bg-purple-100 rounded-full">
+                  <FileText className="w-6 h-6 text-purple-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filter Section */}
+        <Card className="bg-white shadow-sm border border-slate-200">
+          <CardContent className="p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <h3 className="text-lg font-semibold text-slate-900 flex items-center">
+                <Users className="w-5 h-5 mr-2" />
+                Filter Dashboard:
+              </h3>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Select value={filterCriteria} onValueChange={(value: FilterCriteria) => handleFilterChange(value)}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter by..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All WIRs</SelectItem>
+                    <SelectItem value="contractor">By Contractor</SelectItem>
+                    <SelectItem value="engineer">By Engineer</SelectItem>
+                  </SelectContent>
+                </Select>
                 
-                return (
-                  <tr key={wir.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{wir.id}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <div>{wir.description}</div>
-                      <div className="text-xs text-gray-400">{boqItem?.description || 'Unknown BOQ Item'}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{wir.contractor}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{wir.engineer}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                        ${wir.result === 'A' ? 'bg-green-100 text-green-800' : 
-                          wir.result === 'B' ? 'bg-yellow-100 text-yellow-800' : 
-                          wir.result === 'C' ? 'bg-red-100 text-red-800' :
-                          wir.status === 'submitted' ? 'bg-blue-100 text-blue-800' :
-                          wir.status === 'completed' ? 'bg-purple-100 text-purple-800' :
-                          'bg-gray-100 text-gray-800'}`}>
-                        {wir.result === 'A' ? 'Approved' : 
-                         wir.result === 'B' ? 'Conditional' : 
-                         wir.result === 'C' ? 'Rejected' :
-                         wir.status === 'submitted' ? 'Submitted' :
-                         wir.status === 'completed' ? 'Completed' : 'Unknown'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {(wir.calculatedAmount || wir.value) ? formatter.format(wir.calculatedAmount || wir.value || 0) : '-'}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                {filterCriteria === 'contractor' && (
+                  <Select value={selectedValue} onValueChange={setSelectedValue}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Select Contractor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {contractors.map((contractor) => (
+                        <SelectItem key={contractor} value={contractor}>
+                          {contractor}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                
+                {filterCriteria === 'engineer' && (
+                  <Select value={selectedValue} onValueChange={setSelectedValue}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Select Engineer" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {engineers.map((engineer) => (
+                        <SelectItem key={engineer} value={engineer}>
+                          {engineer}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 bg-slate-100 p-1 rounded-lg">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Project Overview</TabsTrigger>
+            <TabsTrigger value="contractors" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Contractor Performance</TabsTrigger>
+            <TabsTrigger value="engineers" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Engineer Performance</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="overview" className="mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="bg-white shadow-sm border border-slate-200">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-xl text-slate-900">WIR Value Analysis</CardTitle>
+                  <CardDescription>Financial breakdown of work inspection requests</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={wirStatusData.slice(0, 8)}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                        <XAxis dataKey="name" stroke="#64748b" fontSize={12} />
+                        <YAxis stroke="#64748b" />
+                        <Tooltip formatter={(value: any) => {
+                          const numValue = typeof value === 'number' ? value : Number(value);
+                          return [formatter.format(numValue), 'Amount'];
+                        }} />
+                        <Bar name="WIR Value" dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white shadow-sm border border-slate-200">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-xl text-slate-900">Status Distribution</CardTitle>
+                  <CardDescription>Approval status breakdown</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={statusData}
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={100}
+                          fill="#8884d8"
+                          dataKey="value"
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        >
+                          {statusData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value: any, name) => [`${value} WIRs`, name]} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="contractors" className="mt-6">
+            <Card className="bg-white shadow-sm border border-slate-200">
+              <CardHeader>
+                <CardTitle className="text-xl text-slate-900">Contractor Performance Metrics</CardTitle>
+                <CardDescription>Comprehensive analysis of contractor efficiency and success rates</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[400px] mb-6">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={contractorData} margin={{ top: 20, right: 30, left: 20, bottom: 70 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis dataKey="name" angle={-45} textAnchor="end" height={70} stroke="#64748b" />
+                      <YAxis yAxisId="left" orientation="left" stroke="#64748b" />
+                      <YAxis yAxisId="right" orientation="right" stroke="#10b981" />
+                      <Tooltip formatter={(value: any, name) => {
+                        if (name === 'total') {
+                          return [formatter.format(value as number), 'Total Amount'];
+                        }
+                        const nameStr = name ? name.toString() : '';
+                        return [value, nameStr.charAt(0).toUpperCase() + nameStr.slice(1) + ' WIRs'];
+                      }} />
+                      <Legend />
+                      <Bar yAxisId="left" dataKey="approved" name="Approved" fill="#10b981" radius={[2, 2, 0, 0]} />
+                      <Bar yAxisId="left" dataKey="conditional" name="Conditional" fill="#f59e0b" radius={[2, 2, 0, 0]} />
+                      <Bar yAxisId="left" dataKey="rejected" name="Rejected" fill="#ef4444" radius={[2, 2, 0, 0]} />
+                      <Bar yAxisId="right" dataKey="total" name="Total Amount" fill="#6366f1" radius={[2, 2, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="engineers" className="mt-6">
+            <Card className="bg-white shadow-sm border border-slate-200">
+              <CardHeader>
+                <CardTitle className="text-xl text-slate-900">Engineer Performance Metrics</CardTitle>
+                <CardDescription>Review efficiency and decision patterns by engineering team</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[400px] mb-6">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={engineerData} margin={{ top: 20, right: 30, left: 20, bottom: 70 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis dataKey="name" angle={-45} textAnchor="end" height={70} stroke="#64748b" />
+                      <YAxis yAxisId="left" orientation="left" stroke="#64748b" />
+                      <YAxis yAxisId="right" orientation="right" stroke="#10b981" />
+                      <Tooltip formatter={(value: any, name) => {
+                        if (name === 'total') {
+                          return [formatter.format(value as number), 'Total Amount'];
+                        }
+                        const nameStr = name ? name.toString() : '';
+                        return [value, nameStr.charAt(0).toUpperCase() + nameStr.slice(1) + ' WIRs'];
+                      }} />
+                      <Legend />
+                      <Bar yAxisId="left" dataKey="approved" name="Approved" fill="#10b981" radius={[2, 2, 0, 0]} />
+                      <Bar yAxisId="left" dataKey="conditional" name="Conditional" fill="#f59e0b" radius={[2, 2, 0, 0]} />
+                      <Bar yAxisId="left" dataKey="rejected" name="Rejected" fill="#ef4444" radius={[2, 2, 0, 0]} />
+                      <Bar yAxisId="right" dataKey="total" name="Total Amount" fill="#6366f1" radius={[2, 2, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+        
+        {/* Recent WIRs Table */}
+        <Card className="bg-white shadow-sm border border-slate-200">
+          <CardHeader>
+            <CardTitle className="text-xl text-slate-900">Recent Work Inspection Requests</CardTitle>
+            <CardDescription>Latest submissions and their current status</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-slate-50">
+                    <TableHead className="font-semibold text-slate-700">ID</TableHead>
+                    <TableHead className="font-semibold text-slate-700">Description</TableHead>
+                    <TableHead className="font-semibold text-slate-700">Contractor</TableHead>
+                    <TableHead className="font-semibold text-slate-700">Engineer</TableHead>
+                    <TableHead className="font-semibold text-slate-700">Status</TableHead>
+                    <TableHead className="font-semibold text-slate-700 text-right">Amount</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredWirs.slice(0, 8).map((wir) => {
+                    const boqItem = boqItems.flatMap(item => 
+                      [item, ...(item.children || [])]
+                    ).find(item => item.id === wir.boqItemId);
+                    
+                    return (
+                      <TableRow key={wir.id} className="hover:bg-slate-50">
+                        <TableCell className="font-medium">{wir.id.slice(0, 8)}...</TableCell>
+                        <TableCell>
+                          <div className="max-w-[200px]">
+                            <div className="font-medium text-slate-900 truncate">{wir.description}</div>
+                            <div className="text-sm text-slate-500 truncate">{boqItem?.description || 'Unknown BOQ Item'}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-slate-700">{wir.contractor}</TableCell>
+                        <TableCell className="text-slate-700">{wir.engineer}</TableCell>
+                        <TableCell>
+                          <span className={`px-3 py-1 text-xs font-semibold rounded-full 
+                            ${wir.result === 'A' ? 'bg-green-100 text-green-800' : 
+                              wir.result === 'B' ? 'bg-yellow-100 text-yellow-800' : 
+                              wir.result === 'C' ? 'bg-red-100 text-red-800' :
+                              wir.status === 'submitted' ? 'bg-blue-100 text-blue-800' :
+                              wir.status === 'completed' ? 'bg-purple-100 text-purple-800' :
+                              'bg-gray-100 text-gray-800'}`}>
+                            {wir.result === 'A' ? 'Approved' : 
+                             wir.result === 'B' ? 'Conditional' : 
+                             wir.result === 'C' ? 'Rejected' :
+                             wir.status === 'submitted' ? 'Submitted' :
+                             wir.status === 'completed' ? 'Completed' : 'Unknown'}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right font-semibold">
+                          {(wir.calculatedAmount || wir.value) ? formatter.format(wir.calculatedAmount || wir.value || 0) : '-'}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
