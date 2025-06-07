@@ -46,6 +46,13 @@ const WIRTable: React.FC<WIRTableProps> = ({
     }).format(amount);
   };
 
+  const getApprovedAmount = (wir: WIR): number => {
+    if (wir.result === 'A' || wir.result === 'B') {
+      return wir.calculatedAmount || wir.value || 0;
+    }
+    return 0;
+  };
+
   const handlePrint = (wir: WIR) => {
     setSelectedWIR(wir);
     setPrintDialogOpen(true);
@@ -81,92 +88,102 @@ const WIRTable: React.FC<WIRTableProps> = ({
               <TableHead>Value</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Result</TableHead>
+              <TableHead>Approved Amount</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {wirs.map((wir) => (
-              <TableRow key={wir.id}>
-                <TableCell className="font-medium">{wir.id}</TableCell>
-                <TableCell className="max-w-xs truncate">
-                  {getBOQItemName(wir.boqItemId)}
-                </TableCell>
-                <TableCell>{wir.contractor}</TableCell>
-                <TableCell>{wir.engineer}</TableCell>
-                <TableCell>{wir.region}</TableCell>
-                <TableCell>{formatCurrency(wir.value || 0)}</TableCell>
-                <TableCell>
-                  <Badge variant={wir.status === 'completed' ? 'default' : 'secondary'}>
-                    {wir.status.toUpperCase()}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {wir.result ? <StatusBadge status={wir.result} /> : '-'}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    {/* Print button for submitted WIRs */}
-                    {wir.status === 'submitted' && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePrint(wir)}
-                        className="h-8 w-8 p-0"
-                        title="Print WIR"
-                      >
-                        <Printer className="h-4 w-4" />
-                      </Button>
-                    )}
-                    
-                    {canEdit && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onEdit(wir)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    )}
-                    
-                    {canEdit && wir.status === 'submitted' && onSubmitResult && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onSubmitResult(wir)}
-                        className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
-                        title="Submit Result"
-                      >
-                        <CheckCircle className="h-4 w-4" />
-                      </Button>
-                    )}
-                    
-                    {canEdit && canRequestRevision(wir) && onRevisionRequest && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onRevisionRequest(wir)}
-                        className="h-8 w-8 p-0 text-orange-600 hover:text-orange-700"
-                        title="Request Revision"
-                      >
-                        <RotateCcw className="h-4 w-4" />
-                      </Button>
-                    )}
-                    
-                    {canDelete && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onDelete(wir.id)}
-                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+            {wirs.map((wir) => {
+              const approvedAmount = getApprovedAmount(wir);
+              
+              return (
+                <TableRow key={wir.id}>
+                  <TableCell className="font-medium">{wir.id}</TableCell>
+                  <TableCell className="max-w-xs truncate">
+                    {getBOQItemName(wir.boqItemId)}
+                  </TableCell>
+                  <TableCell>{wir.contractor}</TableCell>
+                  <TableCell>{wir.engineer}</TableCell>
+                  <TableCell>{wir.region}</TableCell>
+                  <TableCell>{formatCurrency(wir.value || 0)}</TableCell>
+                  <TableCell>
+                    <Badge variant={wir.status === 'completed' ? 'default' : 'secondary'}>
+                      {wir.status.toUpperCase()}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {wir.result ? <StatusBadge status={wir.result} /> : '-'}
+                  </TableCell>
+                  <TableCell>
+                    <div className="font-semibold text-slate-900">
+                      {approvedAmount > 0 ? formatCurrency(approvedAmount) : '-'}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {/* Print button for submitted WIRs */}
+                      {wir.status === 'submitted' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePrint(wir)}
+                          className="h-8 w-8 p-0"
+                          title="Print WIR"
+                        >
+                          <Printer className="h-4 w-4" />
+                        </Button>
+                      )}
+                      
+                      {canEdit && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onEdit(wir)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      )}
+                      
+                      {canEdit && wir.status === 'submitted' && onSubmitResult && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onSubmitResult(wir)}
+                          className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
+                          title="Submit Result"
+                        >
+                          <CheckCircle className="h-4 w-4" />
+                        </Button>
+                      )}
+                      
+                      {canEdit && canRequestRevision(wir) && onRevisionRequest && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onRevisionRequest(wir)}
+                          className="h-8 w-8 p-0 text-orange-600 hover:text-orange-700"
+                          title="Request Revision"
+                        >
+                          <RotateCcw className="h-4 w-4" />
+                        </Button>
+                      )}
+                      
+                      {canDelete && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onDelete(wir.id)}
+                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
