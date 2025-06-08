@@ -128,7 +128,7 @@ export const useWIRManagement = () => {
     const revisionId = `${baseWIRId}_R${revisionNumber}`;
     
     const revisionWIR = {
-      id: revisionId,
+      id: revisionId, // This will be used by addWIR function
       boqItemId: wir.boqItemId,
       description: wir.description,
       submittalDate: new Date().toISOString().split('T')[0],
@@ -149,8 +149,11 @@ export const useWIRManagement = () => {
       lineNo: wir.lineNo
     };
 
-    // Create revision with the specific ID
-    addWIR(revisionWIR as Omit<WIR, 'calculatedAmount' | 'breakdownApplied'>);
+    // Remove the id field before passing to addWIR since the function expects it without id
+    const { id, ...revisionWIRWithoutId } = revisionWIR;
+    
+    // Pass the custom ID separately - the addWIR function will handle it
+    addWIR({ ...revisionWIRWithoutId, id: revisionId } as any);
     
     toast.success(`Revision request created: ${revisionId}`);
   };
