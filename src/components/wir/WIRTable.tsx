@@ -4,10 +4,12 @@ import { WIR, BOQItem } from '@/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Edit, Trash2, CheckCircle, RotateCcw, Printer, Eye } from 'lucide-react';
+import { Edit, Trash2, CheckCircle, RotateCcw, Printer, Eye, Calculator } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import StatusBadge from '@/components/StatusBadge';
 import WIRPrintView from './WIRPrintView';
+import { useAppContext } from '@/context/AppContext';
+import { calculateWIRAmount } from '@/utils/calculations';
 
 interface WIRTableProps {
   wirs: WIR[];
@@ -32,6 +34,10 @@ const WIRTable: React.FC<WIRTableProps> = ({
 }) => {
   const [printDialogOpen, setPrintDialogOpen] = useState(false);
   const [selectedWIR, setSelectedWIR] = useState<WIR | null>(null);
+  const [calculationDialogOpen, setCalculationDialogOpen] = useState(false);
+  const [calculationDetails, setCalculationDetails] = useState<{wir: WIR, amount: number | null, equation: string} | null>(null);
+  
+  const { breakdownItems, boqItems } = useAppContext();
 
   const getBOQItemName = (boqItemId: string) => {
     const item = flattenedBOQItems.find(item => item.id === boqItemId);
@@ -46,16 +52,31 @@ const WIRTable: React.FC<WIRTableProps> = ({
     }).format(amount);
   };
 
-  const getApprovedAmount = (wir: WIR): number => {
+  const getApprovedAmount = (wir: WIR): { amount: number, equation: string } => {
     if (wir.result === 'A' || wir.result === 'B') {
-      return wir.calculatedAmount || wir.value || 0;
+      // Calculate the proper approved amount using the breakdown formula
+      const calculation = calculateWIRAmount(wir, breakdownItems || [], boqItems || []);
+      return {
+        amount: calculation.amount || 0,
+        equation: calculation.equation || ''
+      };
     }
-    return 0;
+    return { amount: 0, equation: '' };
   };
 
   const handlePrint = (wir: WIR) => {
     setSelectedWIR(wir);
     setPrintDialogOpen(true);
+  };
+
+  const handleShowCalculation = (wir: WIR) => {
+    const calculation = calculateWIRAmount(wir, breakdownItems || [], boqItems || []);
+    setCalculationDetails({
+      wir,
+      amount: calculation.amount,
+      equation: calculation.equation
+    });
+    setCalculationDialogOpen(true);
   };
 
   const handlePrintNow = () => {
@@ -94,7 +115,7 @@ const WIRTable: React.FC<WIRTableProps> = ({
           </TableHeader>
           <TableBody>
             {wirs.map((wir) => {
-              const approvedAmount = getApprovedAmount(wir);
+              const approvedAmountData = getApprovedAmount(wir);
               
               return (
                 <TableRow key={wir.id}>
@@ -115,8 +136,22 @@ const WIRTable: React.FC<WIRTableProps> = ({
                     {wir.result ? <StatusBadge status={wir.result} /> : '-'}
                   </TableCell>
                   <TableCell>
-                    <div className="font-semibold text-slate-900">
-                      {approvedAmount > 0 ? formatCurrency(approvedAmount) : '-'}
+                    <div className="space-y-1">
+                      <div className="font-semibold text-slate-900">
+                        {approvedAmountData.amount > 0 ? formatCurrency(approvedAmountData.amount) : '-'}
+                      </div>
+                      {approvedAmountData.equation && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleShowCalculation(wir)}
+                          className="h-6 px-2 text-xs text-blue-600 hover:text-blue-800"
+                          title="Show calculation details"
+                        >
+                          <Calculator className="h-3 w-3 mr-1" />
+                          Details
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>
@@ -202,6 +237,42 @@ const WIRTable: React.FC<WIRTableProps> = ({
           </DialogHeader>
           {selectedWIR && (
             <WIRPrintView wir={selectedWIR} flattenedBOQItems={flattenedBOQItems} />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Calculation Details Dialog */}
+      <Dialog open={calculationDialogOpen} onOpenChange={setCalculationDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Calculator className="h-5 w-5" />
+              Calculation Details - WIR {calculationDetails?.wir.id}
+            </DialogTitle>
+          </DialogHeader>
+          {calculationDetails && (
+            <div className="space-y-4">
+              <div className="bg-slate-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-slate-800 mb-2">Approved Amount Calculation</h4>
+                <div className="space-y-2">
+                  <div className="text-sm text-slate-600">
+                    <span className="font-medium">Formula:</span> WIR Value × BOQ Unit Rate × Breakdown Percentage
+                  </div>
+                  <div className="text-sm text-slate-600">
+                    <span className="font-medium">WIR Value:</span> {formatCurrency(calculationDetails.wir.value || 0)}
+                  </div>
+                  {calculationDetails.equation && (
+                    <div className="bg-white p-3 border rounded text-sm font-mono">
+                      {calculationDetails.equation}
+                    </div>
+                  )}
+                  <div className="text-lg font-semibold text-slate-900 pt-2 border-t">
+                    <span className="text-slate-600">Final Approved Amount:</span> {' '}
+                    {calculationDetails.amount ? formatCurrency(calculationDetails.amount) : 'N/A'}
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
         </DialogContent>
       </Dialog>

@@ -71,7 +71,7 @@ export function calculateWIRAmount(wir: WIR, breakdownItems: BreakdownItem[], bo
   let totalAmount = 0;
   let equations: string[] = [];
 
-  // Use selected breakdown items if available, otherwise fall back to BOQ items
+  // Use selected breakdown items if available
   if (wir.selectedBreakdownItems && wir.selectedBreakdownItems.length > 0) {
     console.log('Processing selected breakdown items:', wir.selectedBreakdownItems);
     
@@ -99,7 +99,7 @@ export function calculateWIRAmount(wir: WIR, breakdownItems: BreakdownItem[], bo
         continue;
       }
       
-      // New formula: WIR Value × BOQ Unit Rate × Breakdown Percentage (as decimal)
+      // Formula: WIR Value × BOQ Unit Rate × Breakdown Percentage (as decimal)
       const breakdownPercentage = breakdown.percentage / 100;
       const wirValue = wir.value || 0;
       const unitRate = boqItem.unitRate || 0;
@@ -117,7 +117,7 @@ export function calculateWIRAmount(wir: WIR, breakdownItems: BreakdownItem[], bo
       equations.push(`${breakdown.description}: ${equation}`);
     }
   } else {
-    // Fall back to original calculation for BOQ items
+    // Fall back to original calculation for BOQ items if no breakdown items selected
     const boqItemIds = wir.linkedBOQItems && wir.linkedBOQItems.length > 0 ? wir.linkedBOQItems : [wir.boqItemId];
     console.log('Processing BOQ item IDs (fallback):', boqItemIds);
     

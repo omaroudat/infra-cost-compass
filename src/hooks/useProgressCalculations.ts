@@ -1,5 +1,6 @@
 
 import { BOQItem, BreakdownItem, WIR, BOQProgress } from '@/types';
+import { calculateWIRAmount } from '@/utils/calculations';
 
 export const useProgressCalculations = (
   boqItems: BOQItem[],
@@ -50,14 +51,15 @@ export const useProgressCalculations = (
         totalApprovedAmount = calculateChildrenApprovedAmount(boqItem);
         console.log(`Parent item ${boqItem.code} approved amount: ${totalApprovedAmount}`);
       } else {
-        // For leaf items, calculate from direct WIRs
+        // For leaf items, calculate from direct WIRs using the proper calculation
         const relatedWIRs = wirs.filter(wir => 
           (wir.linkedBOQItems && wir.linkedBOQItems.includes(boqItem.id)) ||
           (wir.boqItemId === boqItem.id && (wir.result === 'A' || wir.result === 'B'))
         );
         
         totalApprovedAmount = relatedWIRs.reduce((sum, wir) => {
-          const wirAmount = getWIRAmountForBOQ(wir, boqItem.id);
+          const calculation = calculateWIRAmount(wir, breakdownItems, boqItems);
+          const wirAmount = calculation.amount || 0;
           console.log(`Leaf item ${boqItem.code}, WIR ${wir.id} amount: ${wirAmount}`);
           return sum + wirAmount;
         }, 0);
@@ -65,10 +67,10 @@ export const useProgressCalculations = (
         console.log(`Leaf item ${boqItem.code} total approved amount: ${totalApprovedAmount}`);
       }
       
-      // Calculate BOQ total amount - FIXED: Use correct calculation for parents
+      // Calculate BOQ total amount
       const boqTotalAmount = calculateBOQTotalAmount(boqItem);
       
-      // Calculate completion percentage based on amount - FIXED: Use totalApprovedAmount directly
+      // Calculate completion percentage based on amount
       const completionPercentage = boqTotalAmount > 0 
         ? Math.min((totalApprovedAmount / boqTotalAmount) * 100, 100)
         : 0;
@@ -101,7 +103,7 @@ export const useProgressCalculations = (
     console.log(`Calculating children approved amount for: ${boqItem.code} (${boqItem.id})`);
     
     if (!boqItem.children || boqItem.children.length === 0) {
-      // Leaf item - calculate from WIRs
+      // Leaf item - calculate from WIRs using proper calculation
       console.log(`${boqItem.code} is a leaf item, calculating from WIRs`);
       const relatedWIRs = wirs.filter(wir => 
         (wir.linkedBOQItems && wir.linkedBOQItems.includes(boqItem.id)) ||
@@ -111,7 +113,8 @@ export const useProgressCalculations = (
       console.log(`Found ${relatedWIRs.length} related WIRs for ${boqItem.code}`);
       
       const amount = relatedWIRs.reduce((sum, wir) => {
-        const wirAmount = getWIRAmountForBOQ(wir, boqItem.id);
+        const calculation = calculateWIRAmount(wir, breakdownItems, boqItems);
+        const wirAmount = calculation.amount || 0;
         console.log(`WIR ${wir.id} contributes ${wirAmount} to ${boqItem.code}`);
         return sum + wirAmount;
       }, 0);
@@ -147,7 +150,8 @@ export const useProgressCalculations = (
       );
       
       const breakdownAmount = breakdownWIRs.reduce((sum, wir) => {
-        return sum + getWIRAmountForBOQ(wir, boqItem.id);
+        const calculation = calculateWIRAmount(wir, breakdownItems, boqItems);
+        return sum + (calculation.amount || 0);
       }, 0);
       
       const expectedAmount = (boqTotalAmount * (breakdown.percentage || 0)) / 100;
@@ -187,10 +191,10 @@ export const useProgressCalculations = (
       return 0;
     }
     
-    // FIXED: Use the WIR value directly as the approved amount
-    // The calculatedAmount should represent the monetary value, not a calculation based on unit rates
-    const amount = wir.calculatedAmount || wir.value || 0;
-    console.log(`WIR ${wir.id} approved amount: ${amount} (calculatedAmount: ${wir.calculatedAmount}, value: ${wir.value})`);
+    // Use the proper calculation method
+    const calculation = calculateWIRAmount(wir, breakdownItems, boqItems);
+    const amount = calculation.amount || 0;
+    console.log(`WIR ${wir.id} approved amount: ${amount}`);
     
     // If WIR is linked to multiple BOQ items, divide the amount proportionally
     if (wir.linkedBOQItems && wir.linkedBOQItems.length > 1 && wir.linkedBOQItems.includes(boqId)) {

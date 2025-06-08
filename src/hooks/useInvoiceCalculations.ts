@@ -1,6 +1,8 @@
 
 import { useMemo } from 'react';
 import { WIR, BOQItem } from '@/types';
+import { calculateWIRAmount } from '@/utils/calculations';
+import { useAppContext } from '@/context/AppContext';
 
 export interface MonthlyInvoiceData {
   month: string;
@@ -11,6 +13,8 @@ export interface MonthlyInvoiceData {
 }
 
 export const useInvoiceCalculations = (wirs: WIR[], boqItems: BOQItem[]) => {
+  const { breakdownItems } = useAppContext();
+  
   const flattenedBOQItems = useMemo(() => {
     const result: BOQItem[] = [];
     const flattenItems = (items: BOQItem[]) => {
@@ -86,18 +90,18 @@ export const useInvoiceCalculations = (wirs: WIR[], boqItems: BOQItem[]) => {
     console.log('Current month WIRs:', currentMonthWIRs.length, currentMonthWIRs);
     console.log('Previous WIRs:', previousWIRs.length, previousWIRs);
 
-    // Calculate current month amount
+    // Calculate current month amount using proper calculation
     const currentAmount = currentMonthWIRs.reduce((sum, wir) => {
-      // Use calculatedAmount if available, otherwise use value
-      const amount = wir.calculatedAmount || wir.value || 0;
+      const calculation = calculateWIRAmount(wir, breakdownItems || [], boqItems || []);
+      const amount = calculation.amount || 0;
       console.log('Current month WIR amount:', wir.id, amount);
       return sum + amount;
     }, 0);
 
-    // Calculate previous amount
+    // Calculate previous amount using proper calculation
     const previousAmount = previousWIRs.reduce((sum, wir) => {
-      // Use calculatedAmount if available, otherwise use value
-      const amount = wir.calculatedAmount || wir.value || 0;
+      const calculation = calculateWIRAmount(wir, breakdownItems || [], boqItems || []);
+      const amount = calculation.amount || 0;
       console.log('Previous WIR amount:', wir.id, amount);
       return sum + amount;
     }, 0);
