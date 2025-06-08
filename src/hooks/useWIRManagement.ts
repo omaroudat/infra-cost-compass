@@ -150,7 +150,7 @@ export const useWIRManagement = () => {
     };
 
     // Create revision with the specific ID
-    addWIR(revisionWIR as Omit<WIR, 'calculatedAmount' | 'breakdownApplied' | 'calculationEquation'>);
+    addWIR(revisionWIR as Omit<WIR, 'calculatedAmount' | 'breakdownApplied'>);
     
     toast.success(`Revision request created: ${revisionId}`);
   };
@@ -175,7 +175,10 @@ export const useWIRManagement = () => {
       updateWIR(editingWIR, updates);
       toast.success(isSubmittingResult ? 'Result submitted successfully.' : 'WIR updated successfully.');
     } else {
-      addWIR(newWIR as Omit<WIR, 'id' | 'calculatedAmount' | 'breakdownApplied' | 'calculationEquation'>);
+      // For regular WIR creation (not revisions), don't include ID
+      const wirToAdd = { ...newWIR };
+      delete wirToAdd.id; // Remove id field for regular creation
+      addWIR(wirToAdd as Omit<WIR, 'calculatedAmount' | 'breakdownApplied'>);
       toast.success('WIR added successfully.');
     }
     
