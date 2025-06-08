@@ -114,21 +114,19 @@ export const useWIRManagement = () => {
       return;
     }
     
-    // Get the base WIR ID (remove any existing revision suffix)
-    const baseWIRId = wir.originalWIRId || wir.id.split('_R')[0];
+    // Get the base WIR ID (remove any existing revision suffix from wir_number)
+    const baseWIRNumber = wir.id.split('_R')[0];
     
-    // Find existing revisions for this base WIR
+    // Find existing revisions for this base WIR by checking wir_number field
     const existingRevisions = wirs.filter(w => {
-      const wOriginalId = w.originalWIRId || w.id.split('_R')[0];
-      return wOriginalId === baseWIRId && w.id.includes('_R');
+      return w.id && w.id.includes('_R') && w.parentWIRId === wir.id;
     });
     
     // Calculate next revision number
     const revisionNumber = existingRevisions.length + 1;
-    const revisionId = `${baseWIRId}_R${revisionNumber}`;
+    const revisionWIRNumber = `${baseWIRNumber}_R${revisionNumber}`;
     
     const revisionWIR = {
-      id: revisionId, // This will be used by addWIR function
       boqItemId: wir.boqItemId,
       description: wir.description,
       submittalDate: new Date().toISOString().split('T')[0],
@@ -143,19 +141,17 @@ export const useWIRManagement = () => {
       selectedBreakdownItems: wir.selectedBreakdownItems,
       parentWIRId: wir.id,
       revisionNumber: revisionNumber,
-      originalWIRId: baseWIRId,
+      originalWIRId: wir.originalWIRId || wir.id,
       lengthOfLine: wir.lengthOfLine,
       diameterOfLine: wir.diameterOfLine,
-      lineNo: wir.lineNo
+      lineNo: wir.lineNo,
+      id: revisionWIRNumber // This will be used as wir_number in the database
     };
 
-    // Remove the id field before passing to addWIR since the function expects it without id
-    const { id, ...revisionWIRWithoutId } = revisionWIR;
+    // Add the revision WIR - the addWIR function will handle the custom ID properly
+    addWIR(revisionWIR as Omit<WIR, 'calculatedAmount' | 'breakdownApplied'>);
     
-    // Pass the custom ID separately - the addWIR function will handle it
-    addWIR({ ...revisionWIRWithoutId, id: revisionId } as any);
-    
-    toast.success(`Revision request created: ${revisionId}`);
+    toast.success(`Revision request created: ${revisionWIRNumber}`);
   };
   
   const handleAddWIR = () => {
