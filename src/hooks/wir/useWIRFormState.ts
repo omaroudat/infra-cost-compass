@@ -20,7 +20,8 @@ export const useWIRFormState = () => {
     linkedBOQItems: [],
     lengthOfLine: 0,
     diameterOfLine: 0,
-    lineNo: ''
+    lineNo: '',
+    wirNumber: '' // Add custom WIR number field
   });
 
   const resetForm = () => {
@@ -38,7 +39,8 @@ export const useWIRFormState = () => {
       linkedBOQItems: [],
       lengthOfLine: 0,
       diameterOfLine: 0,
-      lineNo: ''
+      lineNo: '',
+      wirNumber: '' // Reset custom WIR number field
     });
     setEditingWIR(null);
     setIsSubmittingResult(false);

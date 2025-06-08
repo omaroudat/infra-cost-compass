@@ -1,3 +1,4 @@
+
 export type BOQItem = {
   id: string;
   code: string;
@@ -43,6 +44,7 @@ export type WIRResult = 'A' | 'B' | 'C';
 
 export type WIR = {
   id: string;
+  wirNumber?: string; // Custom WIR number field
   boqItemId: string;
   description: string;
   descriptionAr?: string;

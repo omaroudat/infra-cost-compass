@@ -4,12 +4,14 @@ import { WIR, BOQItem } from '@/types';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import WIRBasicInfoForm from './WIRBasicInfoForm';
 import WIRLocationForm from './WIRLocationForm';
 import WIRResultForm from './WIRResultForm';
 import WIRFormActions from './WIRFormActions';
 import WIRBreakdownSelection from './WIRBreakdownSelection';
-import { Package, MapPin, Settings, CheckCircle } from 'lucide-react';
+import { Package, MapPin, Settings, CheckCircle, Hash } from 'lucide-react';
 
 interface WIRFormProps {
   newWIR: Partial<WIR>;
@@ -82,6 +84,36 @@ const WIRForm: React.FC<WIRFormProps> = ({
 
   return (
     <div className="space-y-6 max-h-[75vh] overflow-y-auto pr-1">
+      {/* WIR Number Configuration - Only show for creation mode */}
+      {isCreationMode && (
+        <Card className="border-2 border-indigo-200 shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg font-semibold text-indigo-800 flex items-center gap-2">
+              <Hash className="w-5 h-5" />
+              WIR Number Configuration
+            </CardTitle>
+            <CardDescription className="text-sm text-indigo-600">
+              Optionally specify a custom WIR number, or leave blank for auto-generation
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-2">
+              <Label htmlFor="wirNumber">Custom WIR Number (Optional)</Label>
+              <Input
+                id="wirNumber"
+                type="text"
+                placeholder="e.g., WIR-2024-001"
+                value={newWIR.wirNumber || ''}
+                onChange={(e) => setNewWIR(prev => ({ ...prev, wirNumber: e.target.value }))}
+              />
+              <p className="text-xs text-gray-500">
+                Leave empty to auto-generate a unique WIR number
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* BOQ Item Selection */}
       <Card className="border-2 border-blue-200 shadow-sm">
         <CardHeader className="pb-4">

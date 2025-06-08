@@ -25,13 +25,11 @@ export const useWIRRevisions = () => {
       return;
     }
     
-    // Get the base WIR ID (remove any existing revision suffix from wir_number)
+    // Get the base WIR number (remove any existing revision suffix from wir_number)
     const baseWIRNumber = wir.id.split('_R')[0];
     
-    // Find existing revisions for this base WIR by checking wir_number field
-    const existingRevisions = wirs.filter(w => {
-      return w.id && w.id.includes('_R') && w.parentWIRId === wir.id;
-    });
+    // Find existing revisions for this base WIR by checking parentWIRId
+    const existingRevisions = wirs.filter(w => w.parentWIRId === wir.id);
     
     // Calculate next revision number
     const revisionNumber = existingRevisions.length + 1;
@@ -56,10 +54,11 @@ export const useWIRRevisions = () => {
       lengthOfLine: wir.lengthOfLine,
       diameterOfLine: wir.diameterOfLine,
       lineNo: wir.lineNo,
-      id: revisionWIRNumber // This will be used as wir_number in the database
+      // Set custom WIR number but let database generate UUID for id
+      wirNumber: revisionWIRNumber
     };
 
-    // Add the revision WIR - the addWIR function will handle the custom ID properly
+    // Add the revision WIR - don't include custom id field
     addWIR(revisionWIR as Omit<WIR, 'calculatedAmount' | 'breakdownApplied'>);
     
     toast.success(`Revision request created: ${revisionWIRNumber}`);

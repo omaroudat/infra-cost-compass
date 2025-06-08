@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { WIR } from '@/types';
@@ -24,6 +25,7 @@ export const useSupabaseWIRs = () => {
 
       const transformedData = (data || []).map(item => ({
         id: item.id,
+        wirNumber: item.wir_number,
         boqItemId: item.boq_item_id,
         description: item.description,
         descriptionAr: item.description_ar,
@@ -60,12 +62,11 @@ export const useSupabaseWIRs = () => {
 
   const addWIR = async (wir: Omit<WIR, 'calculatedAmount' | 'breakdownApplied'>) => {
     try {
-      // Use provided ID if it exists (for revisions), otherwise generate a new WIR number
-      const wirId = wir.id || generateWIRNumber();
+      // Use provided WIR number if it exists, otherwise generate a new one
+      const wirNumber = wir.wirNumber || generateWIRNumber();
       
       const insertData = {
-        id: wirId, // Use custom ID for revisions
-        wir_number: wirId,
+        wir_number: wirNumber,
         boq_item_id: wir.boqItemId,
         description: wir.description,
         description_ar: wir.descriptionAr,
@@ -111,6 +112,7 @@ export const useSupabaseWIRs = () => {
       const { error } = await supabase
         .from('wirs')
         .update({
+          wir_number: updates.wirNumber,
           description: updates.description,
           description_ar: updates.descriptionAr,
           submittal_date: updates.submittalDate,

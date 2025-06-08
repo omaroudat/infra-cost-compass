@@ -23,7 +23,8 @@ export const useWIROperations = () => {
       linkedBOQItems: wir.linkedBOQItems || [wir.boqItemId],
       lengthOfLine: wir.lengthOfLine || 0,
       diameterOfLine: wir.diameterOfLine || 0,
-      lineNo: wir.lineNo || ''
+      lineNo: wir.lineNo || '',
+      wirNumber: wir.wirNumber || '' // Include WIR number for editing
     });
     setEditingWIR(wir.id);
     setIsSubmittingResult(false);
@@ -46,7 +47,8 @@ export const useWIROperations = () => {
       linkedBOQItems: wir.linkedBOQItems || [wir.boqItemId],
       lengthOfLine: wir.lengthOfLine || 0,
       diameterOfLine: wir.diameterOfLine || 0,
-      lineNo: wir.lineNo || ''
+      lineNo: wir.lineNo || '',
+      wirNumber: wir.wirNumber || '' // Include WIR number for result submission
     });
     setEditingWIR(wir.id);
     setIsSubmittingResult(true);
@@ -73,9 +75,17 @@ export const useWIROperations = () => {
       updateWIR(editingWIR, updates);
       toast.success(isSubmittingResult ? 'Result submitted successfully.' : 'WIR updated successfully.');
     } else {
-      // For regular WIR creation (not revisions), don't include ID
+      // For regular WIR creation, include custom WIR number if provided
       const wirToAdd = { ...newWIR };
-      delete wirToAdd.id; // Remove id field for regular creation
+      
+      // If no custom WIR number is provided, let the backend generate one
+      if (!wirToAdd.wirNumber || wirToAdd.wirNumber.trim() === '') {
+        delete wirToAdd.wirNumber;
+      }
+      
+      // Don't include id field for regular creation
+      delete wirToAdd.id;
+      
       addWIR(wirToAdd as Omit<WIR, 'calculatedAmount' | 'breakdownApplied'>);
       toast.success('WIR added successfully.');
     }
