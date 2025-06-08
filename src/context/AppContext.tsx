@@ -23,7 +23,7 @@ interface AppContextType {
   addPercentageAdjustment: (item: Omit<BreakdownItem, 'id'>) => Promise<any>; // Alias
   updatePercentageAdjustment: (id: string, updates: Partial<BreakdownItem>) => Promise<void>; // Alias
   deletePercentageAdjustment: (id: string) => Promise<void>; // Alias
-  addWIR: (wir: Omit<WIR, 'id' | 'calculatedAmount' | 'breakdownApplied'>) => Promise<any>;
+  addWIR: (wir: Omit<WIR, 'calculatedAmount' | 'breakdownApplied'>) => Promise<any>;
   updateWIR: (id: string, updates: Partial<WIR>) => Promise<void>;
   deleteWIR: (id: string) => Promise<void>;
   addContractor: (contractor: Omit<Contractor, 'id' | 'createdAt'>) => Promise<any>;

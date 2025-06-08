@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { WIR } from '@/types';
@@ -59,35 +58,39 @@ export const useSupabaseWIRs = () => {
     }
   };
 
-  const addWIR = async (wir: Omit<WIR, 'id' | 'calculatedAmount' | 'breakdownApplied'>) => {
+  const addWIR = async (wir: Omit<WIR, 'calculatedAmount' | 'breakdownApplied'>) => {
     try {
-      const wirNumber = generateWIRNumber();
+      // Use provided ID if it exists (for revisions), otherwise generate a new WIR number
+      const wirId = wir.id || generateWIRNumber();
       
+      const insertData = {
+        id: wirId, // Use custom ID for revisions
+        wir_number: wirId,
+        boq_item_id: wir.boqItemId,
+        description: wir.description,
+        description_ar: wir.descriptionAr,
+        submittal_date: wir.submittalDate,
+        received_date: wir.receivedDate,
+        status: wir.status,
+        result: wir.result,
+        status_conditions: wir.statusConditions,
+        contractor: wir.contractor,
+        engineer: wir.engineer,
+        length_of_line: wir.lengthOfLine,
+        diameter_of_line: wir.diameterOfLine,
+        line_no: wir.lineNo,
+        region: wir.region,
+        value: wir.value,
+        parent_wir_id: wir.parentWIRId,
+        revision_number: wir.revisionNumber,
+        original_wir_id: wir.originalWIRId,
+        linked_boq_items: wir.linkedBOQItems,
+        selected_breakdown_items: wir.selectedBreakdownItems
+      };
+
       const { data, error } = await supabase
         .from('wirs')
-        .insert({
-          wir_number: wirNumber,
-          boq_item_id: wir.boqItemId,
-          description: wir.description,
-          description_ar: wir.descriptionAr,
-          submittal_date: wir.submittalDate,
-          received_date: wir.receivedDate,
-          status: wir.status,
-          result: wir.result,
-          status_conditions: wir.statusConditions,
-          contractor: wir.contractor,
-          engineer: wir.engineer,
-          length_of_line: wir.lengthOfLine,
-          diameter_of_line: wir.diameterOfLine,
-          line_no: wir.lineNo,
-          region: wir.region,
-          value: wir.value,
-          parent_wir_id: wir.parentWIRId,
-          revision_number: wir.revisionNumber,
-          original_wir_id: wir.originalWIRId,
-          linked_boq_items: wir.linkedBOQItems,
-          selected_breakdown_items: wir.selectedBreakdownItems
-        })
+        .insert(insertData)
         .select()
         .single();
 
