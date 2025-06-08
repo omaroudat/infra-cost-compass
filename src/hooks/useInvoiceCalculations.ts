@@ -30,7 +30,27 @@ export const useInvoiceCalculations = (wirs: WIR[], boqItems: BOQItem[]) => {
   }, [flattenedBOQItems]);
 
   const approvedWIRs = useMemo(() => {
-    return wirs.filter(wir => wir.result === 'A' && wir.calculatedAmount !== null);
+    const filtered = wirs.filter(wir => {
+      // Include WIRs with result 'A' (approved) or 'B' (conditional)
+      const isApproved = wir.result === 'A' || wir.result === 'B';
+      // Ensure we have a valid amount to work with
+      const hasAmount = (wir.calculatedAmount && wir.calculatedAmount > 0) || (wir.value && wir.value > 0);
+      
+      console.log('WIR evaluation:', {
+        id: wir.id,
+        result: wir.result,
+        isApproved,
+        calculatedAmount: wir.calculatedAmount,
+        value: wir.value,
+        hasAmount,
+        receivedDate: wir.receivedDate
+      });
+      
+      return isApproved && hasAmount;
+    });
+    
+    console.log('Approved WIRs found:', filtered.length, filtered);
+    return filtered;
   }, [wirs]);
 
   const getAvailableMonths = (): string[] => {
@@ -43,11 +63,15 @@ export const useInvoiceCalculations = (wirs: WIR[], boqItems: BOQItem[]) => {
       }
     });
     
+    console.log('Available months:', Array.from(months).sort());
     return Array.from(months).sort();
   };
 
   const getMonthlyInvoiceData = (targetMonth: string): MonthlyInvoiceData | null => {
     if (!targetMonth) return null;
+
+    console.log('Calculating invoice data for month:', targetMonth);
+    console.log('Total approved WIRs:', approvedWIRs.length);
 
     // Get WIRs approved in the target month
     const currentMonthWIRs = approvedWIRs.filter(wir => 
@@ -59,13 +83,30 @@ export const useInvoiceCalculations = (wirs: WIR[], boqItems: BOQItem[]) => {
       wir.receivedDate && wir.receivedDate.slice(0, 7) < targetMonth
     );
 
-    const currentAmount = currentMonthWIRs.reduce((sum, wir) => 
-      sum + (wir.calculatedAmount || 0), 0
-    );
+    console.log('Current month WIRs:', currentMonthWIRs.length, currentMonthWIRs);
+    console.log('Previous WIRs:', previousWIRs.length, previousWIRs);
 
-    const previousAmount = previousWIRs.reduce((sum, wir) => 
-      sum + (wir.calculatedAmount || 0), 0
-    );
+    // Calculate current month amount
+    const currentAmount = currentMonthWIRs.reduce((sum, wir) => {
+      // Use calculatedAmount if available, otherwise use value
+      const amount = wir.calculatedAmount || wir.value || 0;
+      console.log('Current month WIR amount:', wir.id, amount);
+      return sum + amount;
+    }, 0);
+
+    // Calculate previous amount
+    const previousAmount = previousWIRs.reduce((sum, wir) => {
+      // Use calculatedAmount if available, otherwise use value
+      const amount = wir.calculatedAmount || wir.value || 0;
+      console.log('Previous WIR amount:', wir.id, amount);
+      return sum + amount;
+    }, 0);
+
+    console.log('Calculated amounts:', {
+      currentAmount,
+      previousAmount,
+      totalBOQAmount
+    });
 
     return {
       month: targetMonth,
