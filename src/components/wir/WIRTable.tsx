@@ -90,7 +90,7 @@ const WIRTable: React.FC<WIRTableProps> = ({
       return false;
     }
     
-    // Check if this WIR already has revisions
+    // Check if this WIR already has revisions (using underscore format)
     const hasRevisions = wirs.some(w => w.parentWIRId === wir.id);
     return !hasRevisions;
   };

@@ -116,17 +116,17 @@ export const useWIRManagement = () => {
     }
     
     // Get the base WIR ID (remove any existing revision suffix)
-    const baseWIRId = wir.originalWIRId || wir.id.split('-R')[0];
+    const baseWIRId = wir.originalWIRId || wir.id.split('_R')[0];
     
     // Find existing revisions for this base WIR
     const existingRevisions = wirs.filter(w => {
-      const wOriginalId = w.originalWIRId || w.id.split('-R')[0];
-      return wOriginalId === baseWIRId && w.id.includes('-R');
+      const wOriginalId = w.originalWIRId || w.id.split('_R')[0];
+      return wOriginalId === baseWIRId && w.id.includes('_R');
     });
     
     // Calculate next revision number
     const revisionNumber = existingRevisions.length + 1;
-    const revisionId = `${baseWIRId}-R${revisionNumber}`;
+    const revisionId = `${baseWIRId}_R${revisionNumber}`;
     
     const revisionWIR = {
       boqItemId: wir.boqItemId,
