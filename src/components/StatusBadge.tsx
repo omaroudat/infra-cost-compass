@@ -8,7 +8,7 @@ type StatusInfo = {
 };
 
 const statusMap: Record<WIRResult, StatusInfo> = {
-  'A': { color: 'bg-status-approved', icon: <Check className="h-3.5 w-3.5" /> },
+  'A': { color: 'bg-green-500', icon: <Check className="h-3.5 w-3.5" /> },
   'B': { color: 'bg-status-conditional', icon: <CheckCheck className="h-3.5 w-3.5" /> },
   'C': { color: 'bg-status-rejected', icon: <X className="h-3.5 w-3.5" /> }
 };

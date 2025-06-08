@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { WIR, BOQItem } from '@/types';
 import { useAppContext } from '@/context/AppContext';
@@ -129,6 +128,7 @@ export const useWIRManagement = () => {
     const revisionId = `${baseWIRId}_R${revisionNumber}`;
     
     const revisionWIR = {
+      id: revisionId,
       boqItemId: wir.boqItemId,
       description: wir.description,
       submittalDate: new Date().toISOString().split('T')[0],
@@ -140,6 +140,7 @@ export const useWIRManagement = () => {
       region: wir.region,
       value: wir.value,
       linkedBOQItems: wir.linkedBOQItems,
+      selectedBreakdownItems: wir.selectedBreakdownItems,
       parentWIRId: wir.id,
       revisionNumber: revisionNumber,
       originalWIRId: baseWIRId,
@@ -149,15 +150,7 @@ export const useWIRManagement = () => {
     };
 
     // Create revision with the specific ID
-    const newRevision = addWIR(revisionWIR as Omit<WIR, 'id' | 'calculatedAmount' | 'breakdownApplied' | 'calculationEquation'>);
-    
-    // Update the revision ID in context after creation
-    setTimeout(() => {
-      const createdRevision = wirs.find(w => w.parentWIRId === wir.id && w.revisionNumber === revisionNumber);
-      if (createdRevision && createdRevision.id !== revisionId) {
-        updateWIR(createdRevision.id, { id: revisionId });
-      }
-    }, 100);
+    addWIR(revisionWIR as Omit<WIR, 'calculatedAmount' | 'breakdownApplied' | 'calculationEquation'>);
     
     toast.success(`Revision request created: ${revisionId}`);
   };
