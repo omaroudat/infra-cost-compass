@@ -19,6 +19,8 @@ export const useUserManagement = () => {
     setIsLoading(true);
     
     try {
+      console.log('Creating user with data:', userData);
+
       // Check if username already exists
       const { data: existingUsers, error: checkError } = await profileService.checkExistingProfile(userData.username);
       
@@ -39,19 +41,22 @@ export const useUserManagement = () => {
         username: userData.username,
         full_name: userData.fullName || userData.username,
         role: userData.role,
-        password: userData.password, // Note: In production, this should be hashed
+        password: userData.password, // Now this column exists
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
+
+      console.log('Creating profile:', newProfile);
 
       const { data: createdProfile, error: createError } = await profileService.createProfile(newProfile);
 
       if (createError) {
         console.error('Error creating user:', createError);
-        toast.error('Failed to create user');
+        toast.error(`Failed to create user: ${createError.message || 'Unknown error'}`);
         return { success: false, error: createError };
       }
 
+      console.log('User created successfully:', createdProfile);
       toast.success(`User ${userData.username} created successfully`);
       
       // Refresh users list
@@ -69,18 +74,13 @@ export const useUserManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      // This would need to be implemented in profileService
-      // For now, we'll use a mock approach since we don't have a get all profiles method
-      const mockUsers = [
-        {
-          id: '1',
-          username: 'admin',
-          full_name: 'Administrator',
-          role: 'admin',
-          created_at: new Date().toISOString()
-        }
-      ];
-      setUsers(mockUsers);
+      const { data, error } = await profileService.getAllProfiles();
+      if (error) {
+        console.error('Error fetching users:', error);
+        toast.error('Failed to fetch users');
+      } else {
+        setUsers(data || []);
+      }
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Failed to fetch users');
@@ -121,8 +121,14 @@ export const useUserManagement = () => {
     setIsLoading(true);
     
     try {
-      // This would need to be implemented in profileService
-      // For now, just show success message
+      const { data, error } = await profileService.deleteProfile(id);
+      
+      if (error) {
+        console.error('Error deleting user:', error);
+        toast.error('Failed to delete user');
+        return { success: false, error };
+      }
+
       toast.success('User deleted successfully');
       await fetchUsers();
       
