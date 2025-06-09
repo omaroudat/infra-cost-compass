@@ -25,15 +25,15 @@ export const useWIRRevisions = () => {
       return;
     }
     
-    // Get the base WIR number (remove any existing revision suffix from wir_number)
-    const baseWIRNumber = wir.id.split('_R')[0];
+    // Use the actual WIR number instead of the database ID
+    const baseWIRNumber = wir.wirNumber || wir.id;
     
     // Find existing revisions for this base WIR by checking parentWIRId
     const existingRevisions = wirs.filter(w => w.parentWIRId === wir.id);
     
     // Calculate next revision number
     const revisionNumber = existingRevisions.length + 1;
-    const revisionWIRNumber = `${baseWIRNumber}_R${revisionNumber}`;
+    const revisionWIRNumber = `${baseWIRNumber}-R${revisionNumber}`;
     
     const revisionWIR = {
       boqItemId: wir.boqItemId,
