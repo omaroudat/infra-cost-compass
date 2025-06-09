@@ -77,5 +77,31 @@ export const profileService = {
     } catch (error) {
       return { data: null, error };
     }
+  },
+
+  async getAllProfiles(): Promise<ServiceResult<Profile[]>> {
+    try {
+      const result = await supabase
+        .from('profiles')
+        .select('id, username, full_name, role, department, created_at, updated_at')
+        .order('created_at', { ascending: false });
+
+      return { data: result.data as Profile[] | null, error: result.error };
+    } catch (error) {
+      return { data: null, error };
+    }
+  },
+
+  async deleteProfile(id: string): Promise<ServiceResult<boolean>> {
+    try {
+      const result = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', id);
+
+      return { data: !result.error, error: result.error };
+    } catch (error) {
+      return { data: false, error };
+    }
   }
 };

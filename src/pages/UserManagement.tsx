@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/ManualAuthContext';
-import { UserRole, User } from '../types/auth';
+import { UserRole } from '../types/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,38 +9,41 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { UserPlus, UserX, UserCheck } from 'lucide-react';
+import { UserPlus, UserX, UserCheck, Trash2 } from 'lucide-react';
+import { useUserManagement } from '@/hooks/useUserManagement';
+import { profileService } from '@/hooks/auth/profileService';
 
 const UserManagement = () => {
   const { hasRole } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
   const [role, setRole] = useState<UserRole>('viewer');
+  const [users, setUsers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const { createUser } = useUserManagement();
 
-  // Mock user management functions (replace with actual implementation)
-  const addUser = (username: string, password: string, role: UserRole): boolean => {
-    // This is a placeholder - implement actual user creation logic
-    toast.success(`User ${username} created successfully with role ${role}`);
-    return true;
-  };
+  // Fetch users on component mount
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
-  const getAllUsers = (): User[] => {
-    // This is a placeholder - implement actual user fetching logic
-    return [
-      {
-        id: '1',
-        username: 'admin',
-        password: 'Admin123',
-        role: 'admin',
-        name: 'Administrator',
-        email: 'admin@example.com'
+  const fetchUsers = async () => {
+    try {
+      const { data, error } = await profileService.getAllProfiles();
+      if (error) {
+        console.error('Error fetching users:', error);
+        toast.error('Failed to fetch users');
+      } else {
+        setUsers(data || []);
       }
-    ];
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      toast.error('Failed to fetch users');
+    }
   };
 
-  const users = getAllUsers();
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Simple validation
@@ -48,14 +51,51 @@ const UserManagement = () => {
       toast.error('Username and password are required');
       return;
     }
+
+    if (password.length < 6) {
+      toast.error('Password must be at least 6 characters long');
+      return;
+    }
     
-    // Add user
-    const success = addUser(username, password, role);
-    if (success) {
+    setIsLoading(true);
+    
+    const result = await createUser({
+      username: username.trim(),
+      password: password.trim(),
+      role,
+      fullName: fullName.trim() || username.trim()
+    });
+    
+    if (result.success) {
       // Reset form
       setUsername('');
       setPassword('');
+      setFullName('');
       setRole('viewer');
+      // Refresh users list
+      await fetchUsers();
+    }
+    
+    setIsLoading(false);
+  };
+
+  const handleDeleteUser = async (userId: string, username: string) => {
+    if (!confirm(`Are you sure you want to delete user "${username}"?`)) {
+      return;
+    }
+
+    try {
+      const { data, error } = await profileService.deleteProfile(userId);
+      if (error) {
+        console.error('Error deleting user:', error);
+        toast.error('Failed to delete user');
+      } else {
+        toast.success(`User ${username} deleted successfully`);
+        await fetchUsers();
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast.error('Failed to delete user');
     }
   };
 
@@ -92,6 +132,17 @@ const UserManagement = () => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
+                disabled={isLoading}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Full Name (Optional)</Label>
+              <Input 
+                id="fullName"
+                placeholder="Enter full name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -99,15 +150,17 @@ const UserManagement = () => {
               <Input 
                 id="password"
                 type="password"
-                placeholder="Enter password"
+                placeholder="Enter password (min 6 characters)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                minLength={6}
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">Role</Label>
-              <Select value={role} onValueChange={(value: UserRole) => setRole(value)}>
+              <Select value={role} onValueChange={(value: UserRole) => setRole(value)} disabled={isLoading}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
@@ -123,7 +176,9 @@ const UserManagement = () => {
             </div>
           </CardContent>
           <CardFooter>
-            <Button type="submit" className="w-full">Create User</Button>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Creating User...' : 'Create User'}
+            </Button>
           </CardFooter>
         </form>
       </Card>
@@ -135,7 +190,7 @@ const UserManagement = () => {
             Existing Users
           </CardTitle>
           <CardDescription>
-            Manage system users
+            Manage system users ({users.length} users)
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -143,19 +198,49 @@ const UserManagement = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Username</TableHead>
+                <TableHead>Full Name</TableHead>
                 <TableHead>Role</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {users.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">{user.username}</TableCell>
+                  <TableCell>{user.full_name || '-'}</TableCell>
                   <TableCell>
-                    {user.role === 'admin' ? 'Administrator' : 
-                     user.role === 'editor' ? 'Editor' : 'Viewer'}
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      user.role === 'admin' ? 'bg-red-100 text-red-800' :
+                      user.role === 'editor' ? 'bg-blue-100 text-blue-800' : 
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {user.role === 'admin' ? 'Administrator' : 
+                       user.role === 'editor' ? 'Editor' : 'Viewer'}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    {user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDeleteUser(user.id, user.username)}
+                      disabled={user.username === 'admin'} // Prevent deleting the main admin
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
+              {users.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-muted-foreground">
+                    No users found
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
