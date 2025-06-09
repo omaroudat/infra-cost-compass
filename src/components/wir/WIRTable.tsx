@@ -40,22 +40,22 @@ const WIRTable: React.FC<WIRTableProps> = ({
   const { breakdownItems, boqItems } = useAppContext();
 
   const getBOQItemName = (boqItemId: string) => {
-    const item = flattenedBOQItems.find(item => item.id === boqItemId);
-    return item ? `${item.code} - ${item.description}` : 'Unknown BOQ Item';
+    const item = flattenedBOQItems.find(boq => boq.id === boqItemId);
+    return item ? `${item.code} - ${item.description}` : boqItemId;
   };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'SAR',
-      minimumFractionDigits: 2,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
     }).format(amount);
   };
 
-  const getApprovedAmount = (wir: WIR): { amount: number, equation: string } => {
+  const getApprovedAmount = (wir: WIR) => {
     if (wir.result === 'A' || wir.result === 'B') {
-      // Calculate the proper approved amount using the breakdown formula
-      const calculation = calculateWIRAmount(wir, breakdownItems || [], boqItems || []);
+      const calculation = calculateWIRAmount(wir, breakdownItems || [], boqItems);
       return {
         amount: calculation.amount || 0,
         equation: calculation.equation || ''
@@ -70,7 +70,7 @@ const WIRTable: React.FC<WIRTableProps> = ({
   };
 
   const handleShowCalculation = (wir: WIR) => {
-    const calculation = calculateWIRAmount(wir, breakdownItems || [], boqItems || []);
+    const calculation = calculateWIRAmount(wir, breakdownItems || [], boqItems);
     setCalculationDetails({
       wir,
       amount: calculation.amount,
@@ -83,16 +83,8 @@ const WIRTable: React.FC<WIRTableProps> = ({
     window.print();
   };
 
-  // Check if a WIR can have a revision requested
   const canRequestRevision = (wir: WIR) => {
-    // Can only request revision for completed WIRs with result 'C' (rejected)
-    if (wir.status !== 'completed' || wir.result !== 'C') {
-      return false;
-    }
-    
-    // Check if this WIR already has revisions (using underscore format)
-    const hasRevisions = wirs.some(w => w.parentWIRId === wir.id);
-    return !hasRevisions;
+    return wir.status === 'completed' && wir.result === 'C';
   };
 
   return (
@@ -101,7 +93,7 @@ const WIRTable: React.FC<WIRTableProps> = ({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>WIR ID</TableHead>
+              <TableHead>WIR Number</TableHead>
               <TableHead>BOQ Item</TableHead>
               <TableHead>Contractor</TableHead>
               <TableHead>Engineer</TableHead>
@@ -119,7 +111,7 @@ const WIRTable: React.FC<WIRTableProps> = ({
               
               return (
                 <TableRow key={wir.id}>
-                  <TableCell className="font-medium">{wir.id}</TableCell>
+                  <TableCell className="font-medium">{wir.wirNumber}</TableCell>
                   <TableCell className="max-w-xs truncate">
                     {getBOQItemName(wir.boqItemId)}
                   </TableCell>
@@ -228,7 +220,7 @@ const WIRTable: React.FC<WIRTableProps> = ({
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto print:max-w-none print:overflow-visible print:max-h-none">
           <DialogHeader className="print:hidden">
             <DialogTitle className="flex items-center justify-between">
-              <span>Print WIR - {selectedWIR?.id}</span>
+              <span>Print WIR - {selectedWIR?.wirNumber}</span>
               <Button onClick={handlePrintNow} className="ml-4">
                 <Printer className="h-4 w-4 mr-2" />
                 Print
@@ -247,7 +239,7 @@ const WIRTable: React.FC<WIRTableProps> = ({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Calculator className="h-5 w-5" />
-              Calculation Details - WIR {calculationDetails?.wir.id}
+              Calculation Details - WIR {calculationDetails?.wir.wirNumber}
             </DialogTitle>
           </DialogHeader>
           {calculationDetails && (

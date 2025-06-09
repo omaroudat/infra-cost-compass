@@ -8,9 +8,38 @@ export const useSupabaseWIRs = () => {
   const [wirs, setWIRs] = useState<WIR[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const generateWIRNumber = (): string => {
-    const timestamp = Date.now();
-    return `WIR-${timestamp}`;
+  const generateWIRNumber = async (): Promise<string> => {
+    const today = new Date();
+    const day = today.getDate().toString().padStart(2, '0');
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');
+    const year = today.getFullYear();
+    const datePrefix = `WIR-${day}-${month}-${year}`;
+    
+    // Get all WIRs with the same date prefix to find the next sequence number
+    const { data, error } = await supabase
+      .from('wirs')
+      .select('wir_number')
+      .like('wir_number', `${datePrefix}%`)
+      .order('wir_number', { ascending: false })
+      .limit(1);
+
+    if (error) {
+      console.error('Error fetching existing WIRs:', error);
+      // Fallback to 0001 if there's an error
+      return `${datePrefix}-0001`;
+    }
+
+    let sequenceNumber = 1;
+    if (data && data.length > 0) {
+      const lastWirNumber = data[0].wir_number;
+      const lastSequence = lastWirNumber.split('-').pop();
+      if (lastSequence) {
+        sequenceNumber = parseInt(lastSequence) + 1;
+      }
+    }
+
+    const formattedSequence = sequenceNumber.toString().padStart(4, '0');
+    return `${datePrefix}-${formattedSequence}`;
   };
 
   const fetchWIRs = async () => {
@@ -62,8 +91,13 @@ export const useSupabaseWIRs = () => {
 
   const addWIR = async (wir: Omit<WIR, 'calculatedAmount' | 'breakdownApplied'>) => {
     try {
-      // Use provided WIR number if it exists, otherwise generate a new one
-      const wirNumber = wir.wirNumber || generateWIRNumber();
+      // Generate WIR number if not provided or use provided one
+      let wirNumber;
+      if (wir.wirNumber && wir.wirNumber.trim() !== '') {
+        wirNumber = wir.wirNumber;
+      } else {
+        wirNumber = await generateWIRNumber();
+      }
       
       const insertData = {
         wir_number: wirNumber,
@@ -173,6 +207,7 @@ export const useSupabaseWIRs = () => {
     addWIR,
     updateWIR,
     deleteWIR,
-    refetch: fetchWIRs
+    refetch: fetchWIRs,
+    generateWIRNumber
   };
 };

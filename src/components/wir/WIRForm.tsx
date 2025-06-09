@@ -11,7 +11,7 @@ import WIRLocationForm from './WIRLocationForm';
 import WIRResultForm from './WIRResultForm';
 import WIRFormActions from './WIRFormActions';
 import WIRBreakdownSelection from './WIRBreakdownSelection';
-import { Package, MapPin, Settings, CheckCircle, Hash } from 'lucide-react';
+import { Package, MapPin, Settings, CheckCircle, Hash, Eye } from 'lucide-react';
 
 interface WIRFormProps {
   newWIR: Partial<WIR>;
@@ -78,51 +78,62 @@ const WIRForm: React.FC<WIRFormProps> = ({
   
   // Check if this is creation mode (no editing WIR)
   const isCreationMode = !editingWIR;
+  
+  // Check if this is a completed WIR (readonly mode)
+  const isCompletedWIR = editingWIR && newWIR.status === 'completed';
 
   // Check if BOQ item is selected to show breakdown selection
   const hasBOQItemSelected = newWIR.linkedBOQItems && newWIR.linkedBOQItems.length > 0;
 
   return (
     <div className="space-y-6 max-h-[75vh] overflow-y-auto pr-1">
-      {/* WIR Number Configuration - Only show for creation mode */}
-      {isCreationMode && (
-        <Card className="border-2 border-indigo-200 shadow-sm">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-semibold text-indigo-800 flex items-center gap-2">
-              <Hash className="w-5 h-5" />
-              WIR Number Configuration
-            </CardTitle>
-            <CardDescription className="text-sm text-indigo-600">
-              Optionally specify a custom WIR number, or leave blank for auto-generation
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="space-y-2">
-              <Label htmlFor="wirNumber">Custom WIR Number (Optional)</Label>
-              <Input
-                id="wirNumber"
-                type="text"
-                placeholder="e.g., WIR-2024-001"
-                value={newWIR.wirNumber || ''}
-                onChange={(e) => setNewWIR(prev => ({ ...prev, wirNumber: e.target.value }))}
-              />
-              <p className="text-xs text-gray-500">
-                Leave empty to auto-generate a unique WIR number
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* WIR Number Display - Show for all modes */}
+      <Card className={`border-2 shadow-sm ${isCompletedWIR ? 'border-blue-200 bg-blue-50' : 'border-indigo-200'}`}>
+        <CardHeader className="pb-4">
+          <CardTitle className={`text-lg font-semibold flex items-center gap-2 ${isCompletedWIR ? 'text-blue-800' : 'text-indigo-800'}`}>
+            {isCompletedWIR ? <Eye className="w-5 h-5" /> : <Hash className="w-5 h-5" />}
+            WIR Number {isCompletedWIR ? '(View Only)' : isCreationMode ? 'Configuration' : 'Information'}
+          </CardTitle>
+          <CardDescription className={`text-sm ${isCompletedWIR ? 'text-blue-600' : 'text-indigo-600'}`}>
+            {isCompletedWIR 
+              ? 'This WIR has been completed and is in read-only mode'
+              : isCreationMode 
+                ? 'Auto-generated WIR number (modifiable before submission)'
+                : 'WIR number for this inspection request'
+            }
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="space-y-2">
+            <Label htmlFor="wirNumber">WIR Number</Label>
+            <Input
+              id="wirNumber"
+              type="text"
+              placeholder="WIR-09-06-2025-0001"
+              value={newWIR.wirNumber || ''}
+              onChange={(e) => setNewWIR(prev => ({ ...prev, wirNumber: e.target.value }))}
+              disabled={!isCreationMode || isCompletedWIR}
+              className={isCompletedWIR ? 'bg-blue-50 border-blue-200' : ''}
+            />
+            <p className="text-xs text-gray-500">
+              {isCompletedWIR 
+                ? 'Completed WIR number (cannot be modified)'
+                : 'Format: WIR-DD-MM-YYYY-XXXX. Auto-generated but can be customized.'
+              }
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* BOQ Item Selection */}
-      <Card className="border-2 border-blue-200 shadow-sm">
+      <Card className={`border-2 shadow-sm ${isCompletedWIR ? 'border-blue-200 bg-blue-50' : 'border-blue-200'}`}>
         <CardHeader className="pb-4">
-          <CardTitle className="text-lg font-semibold text-blue-800 flex items-center gap-2">
+          <CardTitle className={`text-lg font-semibold flex items-center gap-2 ${isCompletedWIR ? 'text-blue-800' : 'text-blue-800'}`}>
             <Package className="w-5 h-5" />
             BOQ Item Selection
           </CardTitle>
-          <CardDescription className="text-sm text-blue-600">
-            Select the Bill of Quantities item for this work inspection
+          <CardDescription className={`text-sm ${isCompletedWIR ? 'text-blue-600' : 'text-blue-600'}`}>
+            {isCompletedWIR ? 'Selected BOQ item for this completed inspection' : 'Select the Bill of Quantities item for this work inspection'}
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
@@ -130,7 +141,7 @@ const WIRForm: React.FC<WIRFormProps> = ({
             newWIR={newWIR}
             setNewWIR={setNewWIR}
             flattenedBOQItems={flattenedBOQItems}
-            isResultSubmission={isResultSubmission}
+            isResultSubmission={isResultSubmission || isCompletedWIR}
             showOnlyBOQ={true}
           />
         </CardContent>
@@ -138,14 +149,14 @@ const WIRForm: React.FC<WIRFormProps> = ({
 
       {/* Breakdown Selection - Only show if BOQ item is selected */}
       {hasBOQItemSelected && (
-        <Card className="border-2 border-emerald-200 shadow-sm">
+        <Card className={`border-2 shadow-sm ${isCompletedWIR ? 'border-blue-200 bg-blue-50' : 'border-emerald-200'}`}>
           <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-semibold text-emerald-800 flex items-center gap-2">
+            <CardTitle className={`text-lg font-semibold flex items-center gap-2 ${isCompletedWIR ? 'text-blue-800' : 'text-emerald-800'}`}>
               <Settings className="w-5 h-5" />
-              Breakdown Sub-Items Selection
+              Breakdown Sub-Items {isCompletedWIR ? 'Selection' : 'Selection'}
             </CardTitle>
-            <CardDescription className="text-sm text-emerald-600">
-              Choose specific breakdown components if applicable
+            <CardDescription className={`text-sm ${isCompletedWIR ? 'text-blue-600' : 'text-emerald-600'}`}>
+              {isCompletedWIR ? 'Breakdown components selected for this completed WIR' : 'Choose specific breakdown components if applicable'}
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
@@ -153,20 +164,21 @@ const WIRForm: React.FC<WIRFormProps> = ({
               newWIR={newWIR}
               setNewWIR={setNewWIR}
               isResultSubmission={isResultSubmission}
+              isViewOnly={isCompletedWIR}
             />
           </CardContent>
         </Card>
       )}
 
       {/* Work Details */}
-      <Card className="border-2 border-purple-200 shadow-sm">
+      <Card className={`border-2 shadow-sm ${isCompletedWIR ? 'border-blue-200 bg-blue-50' : 'border-purple-200'}`}>
         <CardHeader className="pb-4">
-          <CardTitle className="text-lg font-semibold text-purple-800 flex items-center gap-2">
+          <CardTitle className={`text-lg font-semibold flex items-center gap-2 ${isCompletedWIR ? 'text-blue-800' : 'text-purple-800'}`}>
             <MapPin className="w-5 h-5" />
             Work Details
           </CardTitle>
-          <CardDescription className="text-sm text-purple-600">
-            Provide comprehensive information about the work inspection
+          <CardDescription className={`text-sm ${isCompletedWIR ? 'text-blue-600' : 'text-purple-600'}`}>
+            {isCompletedWIR ? 'Work inspection details (completed)' : 'Provide comprehensive information about the work inspection'}
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-0 space-y-6">
@@ -174,7 +186,7 @@ const WIRForm: React.FC<WIRFormProps> = ({
             newWIR={newWIR}
             setNewWIR={setNewWIR}
             flattenedBOQItems={flattenedBOQItems}
-            isResultSubmission={isResultSubmission}
+            isResultSubmission={isResultSubmission || isCompletedWIR}
             showOnlyBOQ={false}
           />
           
@@ -183,39 +195,54 @@ const WIRForm: React.FC<WIRFormProps> = ({
           <WIRLocationForm
             newWIR={newWIR}
             setNewWIR={setNewWIR}
-            isResultSubmission={isResultSubmission}
+            isResultSubmission={isResultSubmission || isCompletedWIR}
           />
         </CardContent>
       </Card>
       
-      {/* Inspection Results - Only show for result submission, NOT for creation */}
-      {isResultSubmission && !isCreationMode && (
-        <Card className="border-2 border-orange-200 shadow-sm">
+      {/* Inspection Results - Show for result submission OR completed WIRs */}
+      {(isResultSubmission || isCompletedWIR) && !isCreationMode && (
+        <Card className={`border-2 shadow-sm ${isCompletedWIR ? 'border-blue-200 bg-blue-50' : 'border-orange-200'}`}>
           <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-semibold text-orange-800 flex items-center gap-2">
+            <CardTitle className={`text-lg font-semibold flex items-center gap-2 ${isCompletedWIR ? 'text-blue-800' : 'text-orange-800'}`}>
               <CheckCircle className="w-5 h-5" />
               Inspection Results
             </CardTitle>
-            <CardDescription className="text-sm text-orange-600">
-              Record the inspection outcome and findings
+            <CardDescription className={`text-sm ${isCompletedWIR ? 'text-blue-600' : 'text-orange-600'}`}>
+              {isCompletedWIR ? 'Final inspection results' : 'Record the inspection outcome and findings'}
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
             <WIRResultForm
               newWIR={newWIR}
               setNewWIR={setNewWIR}
-              isResultSubmission={isResultSubmission}
+              isResultSubmission={isResultSubmission && !isCompletedWIR}
             />
           </CardContent>
         </Card>
       )}
       
-      <WIRFormActions
-        onCancel={onCancel}
-        onSubmit={handleSubmit}
-        isResultSubmission={isResultSubmission}
-        editingWIR={editingWIR}
-      />
+      {/* Only show form actions if not completed */}
+      {!isCompletedWIR && (
+        <WIRFormActions
+          onCancel={onCancel}
+          onSubmit={handleSubmit}
+          isResultSubmission={isResultSubmission}
+          editingWIR={editingWIR}
+        />
+      )}
+      
+      {/* Show close button for completed WIRs */}
+      {isCompletedWIR && (
+        <div className="flex justify-end pt-4">
+          <button
+            onClick={onCancel}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      )}
     </div>
   );
 };
