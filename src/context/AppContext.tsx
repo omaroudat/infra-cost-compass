@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext } from 'react';
 import { BOQItem, BreakdownItem, WIR, Contractor, Engineer } from '../types';
 import { useSupabaseBOQ } from '../hooks/useSupabaseBOQ';
@@ -26,6 +27,7 @@ interface AppContextType {
   addWIR: (wir: Omit<WIR, 'calculatedAmount' | 'breakdownApplied'>) => Promise<any>;
   updateWIR: (id: string, updates: Partial<WIR>) => Promise<void>;
   deleteWIR: (id: string) => Promise<void>;
+  generateWIRNumber: () => Promise<string>;
   addContractor: (contractor: Omit<Contractor, 'id' | 'createdAt'>) => Promise<any>;
   updateContractor: (id: string, updates: Partial<Contractor>) => Promise<void>;
   deleteContractor: (id: string) => Promise<void>;
@@ -64,6 +66,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     addWIR,
     updateWIR,
     deleteWIR,
+    generateWIRNumber,
     refetch: refetchWIRs
   } = useSupabaseWIRs();
 
@@ -135,6 +138,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     addWIR,
     updateWIR,
     deleteWIR,
+    generateWIRNumber,
     addContractor,
     updateContractor,
     deleteContractor,
