@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { generateFinancialSummary } from '../utils/calculations';
@@ -60,6 +59,7 @@ const Reports = () => {
   const totalApprovedAmount = filteredWirs.reduce((sum, w) => sum + getApprovedAmount(w), 0);
   const totalConditionalAmount = filteredWirs.reduce((sum, w) => sum + getConditionalAmount(w), 0);
   const totalRejectedCount = filteredWirs.filter(w => w.result === 'C').length;
+  const totalProjectValue = totalApprovedAmount + totalConditionalAmount;
   
   // Prepare data for charts
   const statusChartData = [
@@ -133,7 +133,6 @@ const Reports = () => {
   };
   
   const totalBOQValue = boqCategoryData.reduce((sum, item) => sum + item.boqAmount, 0);
-  const totalProjectValue = totalApprovedAmount + totalConditionalAmount;
   const completionRate = totalBOQValue > 0 ? (totalProjectValue / totalBOQValue) * 100 : 0;
   const approvalRate = filteredWirs.length > 0 ? (filteredWirs.filter(w => w.result === 'A').length / filteredWirs.length) * 100 : 0;
   
@@ -174,9 +173,24 @@ const Reports = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-green-700 text-sm font-medium mb-1">Approved Value</p>
-                  <p className="text-2xl font-bold text-green-900">{formatter.format(totalApprovedAmount)}</p>
-                  <p className="text-green-600 text-sm mt-1">{filteredWirs.filter(w => w.result === 'A').length} WIRs</p>
+                  <p className="text-green-700 text-sm font-medium mb-1">Total Approved Value</p>
+                  <p className="text-2xl font-bold text-green-900">{formatter.format(totalProjectValue)}</p>
+                  <div className="text-green-600 text-sm mt-2 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Approved:
+                      </span>
+                      <span className="font-medium">{formatter.format(totalApprovedAmount)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center">
+                        <Clock className="w-3 h-3 mr-1" />
+                        Conditional:
+                      </span>
+                      <span className="font-medium">{formatter.format(totalConditionalAmount)}</span>
+                    </div>
+                  </div>
                 </div>
                 <div className="p-3 bg-green-100 rounded-full">
                   <CheckCircle className="w-6 h-6 text-green-600" />
@@ -185,16 +199,16 @@ const Reports = () => {
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200">
+          <Card className="bg-gradient-to-br from-red-50 to-pink-50 border-red-200">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-amber-700 text-sm font-medium mb-1">Conditional Value</p>
-                  <p className="text-2xl font-bold text-amber-900">{formatter.format(totalConditionalAmount)}</p>
-                  <p className="text-amber-600 text-sm mt-1">{filteredWirs.filter(w => w.result === 'B').length} WIRs</p>
+                  <p className="text-red-700 text-sm font-medium mb-1">Rejected WIRs</p>
+                  <p className="text-2xl font-bold text-red-900">{totalRejectedCount}</p>
+                  <p className="text-red-600 text-sm mt-1">needs review</p>
                 </div>
-                <div className="p-3 bg-amber-100 rounded-full">
-                  <Clock className="w-6 h-6 text-amber-600" />
+                <div className="p-3 bg-red-100 rounded-full">
+                  <XCircle className="w-6 h-6 text-red-600" />
                 </div>
               </div>
             </CardContent>
