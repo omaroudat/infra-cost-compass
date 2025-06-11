@@ -25,11 +25,22 @@ export const useWIRRevisions = () => {
       return;
     }
     
-    // Use the actual WIR number instead of the database ID
-    const baseWIRNumber = wir.wirNumber || wir.id;
+    // Get the base WIR number (remove any existing revision suffixes)
+    let baseWIRNumber = wir.wirNumber || wir.id;
     
-    // Find existing revisions for this base WIR by checking parentWIRId
-    const existingRevisions = wirs.filter(w => w.parentWIRId === wir.id);
+    // If this WIR is already a revision, get the original base number
+    if (baseWIRNumber.includes('-R')) {
+      baseWIRNumber = baseWIRNumber.split('-R')[0];
+    }
+    
+    // Find the original WIR ID to track the revision chain
+    const originalWIRId = wir.originalWIRId || wir.id;
+    
+    // Find all existing revisions for this original WIR
+    const existingRevisions = wirs.filter(w => 
+      w.originalWIRId === originalWIRId || 
+      (w.id === originalWIRId && w.revisionNumber && w.revisionNumber > 0)
+    );
     
     // Calculate next revision number
     const revisionNumber = existingRevisions.length + 1;
@@ -50,7 +61,7 @@ export const useWIRRevisions = () => {
       selectedBreakdownItems: wir.selectedBreakdownItems,
       parentWIRId: wir.id,
       revisionNumber: revisionNumber,
-      originalWIRId: wir.originalWIRId || wir.id,
+      originalWIRId: originalWIRId,
       lengthOfLine: wir.lengthOfLine,
       diameterOfLine: wir.diameterOfLine,
       lineNo: wir.lineNo,
