@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { generateFinancialSummary } from '../utils/calculations';
@@ -100,13 +99,19 @@ const Reports = () => {
     };
   });
   
-  // Contractor and Engineer comparison data with updated success rate calculation
+  // Contractor and Engineer comparison data with corrected success rate calculation
   const contractorComparisonData = contractors.map(contractor => {
     const contractorWirs = wirs.filter(w => w.contractor === contractor);
     const approvedCount = contractorWirs.filter(w => w.result === 'A').length;
     const conditionalCount = contractorWirs.filter(w => w.result === 'B').length;
     const rejectedCount = contractorWirs.filter(w => w.result === 'C').length;
     const totalCount = contractorWirs.length;
+    const successRate = totalCount > 0 ? ((approvedCount + conditionalCount) / totalCount) * 100 : 0;
+    
+    // Debug logging
+    console.log(`Contractor: ${contractor}`);
+    console.log(`Total WIRs: ${totalCount}, Approved: ${approvedCount}, Conditional: ${conditionalCount}, Rejected: ${rejectedCount}`);
+    console.log(`Success Rate: ${successRate.toFixed(1)}%`);
     
     return {
       name: contractor,
@@ -114,7 +119,7 @@ const Reports = () => {
       conditional: conditionalCount,
       rejected: rejectedCount,
       totalAmount: contractorWirs.reduce((sum, w) => sum + (getApprovedAmount(w) + getConditionalAmount(w)), 0),
-      successRate: totalCount > 0 ? ((approvedCount + conditionalCount) / totalCount) * 100 : 0,
+      successRate,
     };
   });
   
@@ -124,6 +129,12 @@ const Reports = () => {
     const conditionalCount = engineerWirs.filter(w => w.result === 'B').length;
     const rejectedCount = engineerWirs.filter(w => w.result === 'C').length;
     const totalCount = engineerWirs.length;
+    const successRate = totalCount > 0 ? ((approvedCount + conditionalCount) / totalCount) * 100 : 0;
+    
+    // Debug logging
+    console.log(`Engineer: ${engineer}`);
+    console.log(`Total WIRs: ${totalCount}, Approved: ${approvedCount}, Conditional: ${conditionalCount}, Rejected: ${rejectedCount}`);
+    console.log(`Success Rate: ${successRate.toFixed(1)}%`);
     
     return {
       name: engineer,
@@ -131,7 +142,7 @@ const Reports = () => {
       conditional: conditionalCount,
       rejected: rejectedCount,
       totalAmount: engineerWirs.reduce((sum, w) => sum + (getApprovedAmount(w) + getConditionalAmount(w)), 0),
-      successRate: totalCount > 0 ? ((approvedCount + conditionalCount) / totalCount) * 100 : 0,
+      successRate,
     };
   });
   
