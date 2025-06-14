@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { generateFinancialSummary } from '../utils/calculations';
@@ -99,26 +100,38 @@ const Reports = () => {
     };
   });
   
-  // Contractor and Engineer comparison data
+  // Contractor and Engineer comparison data with updated success rate calculation
   const contractorComparisonData = contractors.map(contractor => {
     const contractorWirs = wirs.filter(w => w.contractor === contractor);
+    const approvedCount = contractorWirs.filter(w => w.result === 'A').length;
+    const conditionalCount = contractorWirs.filter(w => w.result === 'B').length;
+    const rejectedCount = contractorWirs.filter(w => w.result === 'C').length;
+    const totalCount = contractorWirs.length;
+    
     return {
       name: contractor,
-      approved: contractorWirs.filter(w => w.result === 'A').length,
-      conditional: contractorWirs.filter(w => w.result === 'B').length,
-      rejected: contractorWirs.filter(w => w.result === 'C').length,
+      approved: approvedCount,
+      conditional: conditionalCount,
+      rejected: rejectedCount,
       totalAmount: contractorWirs.reduce((sum, w) => sum + (getApprovedAmount(w) + getConditionalAmount(w)), 0),
+      successRate: totalCount > 0 ? ((approvedCount + conditionalCount) / totalCount) * 100 : 0,
     };
   });
   
   const engineerComparisonData = engineers.map(engineer => {
     const engineerWirs = wirs.filter(w => w.engineer === engineer);
+    const approvedCount = engineerWirs.filter(w => w.result === 'A').length;
+    const conditionalCount = engineerWirs.filter(w => w.result === 'B').length;
+    const rejectedCount = engineerWirs.filter(w => w.result === 'C').length;
+    const totalCount = engineerWirs.length;
+    
     return {
       name: engineer,
-      approved: engineerWirs.filter(w => w.result === 'A').length,
-      conditional: engineerWirs.filter(w => w.result === 'B').length,
-      rejected: engineerWirs.filter(w => w.result === 'C').length,
+      approved: approvedCount,
+      conditional: conditionalCount,
+      rejected: rejectedCount,
       totalAmount: engineerWirs.reduce((sum, w) => sum + (getApprovedAmount(w) + getConditionalAmount(w)), 0),
+      successRate: totalCount > 0 ? ((approvedCount + conditionalCount) / totalCount) * 100 : 0,
     };
   });
   
@@ -134,7 +147,7 @@ const Reports = () => {
   
   const totalBOQValue = boqCategoryData.reduce((sum, item) => sum + item.boqAmount, 0);
   const completionRate = totalBOQValue > 0 ? (totalProjectValue / totalBOQValue) * 100 : 0;
-  const approvalRate = filteredWirs.length > 0 ? (filteredWirs.filter(w => w.result === 'A').length / filteredWirs.length) * 100 : 0;
+  const approvalRate = filteredWirs.length > 0 ? ((filteredWirs.filter(w => w.result === 'A').length + filteredWirs.filter(w => w.result === 'B').length) / filteredWirs.length) * 100 : 0;
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
@@ -233,9 +246,9 @@ const Reports = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-purple-700 text-sm font-medium mb-1">Approval Rate</p>
+                  <p className="text-purple-700 text-sm font-medium mb-1">Success Rate</p>
                   <p className="text-2xl font-bold text-purple-900">{approvalRate.toFixed(1)}%</p>
-                  <p className="text-purple-600 text-sm mt-1">success rate</p>
+                  <p className="text-purple-600 text-sm mt-1">approved + conditional</p>
                 </div>
                 <div className="p-3 bg-purple-100 rounded-full">
                   <FileText className="w-6 h-6 text-purple-600" />
@@ -568,10 +581,7 @@ const Reports = () => {
                       </TableHeader>
                       <TableBody>
                         {contractorComparisonData.map((item, index) => {
-                          const totalWirs = item.approved + item.conditional + item.rejected;
-                          const approvalRate = totalWirs > 0 ? 
-                            ((item.approved / totalWirs) * 100).toFixed(1) + '%' :
-                            'N/A';
+                          const successRateFormatted = item.successRate.toFixed(1) + '%';
                           
                           return (
                             <TableRow key={index} className="hover:bg-slate-50">
@@ -595,8 +605,8 @@ const Reports = () => {
                                 {formatter.format(item.totalAmount)}
                               </TableCell>
                               <TableCell className="text-right font-semibold">
-                                <span className={`${parseFloat(approvalRate) >= 70 ? 'text-green-600' : parseFloat(approvalRate) >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>
-                                  {approvalRate}
+                                <span className={`${item.successRate >= 70 ? 'text-green-600' : item.successRate >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>
+                                  {successRateFormatted}
                                 </span>
                               </TableCell>
                             </TableRow>
@@ -623,15 +633,12 @@ const Reports = () => {
                           <TableHead className="font-semibold text-slate-700 text-center">Conditional</TableHead>
                           <TableHead className="font-semibold text-slate-700 text-center">Rejected</TableHead>
                           <TableHead className="font-semibold text-slate-700 text-right">Total Value</TableHead>
-                          <TableHead className="font-semibold text-slate-700 text-right">Approval Rate</TableHead>
+                          <TableHead className="font-semibold text-slate-700 text-right">Success Rate</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {engineerComparisonData.map((item, index) => {
-                          const totalWirs = item.approved + item.conditional + item.rejected;
-                          const approvalRate = totalWirs > 0 ? 
-                            ((item.approved / totalWirs) * 100).toFixed(1) + '%' :
-                            'N/A';
+                          const successRateFormatted = item.successRate.toFixed(1) + '%';
                           
                           return (
                             <TableRow key={index} className="hover:bg-slate-50">
@@ -655,8 +662,8 @@ const Reports = () => {
                                 {formatter.format(item.totalAmount)}
                               </TableCell>
                               <TableCell className="text-right font-semibold">
-                                <span className={`${parseFloat(approvalRate) >= 70 ? 'text-green-600' : parseFloat(approvalRate) >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>
-                                  {approvalRate}
+                                <span className={`${item.successRate >= 70 ? 'text-green-600' : item.successRate >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>
+                                  {successRateFormatted}
                                 </span>
                               </TableCell>
                             </TableRow>
