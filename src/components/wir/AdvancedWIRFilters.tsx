@@ -192,8 +192,10 @@ const AdvancedWIRFilters: React.FC<AdvancedWIRFiltersProps> = ({
                 <Input
                   id="fromDate"
                   type="date"
+                  lang="en-GB"
                   value={filters.fromDate || ''}
                   onChange={(e) => updateFilter('fromDate', e.target.value)}
+                  style={{ colorScheme: 'light' }}
                 />
               </div>
               <div className="space-y-2">
@@ -201,8 +203,10 @@ const AdvancedWIRFilters: React.FC<AdvancedWIRFiltersProps> = ({
                 <Input
                   id="toDate"
                   type="date"
+                  lang="en-GB"
                   value={filters.toDate || ''}
                   onChange={(e) => updateFilter('toDate', e.target.value)}
+                  style={{ colorScheme: 'light' }}
                 />
               </div>
             </div>
