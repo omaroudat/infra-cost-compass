@@ -11,6 +11,8 @@ export const useSupabaseBreakdown = () => {
   const fetchBreakdownItems = async () => {
     try {
       setLoading(true);
+      console.log('Fetching breakdown items from Supabase...');
+      
       const { data, error } = await supabase
         .from('breakdown_items')
         .select(`
@@ -19,7 +21,12 @@ export const useSupabaseBreakdown = () => {
         `)
         .order('created_at');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error fetching breakdown items:', error);
+        throw error;
+      }
+
+      console.log('Raw breakdown data from Supabase:', data);
 
       const transformedData = (data || []).map(item => ({
         id: item.id,
@@ -42,9 +49,22 @@ export const useSupabaseBreakdown = () => {
       }));
 
       setBreakdownItems(transformedData);
+      console.log(`Successfully loaded ${transformedData.length} breakdown items`);
     } catch (error) {
       console.error('Error fetching breakdown items:', error);
-      toast.error('Failed to fetch breakdown items');
+      
+      if (error && typeof error === 'object') {
+        const err = error as any;
+        if (err.message?.includes('JWT')) {
+          toast.error('Authentication error while fetching breakdown items');
+        } else if (err.message?.includes('Failed to fetch')) {
+          toast.error('Connection error while fetching breakdown items');
+        } else {
+          toast.error(`Failed to fetch breakdown items: ${err.message || 'Unknown error'}`);
+        }
+      } else {
+        toast.error('Failed to fetch breakdown items');
+      }
     } finally {
       setLoading(false);
     }
@@ -129,6 +149,7 @@ export const useSupabaseBreakdown = () => {
   };
 
   useEffect(() => {
+    console.log('useSupabaseBreakdown: Initial fetch on mount');
     fetchBreakdownItems();
   }, []);
 

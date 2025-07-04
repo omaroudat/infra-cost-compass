@@ -91,7 +91,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     wirs: wirs.length,
     contractors: contractors.length,
     engineers: engineers.length,
-    loading
+    loading,
+    boqLoading,
+    breakdownLoading,
+    wirsLoading,
+    staffLoading
   });
 
   const addBreakdownSubItem = async (parentId: string, item: Omit<BreakdownItem, 'id'>) => {

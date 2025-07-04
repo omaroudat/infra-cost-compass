@@ -11,12 +11,19 @@ export const useSupabaseStaff = () => {
 
   const fetchContractors = async () => {
     try {
+      console.log('Fetching contractors from Supabase...');
+      
       const { data, error } = await supabase
         .from('contractors')
         .select('*')
         .order('name');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error fetching contractors:', error);
+        throw error;
+      }
+
+      console.log('Raw contractor data from Supabase:', data);
 
       const transformedData = (data || []).map(item => ({
         id: item.id,
@@ -28,20 +35,40 @@ export const useSupabaseStaff = () => {
       }));
 
       setContractors(transformedData);
+      console.log(`Successfully loaded ${transformedData.length} contractors`);
     } catch (error) {
       console.error('Error fetching contractors:', error);
-      toast.error('Failed to fetch contractors');
+      
+      if (error && typeof error === 'object') {
+        const err = error as any;
+        if (err.message?.includes('JWT')) {
+          toast.error('Authentication error while fetching contractors');
+        } else if (err.message?.includes('Failed to fetch')) {
+          toast.error('Connection error while fetching contractors');
+        } else {
+          toast.error(`Failed to fetch contractors: ${err.message || 'Unknown error'}`);
+        }
+      } else {
+        toast.error('Failed to fetch contractors');
+      }
     }
   };
 
   const fetchEngineers = async () => {
     try {
+      console.log('Fetching engineers from Supabase...');
+      
       const { data, error } = await supabase
         .from('engineers')
         .select('*')
         .order('name');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error fetching engineers:', error);
+        throw error;
+      }
+
+      console.log('Raw engineer data from Supabase:', data);
 
       const transformedData = (data || []).map(item => ({
         id: item.id,
@@ -54,9 +81,22 @@ export const useSupabaseStaff = () => {
       }));
 
       setEngineers(transformedData);
+      console.log(`Successfully loaded ${transformedData.length} engineers`);
     } catch (error) {
       console.error('Error fetching engineers:', error);
-      toast.error('Failed to fetch engineers');
+      
+      if (error && typeof error === 'object') {
+        const err = error as any;
+        if (err.message?.includes('JWT')) {
+          toast.error('Authentication error while fetching engineers');
+        } else if (err.message?.includes('Failed to fetch')) {
+          toast.error('Connection error while fetching engineers');
+        } else {
+          toast.error(`Failed to fetch engineers: ${err.message || 'Unknown error'}`);
+        }
+      } else {
+        toast.error('Failed to fetch engineers');
+      }
     } finally {
       setLoading(false);
     }
@@ -198,6 +238,7 @@ export const useSupabaseStaff = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      console.log('useSupabaseStaff: Initial fetch on mount');
       setLoading(true);
       await Promise.all([fetchContractors(), fetchEngineers()]);
       setLoading(false);

@@ -45,12 +45,23 @@ export const useSupabaseWIRs = () => {
   const fetchWIRs = async () => {
     try {
       setLoading(true);
+      console.log('Fetching WIRs from Supabase...');
+      
+      // Check if we can connect to Supabase
+      const { data: authData, error: authError } = await supabase.auth.getSession();
+      console.log('Auth session:', authData, 'Auth error:', authError);
+      
       const { data, error } = await supabase
         .from('wirs')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error fetching WIRs:', error);
+        throw error;
+      }
+
+      console.log('Raw WIR data from Supabase:', data);
 
       const transformedData = (data || []).map(item => ({
         id: item.id,
@@ -80,10 +91,32 @@ export const useSupabaseWIRs = () => {
         selectedBreakdownItems: item.selected_breakdown_items || []
       }));
 
+      console.log('Transformed WIR data:', transformedData);
       setWIRs(transformedData);
+      
+      if (data && data.length > 0) {
+        console.log(`Successfully loaded ${data.length} WIRs`);
+      } else {
+        console.log('No WIRs found in database');
+      }
     } catch (error) {
       console.error('Error fetching WIRs:', error);
-      toast.error('Failed to fetch WIRs');
+      
+      // More specific error handling
+      if (error && typeof error === 'object') {
+        const err = error as any;
+        if (err.message?.includes('JWT')) {
+          toast.error('Authentication error. Please check your login status.');
+        } else if (err.message?.includes('Failed to fetch')) {
+          toast.error('Connection error. Please check your internet connection and try again.');
+        } else if (err.message?.includes('permission')) {
+          toast.error('Permission denied. Please check your access rights.');
+        } else {
+          toast.error(`Failed to fetch WIRs: ${err.message || 'Unknown error'}`);
+        }
+      } else {
+        toast.error('Failed to fetch WIRs: Unknown error occurred');
+      }
     } finally {
       setLoading(false);
     }
@@ -198,6 +231,7 @@ export const useSupabaseWIRs = () => {
   };
 
   useEffect(() => {
+    console.log('useSupabaseWIRs: Initial fetch on mount');
     fetchWIRs();
   }, []);
 

@@ -13,15 +13,18 @@ export const useSupabaseBOQ = () => {
       setLoading(true);
       console.log('Fetching BOQ items from Supabase...');
       
+      // Check connection first
+      const { data: authData, error: authError } = await supabase.auth.getSession();
+      console.log('Auth session for BOQ:', authData?.session?.user?.id || 'No user', 'Auth error:', authError);
+      
       const { data, error } = await supabase
         .from('boq_items')
         .select('*')
         .order('created_at');
 
       if (error) {
-        console.error('Supabase error:', error);
-        toast.error('Failed to fetch BOQ items: ' + error.message);
-        return;
+        console.error('Supabase error fetching BOQ items:', error);
+        throw error;
       }
 
       console.log('Raw BOQ data from Supabase:', data);
@@ -32,17 +35,26 @@ export const useSupabaseBOQ = () => {
       setBOQItems(transformedData);
       
       if (data && data.length > 0) {
-        toast.success(`Loaded ${data.length} BOQ items successfully`);
+        console.log(`Successfully loaded ${data.length} BOQ items`);
+      } else {
+        console.log('No BOQ items found in database');
       }
     } catch (error) {
       console.error('Error fetching BOQ items:', error);
-      console.error('Error type:', typeof error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
       
-      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        toast.error('Network error: Cannot connect to database. Please check your internet connection and Supabase configuration.');
+      if (error && typeof error === 'object') {
+        const err = error as any;
+        if (err.message?.includes('JWT')) {
+          toast.error('Authentication error while fetching BOQ items');
+        } else if (err.message?.includes('Failed to fetch')) {
+          toast.error('Connection error while fetching BOQ items');
+        } else if (err.message?.includes('permission')) {
+          toast.error('Permission denied while fetching BOQ items');
+        } else {
+          toast.error(`Failed to fetch BOQ items: ${err.message || 'Unknown error'}`);
+        }
       } else {
-        toast.error('Failed to fetch BOQ items: ' + (error as Error).message);
+        toast.error('Failed to fetch BOQ items');
       }
     } finally {
       setLoading(false);
