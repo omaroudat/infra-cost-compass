@@ -1,9 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import BreakdownDialog from '../components/breakdown/BreakdownDialog';
 import BreakdownTable from '../components/breakdown/BreakdownTable';
 import { useBreakdownManagement } from '../hooks/useBreakdownManagement';
+import SearchFilter from '@/components/ui/search-filter';
 
 const Breakdown = () => {
   const {
@@ -23,13 +24,33 @@ const Breakdown = () => {
   } = useBreakdownManagement();
 
   const [language, setLanguage] = useState<'en' | 'ar'>('en');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Filter breakdown items based on search term
+  const filteredBreakdownItems = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return breakdownItems;
+    }
+
+    const searchLower = searchTerm.toLowerCase();
+    return breakdownItems?.filter(item => {
+      const searchableText = [
+        item.keyword,
+        item.keywordAr,
+        item.description,
+        item.descriptionAr
+      ].join(' ').toLowerCase();
+      
+      return searchableText.includes(searchLower);
+    }) || [];
+  }, [breakdownItems, searchTerm]);
 
   // Organize breakdown items into hierarchical structure
-  const organizedBreakdownItems = breakdownItems?.map(item => {
+  const organizedBreakdownItems = filteredBreakdownItems?.map(item => {
     if (!item.parentBreakdownId) {
       return {
         ...item,
-        children: breakdownItems?.filter(child => child.parentBreakdownId === item.id) || []
+        children: filteredBreakdownItems?.filter(child => child.parentBreakdownId === item.id) || []
       };
     }
     return null;
@@ -62,6 +83,13 @@ const Breakdown = () => {
           <p>Add sub-items with percentages for detailed breakdown</p>
         </div>
       </div>
+
+      <SearchFilter
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        placeholder="Search breakdown items..."
+        className="max-w-md"
+      />
       
       {/* Only show dialog for editing sub-items */}
       {editingItem && (
