@@ -18,6 +18,17 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   global: {
     headers: {
       'X-Client-Info': 'supabase-js-web'
+    },
+    fetch: (url, options = {}) => {
+      console.log('Supabase fetch:', url);
+      return fetch(url, {
+        ...options,
+        // Add timeout to prevent hanging requests
+        signal: AbortSignal.timeout(30000) // 30 second timeout
+      }).catch(error => {
+        console.error('Supabase fetch error:', error);
+        throw error;
+      });
     }
   },
   db: {
@@ -28,4 +39,9 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       eventsPerSecond: 2
     }
   }
+});
+
+// Add connection monitoring
+supabase.auth.onAuthStateChange((event, session) => {
+  console.log('Auth state changed:', event, session?.user?.id);
 });
