@@ -40,7 +40,9 @@ const AdvancedWIRFilters: React.FC<AdvancedWIRFiltersProps> = ({
   const [filters, setFilters] = useState<AdvancedWIRFilterValues>({});
 
   const updateFilter = (key: keyof AdvancedWIRFilterValues, value: any) => {
-    const newFilters = { ...filters, [key]: value };
+    // Convert 'all' back to undefined for filtering logic
+    const filterValue = value === 'all' ? undefined : value;
+    const newFilters = { ...filters, [key]: filterValue };
     setFilters(newFilters);
     onFiltersChange(newFilters);
   };
@@ -95,12 +97,12 @@ const AdvancedWIRFilters: React.FC<AdvancedWIRFiltersProps> = ({
               {/* Status Filter */}
               <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
-                <Select value={filters.status || ''} onValueChange={(value) => updateFilter('status', value || undefined)}>
+                <Select value={filters.status || 'all'} onValueChange={(value) => updateFilter('status', value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All statuses" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All statuses</SelectItem>
+                    <SelectItem value="all">All statuses</SelectItem>
                     <SelectItem value="submitted">Submitted</SelectItem>
                     <SelectItem value="completed">Completed</SelectItem>
                   </SelectContent>
@@ -110,12 +112,12 @@ const AdvancedWIRFilters: React.FC<AdvancedWIRFiltersProps> = ({
               {/* Result Filter */}
               <div className="space-y-2">
                 <Label htmlFor="result">Result</Label>
-                <Select value={filters.result || ''} onValueChange={(value) => updateFilter('result', value || undefined)}>
+                <Select value={filters.result || 'all'} onValueChange={(value) => updateFilter('result', value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All results" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All results</SelectItem>
+                    <SelectItem value="all">All results</SelectItem>
                     <SelectItem value="A">A</SelectItem>
                     <SelectItem value="B">B</SelectItem>
                     <SelectItem value="C">C</SelectItem>
@@ -126,12 +128,12 @@ const AdvancedWIRFilters: React.FC<AdvancedWIRFiltersProps> = ({
               {/* Engineer Filter */}
               <div className="space-y-2">
                 <Label htmlFor="engineer">Engineer</Label>
-                <Select value={filters.engineer || ''} onValueChange={(value) => updateFilter('engineer', value || undefined)}>
+                <Select value={filters.engineer || 'all'} onValueChange={(value) => updateFilter('engineer', value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All engineers" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All engineers</SelectItem>
+                    <SelectItem value="all">All engineers</SelectItem>
                     {engineers.map(engineer => (
                       <SelectItem key={engineer} value={engineer}>{engineer}</SelectItem>
                     ))}
@@ -142,12 +144,12 @@ const AdvancedWIRFilters: React.FC<AdvancedWIRFiltersProps> = ({
               {/* Contractor Filter */}
               <div className="space-y-2">
                 <Label htmlFor="contractor">Contractor</Label>
-                <Select value={filters.contractor || ''} onValueChange={(value) => updateFilter('contractor', value || undefined)}>
+                <Select value={filters.contractor || 'all'} onValueChange={(value) => updateFilter('contractor', value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All contractors" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All contractors</SelectItem>
+                    <SelectItem value="all">All contractors</SelectItem>
                     {contractors.map(contractor => (
                       <SelectItem key={contractor} value={contractor}>{contractor}</SelectItem>
                     ))}
@@ -158,12 +160,12 @@ const AdvancedWIRFilters: React.FC<AdvancedWIRFiltersProps> = ({
               {/* Region Filter */}
               <div className="space-y-2">
                 <Label htmlFor="region">Region</Label>
-                <Select value={filters.region || ''} onValueChange={(value) => updateFilter('region', value || undefined)}>
+                <Select value={filters.region || 'all'} onValueChange={(value) => updateFilter('region', value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All regions" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All regions</SelectItem>
+                    <SelectItem value="all">All regions</SelectItem>
                     {regions.map(region => (
                       <SelectItem key={region} value={region}>{region}</SelectItem>
                     ))}
