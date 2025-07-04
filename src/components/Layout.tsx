@@ -5,6 +5,7 @@ import { useAuth } from '@/context/ManualAuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import UserProfileCard from '@/components/UserProfileCard';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -214,6 +215,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-white/80 backdrop-blur-sm px-6 shadow-sm">
             <SidebarTrigger className="-ml-1 hover:bg-blue-50 transition-colors" />
             <div className="ml-auto flex items-center space-x-4">
+              <UserProfileCard />
               <LanguageSelector />
             </div>
           </header>

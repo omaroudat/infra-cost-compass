@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '@/context/ManualAuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -13,7 +12,6 @@ import ContractorForm from '@/components/staff/ContractorForm';
 import EngineerTable from '@/components/staff/EngineerTable';
 import EngineerForm from '@/components/staff/EngineerForm';
 import DataExportImport from '@/components/DataExportImport';
-import UserProfileCard from '@/components/UserProfileCard';
 import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useWIRManagement } from '@/hooks/useWIRManagement';
 import { useStaffManagement } from '@/hooks/useStaffManagement';
@@ -192,7 +190,6 @@ const WIRs = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-start">
         <h2 className="text-xl font-bold">{t('wirs.title')}</h2>
-        <UserProfileCard />
       </div>
       
       <Tabs defaultValue="wirs" className="w-full">
