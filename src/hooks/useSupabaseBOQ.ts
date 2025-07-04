@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { BOQItem } from '@/types';
@@ -13,9 +12,17 @@ export const useSupabaseBOQ = () => {
       setLoading(true);
       console.log('Fetching BOQ items from Supabase...');
       
-      // Check connection first
-      const { data: authData, error: authError } = await supabase.auth.getSession();
-      console.log('Auth session for BOQ:', authData?.session?.user?.id || 'No user', 'Auth error:', authError);
+      // Test connection first
+      const { data: healthCheck, error: healthError } = await supabase
+        .from('boq_items')
+        .select('count', { count: 'exact', head: true });
+      
+      if (healthError) {
+        console.error('Health check failed:', healthError);
+        throw new Error(`Database connection failed: ${healthError.message}`);
+      }
+      
+      console.log('Database connection successful, count:', healthCheck);
       
       const { data, error } = await supabase
         .from('boq_items')
@@ -44,17 +51,17 @@ export const useSupabaseBOQ = () => {
       
       if (error && typeof error === 'object') {
         const err = error as any;
-        if (err.message?.includes('JWT')) {
-          toast.error('Authentication error while fetching BOQ items');
-        } else if (err.message?.includes('Failed to fetch')) {
-          toast.error('Connection error while fetching BOQ items');
-        } else if (err.message?.includes('permission')) {
-          toast.error('Permission denied while fetching BOQ items');
+        if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
+          toast.error('Connection error while fetching BOQ items. Please check your internet connection and try again.');
+        } else if (err.message?.includes('JWT') || err.message?.includes('auth')) {
+          toast.error('Authentication error. Please log in again.');
+        } else if (err.message?.includes('permission') || err.message?.includes('RLS')) {
+          toast.error('Permission denied. Please contact your administrator.');
         } else {
           toast.error(`Failed to fetch BOQ items: ${err.message || 'Unknown error'}`);
         }
       } else {
-        toast.error('Failed to fetch BOQ items');
+        toast.error('Failed to fetch BOQ items. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -106,7 +113,6 @@ export const useSupabaseBOQ = () => {
   const addBOQItem = async (item: Omit<BOQItem, 'id'>, parentId?: string) => {
     try {
       console.log('Adding BOQ item:', item, 'with parentId:', parentId);
-      console.log('Supabase client initialized, attempting database operation...');
       
       const insertData = {
         code: item.code,
@@ -118,7 +124,6 @@ export const useSupabaseBOQ = () => {
         unit_rate: item.unitRate,
         parent_id: parentId || null,
         level: item.level || 0
-        // Removed total_amount since it's a generated column
       };
       
       console.log('Inserting BOQ item with data:', insertData);
@@ -131,34 +136,18 @@ export const useSupabaseBOQ = () => {
 
       if (error) {
         console.error('Database error during insert:', error);
-        console.error('Error details:', {
-          code: error.code,
-          details: error.details,
-          hint: error.hint,
-          message: error.message
-        });
         throw error;
       }
 
       console.log('Successfully added BOQ item:', data);
-      await fetchBOQItems(); // Refresh data
+      await fetchBOQItems();
       toast.success('BOQ item added successfully');
       return data;
     } catch (error) {
       console.error('Error adding BOQ item:', error);
-      console.error('Error type:', typeof error);
-      console.error('Error name:', (error as Error)?.name);
-      console.error('Error message:', (error as Error)?.message);
       
-      // Detailed error handling based on error type
-      if (error instanceof TypeError) {
-        if (error.message.includes('Failed to fetch')) {
-          const errorMsg = 'Cannot connect to Supabase database. This might be due to:\n• Network connection issues\n• Supabase project is paused or unavailable\n• CORS configuration problems\n• Invalid Supabase URL or API key';
-          toast.error(errorMsg);
-          console.error('Network/Connection issue detected - check Supabase project status');
-        } else {
-          toast.error('Network error: ' + error.message);
-        }
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        toast.error('Connection error: Cannot connect to database. Please check your internet connection.');
       } else if (error && typeof error === 'object' && 'message' in error) {
         toast.error('Database error: ' + (error as any).message);
       } else {
@@ -181,7 +170,6 @@ export const useSupabaseBOQ = () => {
         unit_ar: updates.unitAr || null,
         unit_rate: updates.unitRate,
         level: updates.level
-        // Removed total_amount since it's a generated column
       };
 
       const { error } = await supabase
@@ -195,12 +183,12 @@ export const useSupabaseBOQ = () => {
       }
 
       console.log('Successfully updated BOQ item');
-      await fetchBOQItems(); // Refresh data
+      await fetchBOQItems();
       toast.success('BOQ item updated successfully');
     } catch (error) {
       console.error('Error updating BOQ item:', error);
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        toast.error('Network error: Cannot connect to database. Please check your internet connection and Supabase configuration.');
+        toast.error('Connection error: Cannot connect to database. Please check your internet connection.');
       } else {
         toast.error('Failed to update BOQ item: ' + (error as Error).message);
       }
@@ -223,12 +211,12 @@ export const useSupabaseBOQ = () => {
       }
 
       console.log('Successfully deleted BOQ item');
-      await fetchBOQItems(); // Refresh data
+      await fetchBOQItems();
       toast.success('BOQ item deleted successfully');
     } catch (error) {
       console.error('Error deleting BOQ item:', error);
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        toast.error('Network error: Cannot connect to database. Please check your internet connection and Supabase configuration.');
+        toast.error('Connection error: Cannot connect to database. Please check your internet connection.');
       } else {
         toast.error('Failed to delete BOQ item: ' + (error as Error).message);
       }
