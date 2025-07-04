@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { WIR, BOQItem } from '@/types';
 import { useAppContext } from '@/context/AppContext';
@@ -30,7 +29,7 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('en-GB', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
