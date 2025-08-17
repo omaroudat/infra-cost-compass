@@ -366,7 +366,10 @@ const BOQ = () => {
             <div>{language === 'en' ? item.description : (item.descriptionAr || item.description)}</div>
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {isParent ? '-' : `${item.quantity.toLocaleString('en-US')} ${language === 'en' ? item.unit : (item.unitAr || item.unit)}`}
+            {isParent ? '-' : item.quantity.toLocaleString('en-US')}
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {isParent ? '-' : (language === 'en' ? item.unit : (item.unitAr || item.unit))}
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
             {isParent ? '-' : formatter.format(item.unitRate)}
@@ -612,6 +615,9 @@ const BOQ = () => {
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {language === 'en' ? 'Quantity' : 'الكمية'}
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {language === 'en' ? 'Unit' : 'الوحدة'}
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {language === 'en' ? 'Unit Rate' : 'السعر الافرادي'}
