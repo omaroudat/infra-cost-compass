@@ -67,7 +67,7 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
     setIsAddSubItemDialogOpen(true);
   };
 
-  const handleSaveSubItem = () => {
+  const handleSaveSubItem = async () => {
     if (!selectedParent || !onAddSubItem) return;
     
     if (!newSubItem.description || newSubItem.percentage <= 0) {
@@ -91,10 +91,18 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
       isLeaf: true
     };
 
-    onAddSubItem(selectedParent.id, subItemData);
+    await onAddSubItem(selectedParent.id, subItemData);
     setIsAddSubItemDialogOpen(false);
     setSelectedParent(null);
     toast.success('Sub-item added successfully.');
+  };
+
+  // Calculate parent percentage based on child percentages
+  const calculateParentPercentage = (parentItem: BreakdownItem) => {
+    if (!parentItem.children || parentItem.children.length === 0) {
+      return 0;
+    }
+    return parentItem.children.reduce((sum, child) => sum + (child.percentage || 0), 0);
   };
 
   const handleDeleteClick = () => {
@@ -107,6 +115,7 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
   const renderBreakdownItem = (item: BreakdownItem, level: number = 0) => {
     const indentLevel = level * 20;
     const boqDetails = getBOQItemDetails(item.boqItemId);
+    const parentPercentage = calculateParentPercentage(item);
     
     return (
       <React.Fragment key={item.id}>
@@ -125,13 +134,14 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
             {numberFormatter.format(boqDetails.unitRate)}
           </TableCell>
           <TableCell>
-            {level > 0 ? `${item.percentage}%` : '-'}
+            {level > 0 ? `${item.percentage}%` : (parentPercentage > 0 ? `${parentPercentage}%` : '-')}
           </TableCell>
           <TableCell>
             {numberFormatter.format(boqDetails.quantity)}
           </TableCell>
           <TableCell>
-            {level > 0 && item.value ? numberFormatter.format(item.value) : '-'}
+            {level > 0 && item.value ? numberFormatter.format(item.value) : 
+             (level === 0 && parentPercentage > 0 ? numberFormatter.format((boqDetails.unitRate * parentPercentage) / 100) : '-')}
           </TableCell>
           <TableCell className="text-right">
             <div className="flex space-x-2 justify-end">
