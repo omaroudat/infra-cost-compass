@@ -542,8 +542,9 @@ const BOQ = () => {
                     id="quantity"
                     name="quantity"
                     type="number"
-                    step="any"
+                    step="0.01"
                     min="0"
+                    placeholder="e.g., 100 or 100.5"
                     value={newItem.quantity}
                     onChange={handleInputChange}
                     className="col-span-3"
@@ -584,8 +585,9 @@ const BOQ = () => {
                     id="unitRate"
                     name="unitRate"
                     type="number"
-                    step="any"
+                    step="0.01"
                     min="0"
+                    placeholder="e.g., 150 or 150.55"
                     value={newItem.unitRate}
                     onChange={handleInputChange}
                     className="col-span-3"
