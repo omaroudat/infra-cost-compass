@@ -55,7 +55,7 @@ const AppSidebar = () => {
     { name: 'Dashboard', href: '/dashboard', icon: Home, roles: ['admin', 'editor', 'viewer'], color: 'from-blue-500 to-blue-600' },
     { name: 'BOQ Items', href: '/boq', icon: FileSpreadsheet, roles: ['admin', 'editor'], color: 'from-green-500 to-green-600' },
     { name: 'Break-Down', href: '/breakdown', icon: Calculator, roles: ['admin', 'editor'], color: 'from-purple-500 to-purple-600' },
-    { name: 'WIRs', href: '/wirs', icon: FileCheck, roles: ['admin', 'editor', 'viewer'], color: 'from-orange-500 to-orange-600' },
+    { name: 'WIRs', href: '/wirs', icon: FileCheck, roles: ['admin', 'editor', 'viewer', 'data_entry'], color: 'from-orange-500 to-orange-600' },
     { name: 'Reports', href: '/reports', icon: BarChart3, roles: ['admin', 'editor', 'viewer'], color: 'from-red-500 to-red-600' },
     { name: 'Progress Tracking', href: '/progress', icon: TrendingUp, roles: ['admin', 'editor', 'viewer'], color: 'from-indigo-500 to-indigo-600' },
     { name: 'Invoices', href: '/invoices', icon: Receipt, roles: ['admin', 'editor', 'viewer'], color: 'from-cyan-500 to-cyan-600' },

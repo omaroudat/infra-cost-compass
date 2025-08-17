@@ -5,7 +5,7 @@ export interface Profile {
   id: string;
   username: string;
   full_name: string;
-  role: 'admin' | 'editor' | 'viewer';
+  role: 'admin' | 'editor' | 'viewer' | 'data_entry';
   department?: string;
   password?: string;
   created_at: string;

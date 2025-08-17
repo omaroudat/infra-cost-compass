@@ -6,8 +6,8 @@ export const useAuthPermissions = (profile: Profile | null) => {
     return profile && roles.includes(profile.role);
   };
 
-  const canEdit = () => hasRole(['admin', 'editor']);
-  const canDelete = () => hasRole(['admin']);
+  const canEdit = () => hasRole(['admin', 'editor', 'data_entry']);
+  const canDelete = () => hasRole(['admin', 'editor']);
   const isAdmin = () => hasRole(['admin']);
 
   return {

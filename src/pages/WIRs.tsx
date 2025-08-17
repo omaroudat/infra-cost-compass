@@ -17,7 +17,7 @@ import { useWIRManagement } from '@/hooks/useWIRManagement';
 import { useStaffManagement } from '@/hooks/useStaffManagement';
 
 const WIRs = () => {
-  const { canEdit, canDelete } = useAuth();
+  const { canEdit, canDelete, profile } = useAuth();
   const { t } = useLanguage();
   const [filters, setFilters] = useState<AdvancedWIRFilterValues>({});
   
@@ -193,11 +193,15 @@ const WIRs = () => {
       </div>
       
       <Tabs defaultValue="wirs" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className={`grid w-full ${profile?.role === 'data_entry' ? 'grid-cols-1' : 'grid-cols-4'}`}>
           <TabsTrigger value="wirs">{t('nav.wirs')}</TabsTrigger>
-          <TabsTrigger value="contractors">{t('wirs.contractors')}</TabsTrigger>
-          <TabsTrigger value="engineers">{t('wirs.engineers')}</TabsTrigger>
-          <TabsTrigger value="data">Data Management</TabsTrigger>
+          {profile?.role !== 'data_entry' && (
+            <>
+              <TabsTrigger value="contractors">{t('wirs.contractors')}</TabsTrigger>
+              <TabsTrigger value="engineers">{t('wirs.engineers')}</TabsTrigger>
+              <TabsTrigger value="data">Data Management</TabsTrigger>
+            </>
+          )}
         </TabsList>
         
         <TabsContent value="wirs" className="space-y-4">
@@ -236,7 +240,7 @@ const WIRs = () => {
             wirs={filteredWIRs}
             flattenedBOQItems={flattenedBOQItems}
             canEdit={canEdit()}
-            canDelete={canDelete()}
+            canDelete={profile?.role === 'data_entry' ? false : canDelete()}
             onEdit={handleEditWIR}
             onDelete={handleDeleteWIR}
             onSubmitResult={canEdit() ? handleSubmitResult : undefined}
@@ -244,7 +248,8 @@ const WIRs = () => {
           />
         </TabsContent>
         
-        <TabsContent value="contractors" className="space-y-4">
+        {profile?.role !== 'data_entry' && (
+          <TabsContent value="contractors" className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">{t('wirs.contractors')}</h3>
             {canEdit() && (
@@ -282,9 +287,11 @@ const WIRs = () => {
             canEdit={canEdit()}
             canDelete={canDelete()}
           />
-        </TabsContent>
+          </TabsContent>
+        )}
         
-        <TabsContent value="engineers" className="space-y-4">
+        {profile?.role !== 'data_entry' && (
+          <TabsContent value="engineers" className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">{t('wirs.engineers')}</h3>
             {canEdit() && (
@@ -322,14 +329,17 @@ const WIRs = () => {
             canEdit={canEdit()}
             canDelete={canDelete()}
           />
-        </TabsContent>
+          </TabsContent>
+        )}
         
-        <TabsContent value="data" className="space-y-4">
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Data Management</h3>
-            <DataExportImport />
-          </div>
-        </TabsContent>
+        {profile?.role !== 'data_entry' && (
+          <TabsContent value="data" className="space-y-4">
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Data Management</h3>
+              <DataExportImport />
+            </div>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
