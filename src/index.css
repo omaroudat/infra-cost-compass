@@ -103,6 +103,24 @@
     font-size: 12pt;
     line-height: 1.4;
   }
+
+  /* Hide everything by default during print */
+  body * {
+    visibility: hidden;
+  }
+  
+  /* Show only print content */
+  .print\:block, .print\:block * {
+    visibility: visible;
+  }
+  
+  /* Ensure print content takes full width */
+  .print\:block {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
   
   .print\:hidden {
     display: none !important;
