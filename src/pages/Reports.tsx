@@ -7,8 +7,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, TrendingDown, DollarSign, CheckCircle, Clock, XCircle, FileText, Download } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, CheckCircle, Clock, XCircle, FileText, Download, AlertCircle } from 'lucide-react';
 
 type FilterEntity = 'all' | 'contractor' | 'engineer';
 
@@ -17,6 +18,7 @@ const Reports = () => {
   const [reportType, setReportType] = useState('financial');
   const [filterEntity, setFilterEntity] = useState<FilterEntity>('all');
   const [selectedEntity, setSelectedEntity] = useState<string>('');
+  const [showPendingWIRs, setShowPendingWIRs] = useState(false);
   
   const financialSummary = generateFinancialSummary(wirs);
   
@@ -59,6 +61,7 @@ const Reports = () => {
   const totalApprovedAmount = filteredWirs.reduce((sum, w) => sum + getApprovedAmount(w), 0);
   const totalConditionalAmount = filteredWirs.reduce((sum, w) => sum + getConditionalAmount(w), 0);
   const totalRejectedCount = filteredWirs.filter(w => w.result === 'C').length;
+  const totalPendingCount = filteredWirs.filter(w => w.status === 'submitted' && !w.result).length;
   const totalProjectValue = totalApprovedAmount + totalConditionalAmount;
   
   // Prepare data for charts
@@ -160,6 +163,30 @@ const Reports = () => {
   const completionRate = totalBOQValue > 0 ? (totalProjectValue / totalBOQValue) * 100 : 0;
   const approvalRate = filteredWirs.length > 0 ? ((filteredWirs.filter(w => w.result === 'A').length + filteredWirs.filter(w => w.result === 'B').length) / filteredWirs.length) * 100 : 0;
   
+  // Get pending WIRs for display
+  const pendingWirs = wirs.filter(w => w.status === 'submitted' && !w.result);
+  
+  // Handle pending WIRs click
+  const handlePendingClick = () => {
+    setShowPendingWIRs(!showPendingWIRs);
+  };
+  
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-GB', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+  
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'SAR',
+      minimumFractionDigits: 2,
+    }).format(amount);
+  };
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -192,7 +219,7 @@ const Reports = () => {
         </div>
 
         {/* Key Performance Indicators */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -233,6 +260,24 @@ const Reports = () => {
                 </div>
                 <div className="p-3 bg-red-100 rounded-full">
                   <XCircle className="w-6 h-6 text-red-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card 
+            className="bg-gradient-to-br from-orange-50 to-yellow-50 border-orange-200 cursor-pointer hover:shadow-md transition-shadow" 
+            onClick={handlePendingClick}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-orange-700 text-sm font-medium mb-1">Pending WIRs</p>
+                  <p className="text-2xl font-bold text-orange-900">{totalPendingCount}</p>
+                  <p className="text-orange-600 text-sm mt-1">awaiting review</p>
+                </div>
+                <div className="p-3 bg-orange-100 rounded-full">
+                  <AlertCircle className="w-6 h-6 text-orange-600" />
                 </div>
               </div>
             </CardContent>
@@ -320,6 +365,63 @@ const Reports = () => {
           </CardContent>
         </Card>
         
+        {/* Pending WIRs Table */}
+        {showPendingWIRs && (
+          <Card className="bg-white shadow-sm border border-slate-200">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl text-slate-900 flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-orange-600" />
+                Pending WIRs ({pendingWirs.length})
+              </CardTitle>
+              <CardDescription>Work Inspection Requests awaiting review and approval</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>WIR Number</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Contractor</TableHead>
+                      <TableHead>Engineer</TableHead>
+                      <TableHead>Region</TableHead>
+                      <TableHead>Value</TableHead>
+                      <TableHead>Submittal Date</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pendingWirs.length > 0 ? (
+                      pendingWirs.map((wir) => (
+                        <TableRow key={wir.id}>
+                          <TableCell className="font-medium">{wir.wirNumber || wir.id}</TableCell>
+                          <TableCell className="max-w-xs truncate">{wir.description}</TableCell>
+                          <TableCell>{wir.contractor}</TableCell>
+                          <TableCell>{wir.engineer}</TableCell>
+                          <TableCell>{wir.region}</TableCell>
+                          <TableCell>{formatCurrency(wir.value)}</TableCell>
+                          <TableCell>{formatDate(wir.submittalDate)}</TableCell>
+                          <TableCell>
+                            <Badge variant="secondary">
+                              {wir.status.toUpperCase()}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={8} className="text-center text-gray-500 py-8">
+                          No pending WIRs found
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Tabs defaultValue="summary" className="w-full">
           <TabsList className="grid w-full grid-cols-5 bg-slate-100 p-1 rounded-lg">
             <TabsTrigger value="summary" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Executive Summary</TabsTrigger>
