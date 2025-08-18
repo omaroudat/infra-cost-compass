@@ -228,18 +228,18 @@ const Reports = () => {
                   <p className="text-2xl font-bold text-green-900">{formatter.format(totalProjectValue)}</p>
                   <div className="text-green-600 text-sm mt-2 space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="flex items-center">
-                        <CheckCircle className="w-3 h-3 mr-1" />
+                      <span className="flex items-center text-xs">
+                        <CheckCircle className="w-3 h-3 mr-1 flex-shrink-0" />
                         Approved:
                       </span>
-                      <span className="font-medium">{formatter.format(totalApprovedAmount)}</span>
+                      <span className="font-medium text-xs truncate ml-1">{formatter.format(totalApprovedAmount)}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="flex items-center">
-                        <Clock className="w-3 h-3 mr-1" />
+                      <span className="flex items-center text-xs">
+                        <Clock className="w-3 h-3 mr-1 flex-shrink-0" />
                         Conditional:
                       </span>
-                      <span className="font-medium">{formatter.format(totalConditionalAmount)}</span>
+                      <span className="font-medium text-xs truncate ml-1">{formatter.format(totalConditionalAmount)}</span>
                     </div>
                   </div>
                 </div>
@@ -685,9 +685,9 @@ const Reports = () => {
                       <TableHeader>
                         <TableRow className="bg-slate-50">
                           <TableHead className="font-semibold text-slate-700">Contractor</TableHead>
-                          <TableHead className="font-semibold text-slate-700 text-center">Approved</TableHead>
-                          <TableHead className="font-semibold text-slate-700 text-center">Conditional</TableHead>
-                          <TableHead className="font-semibold text-slate-700 text-center">Rejected</TableHead>
+                          <TableHead className="font-semibold text-slate-700 text-center">Approved (A)</TableHead>
+                          <TableHead className="font-semibold text-slate-700 text-center">Conditional (B)</TableHead>
+                          <TableHead className="font-semibold text-slate-700 text-center">Rejected (C)</TableHead>
                           <TableHead className="font-semibold text-slate-700 text-right">Total Value</TableHead>
                           <TableHead className="font-semibold text-slate-700 text-right">Success Rate</TableHead>
                         </TableRow>
@@ -742,9 +742,9 @@ const Reports = () => {
                       <TableHeader>
                         <TableRow className="bg-slate-50">
                           <TableHead className="font-semibold text-slate-700">Engineer</TableHead>
-                          <TableHead className="font-semibold text-slate-700 text-center">Approved</TableHead>
-                          <TableHead className="font-semibold text-slate-700 text-center">Conditional</TableHead>
-                          <TableHead className="font-semibold text-slate-700 text-center">Rejected</TableHead>
+                          <TableHead className="font-semibold text-slate-700 text-center">Approved (A)</TableHead>
+                          <TableHead className="font-semibold text-slate-700 text-center">Conditional (B)</TableHead>
+                          <TableHead className="font-semibold text-slate-700 text-center">Rejected (C)</TableHead>
                           <TableHead className="font-semibold text-slate-700 text-right">Total Value</TableHead>
                           <TableHead className="font-semibold text-slate-700 text-right">Success Rate</TableHead>
                         </TableRow>
