@@ -60,7 +60,7 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
           </div>
           <div className="text-right">
             <div className="text-sm text-gray-500 mb-1">WIR Number</div>
-            <div className="text-2xl font-bold text-blue-600">{wir.id}</div>
+            <div className="text-2xl font-bold text-blue-600">{wir.wirNumber || wir.id}</div>
             <div className="text-sm text-gray-500 mt-2">
               Submission Date: {formatDate(wir.submittalDate)}
             </div>
@@ -273,7 +273,7 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
         <div className="flex justify-between text-sm text-gray-500 print:text-xs">
           <div>
             <p>Generated on: {formatDate(new Date().toISOString().split('T')[0])}</p>
-            <p>Document ID: WIR-{wir.id}</p>
+            <p>Document ID: {wir.wirNumber || wir.id}</p>
           </div>
           <div className="text-right">
             <p>Saad Saeed Al-Saadi & Sons Company</p>
