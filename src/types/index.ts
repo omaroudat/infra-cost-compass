@@ -63,6 +63,11 @@ export type WIR = {
   diameterOfLine: number; // millimeters
   lineNo: string;
   region: string;
+  manholeFrom: string; // New field - starting manhole
+  manholeTo: string; // New field - ending manhole
+  zone: string; // New field - zone information
+  road: string; // New field - road information
+  line: string; // New field - line information
   value: number; // New field for WIR value
   parentWIRId?: string; // for revisions
   revisionNumber?: number;

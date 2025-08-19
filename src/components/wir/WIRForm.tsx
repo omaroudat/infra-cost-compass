@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import WIRBasicInfoForm from './WIRBasicInfoForm';
 import WIRLocationForm from './WIRLocationForm';
+import WIRLocationDetailsForm from './WIRLocationDetailsForm';
 import WIRResultForm from './WIRResultForm';
 import WIRFormActions from './WIRFormActions';
 import WIRBreakdownSelection from './WIRBreakdownSelection';
@@ -34,7 +35,8 @@ const WIRForm: React.FC<WIRFormProps> = ({
     const required = [
       'description', 'submittalDate', 'status', 
       'contractor', 'engineer', 'region', 'value',
-      'lineNo', 'lengthOfLine', 'diameterOfLine'
+      'lineNo', 'lengthOfLine', 'diameterOfLine',
+      'manholeFrom', 'manholeTo', 'zone', 'road', 'line'
     ];
     
     const missing = required.filter(field => {
@@ -192,7 +194,7 @@ const WIRForm: React.FC<WIRFormProps> = ({
           
           <Separator className="my-4" />
           
-          <WIRLocationForm
+          <WIRLocationDetailsForm
             newWIR={newWIR}
             setNewWIR={setNewWIR}
             isResultSubmission={isResultSubmission || isCompletedWIR}

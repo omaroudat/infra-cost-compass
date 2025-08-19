@@ -128,41 +128,87 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
         </div>
       )}
 
-      {/* Work Details */}
+      {/* Location & Technical Details */}
       <div className="mb-8 print:mb-6">
         <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300">
-          Work Details
+          Location & Technical Details
         </h3>
         <div className="bg-gray-50 p-6 rounded-lg print:bg-white print:border print:border-gray-300">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div>
+          {/* Manhole Information */}
+          <div className="mb-6">
+            <h4 className="font-semibold text-gray-700 mb-3 text-base border-b border-gray-200 pb-2">Manhole Information</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <table className="w-full text-sm">
                 <tbody>
                   <tr className="border-b border-gray-200">
-                    <td className="py-2 font-semibold text-gray-700">Contractor:</td>
-                    <td className="py-2 text-gray-900">{wir.contractor}</td>
+                    <td className="py-2 font-semibold text-gray-700 w-1/3">From Manhole:</td>
+                    <td className="py-2 text-gray-900 font-mono">{wir.manholeFrom || 'N/A'}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 font-semibold text-gray-700">To Manhole:</td>
+                    <td className="py-2 text-gray-900 font-mono">{wir.manholeTo || 'N/A'}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Location Information */}
+          <div className="mb-6">
+            <h4 className="font-semibold text-gray-700 mb-3 text-base border-b border-gray-200 pb-2">Location Information</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <table className="w-full text-sm">
+                <tbody>
+                  <tr className="border-b border-gray-200">
+                    <td className="py-2 font-semibold text-gray-700 w-1/3">Zone:</td>
+                    <td className="py-2 text-gray-900">{wir.zone || 'N/A'}</td>
                   </tr>
                   <tr className="border-b border-gray-200">
-                    <td className="py-2 font-semibold text-gray-700">Engineer:</td>
-                    <td className="py-2 text-gray-900">{wir.engineer}</td>
+                    <td className="py-2 font-semibold text-gray-700">Road:</td>
+                    <td className="py-2 text-gray-900">{wir.road || 'N/A'}</td>
                   </tr>
+                  <tr>
+                    <td className="py-2 font-semibold text-gray-700">Line:</td>
+                    <td className="py-2 text-gray-900">{wir.line || 'N/A'}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <table className="w-full text-sm">
+                <tbody>
                   <tr className="border-b border-gray-200">
-                    <td className="py-2 font-semibold text-gray-700">Zone:</td>
+                    <td className="py-2 font-semibold text-gray-700 w-1/3">Region:</td>
                     <td className="py-2 text-gray-900">{wir.region}</td>
                   </tr>
                   <tr>
-                    <td className="py-2 font-semibold text-gray-700">Line No:</td>
+                    <td className="py-2 font-semibold text-gray-700">Line Number:</td>
                     <td className="py-2 text-gray-900">{wir.lineNo}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
-            <div>
+          </div>
+
+          {/* Technical Specifications */}
+          <div className="mb-6">
+            <h4 className="font-semibold text-gray-700 mb-3 text-base border-b border-gray-200 pb-2">Technical Specifications</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <table className="w-full text-sm">
                 <tbody>
                   <tr className="border-b border-gray-200">
-                    <td className="py-2 font-semibold text-gray-700">WIR Value:</td>
-                    <td className="py-2 text-gray-900 font-semibold">{wir.value || 0}</td>
+                    <td className="py-2 font-semibold text-gray-700 w-1/2">Length of Line:</td>
+                    <td className="py-2 text-gray-900 font-semibold">{wir.lengthOfLine} meters</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 font-semibold text-gray-700">Diameter of Line:</td>
+                    <td className="py-2 text-gray-900 font-semibold">{wir.diameterOfLine} mm</td>
+                  </tr>
+                </tbody>
+              </table>
+              <table className="w-full text-sm">
+                <tbody>
+                  <tr className="border-b border-gray-200">
+                    <td className="py-2 font-semibold text-gray-700 w-1/2">WIR Value:</td>
+                    <td className="py-2 text-gray-900 font-semibold">{formatCurrency(wir.value || 0)}</td>
                   </tr>
                   <tr>
                     <td className="py-2 font-semibold text-gray-700">Status:</td>
@@ -176,10 +222,32 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
               </table>
             </div>
           </div>
+
+          {/* Project Team */}
+          <div className="mb-6">
+            <h4 className="font-semibold text-gray-700 mb-3 text-base border-b border-gray-200 pb-2">Project Team</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <table className="w-full text-sm">
+                <tbody>
+                  <tr className="border-b border-gray-200">
+                    <td className="py-2 font-semibold text-gray-700 w-1/3">Contractor:</td>
+                    <td className="py-2 text-gray-900">{wir.contractor}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 font-semibold text-gray-700">Engineer:</td>
+                    <td className="py-2 text-gray-900">{wir.engineer}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
           
+          {/* Work Description */}
           <div>
-            <h4 className="font-semibold text-gray-700 mb-2">Work Description:</h4>
-            <p className="text-gray-900 leading-relaxed bg-white p-4 rounded border">{wir.description}</p>
+            <h4 className="font-semibold text-gray-700 mb-3 text-base border-b border-gray-200 pb-2">Work Description</h4>
+            <div className="bg-white p-4 rounded border border-gray-300 min-h-[80px]">
+              <p className="text-gray-900 leading-relaxed">{wir.description}</p>
+            </div>
           </div>
         </div>
       </div>

@@ -63,7 +63,7 @@ export const useSupabaseWIRs = () => {
 
       console.log('Raw WIR data from Supabase:', data);
 
-      const transformedData = (data || []).map(item => ({
+      const transformedData = (data || []).map((item: any) => ({
         id: item.id,
         wirNumber: item.wir_number,
         boqItemId: item.boq_item_id,
@@ -83,6 +83,11 @@ export const useSupabaseWIRs = () => {
         diameterOfLine: item.diameter_of_line ? parseFloat(item.diameter_of_line.toString()) : 0,
         lineNo: item.line_no,
         region: item.region,
+        manholeFrom: (item as any).manhole_from || '',
+        manholeTo: (item as any).manhole_to || '',
+        zone: (item as any).zone || '',
+        road: (item as any).road || '',
+        line: (item as any).line || '',
         value: item.value ? parseFloat(item.value.toString()) : 0,
         parentWIRId: item.parent_wir_id,
         revisionNumber: item.revision_number || 0,
@@ -153,7 +158,12 @@ export const useSupabaseWIRs = () => {
         revision_number: wir.revisionNumber,
         original_wir_id: wir.originalWIRId,
         linked_boq_items: wir.linkedBOQItems,
-        selected_breakdown_items: wir.selectedBreakdownItems
+        selected_breakdown_items: wir.selectedBreakdownItems,
+        ...(wir.manholeFrom && { manhole_from: wir.manholeFrom }),
+        ...(wir.manholeTo && { manhole_to: wir.manholeTo }),
+        ...(wir.zone && { zone: wir.zone }),
+        ...(wir.road && { road: wir.road }),
+        ...(wir.line && { line: wir.line })
       };
 
       const { data, error } = await supabase
@@ -176,29 +186,38 @@ export const useSupabaseWIRs = () => {
 
   const updateWIR = async (id: string, updates: Partial<WIR>) => {
     try {
+        const updateData: any = {};
+        
+        if (updates.wirNumber !== undefined) updateData.wir_number = updates.wirNumber;
+        if (updates.description !== undefined) updateData.description = updates.description;
+        if (updates.descriptionAr !== undefined) updateData.description_ar = updates.descriptionAr;
+        if (updates.submittalDate !== undefined) updateData.submittal_date = updates.submittalDate;
+        if (updates.receivedDate !== undefined) updateData.received_date = updates.receivedDate;
+        if (updates.status !== undefined) updateData.status = updates.status;
+        if (updates.result !== undefined) updateData.result = updates.result;
+        if (updates.statusConditions !== undefined) updateData.status_conditions = updates.statusConditions;
+        if (updates.calculatedAmount !== undefined) updateData.calculated_amount = updates.calculatedAmount;
+        if (updates.calculationEquation !== undefined) updateData.calculation_equation = updates.calculationEquation;
+        if (updates.contractor !== undefined) updateData.contractor = updates.contractor;
+        if (updates.engineer !== undefined) updateData.engineer = updates.engineer;
+        if (updates.lengthOfLine !== undefined) updateData.length_of_line = updates.lengthOfLine;
+        if (updates.diameterOfLine !== undefined) updateData.diameter_of_line = updates.diameterOfLine;
+        if (updates.lineNo !== undefined) updateData.line_no = updates.lineNo;
+        if (updates.region !== undefined) updateData.region = updates.region;
+        if (updates.value !== undefined) updateData.value = updates.value;
+        if (updates.linkedBOQItems !== undefined) updateData.linked_boq_items = updates.linkedBOQItems;
+        if (updates.selectedBreakdownItems !== undefined) updateData.selected_breakdown_items = updates.selectedBreakdownItems;
+        
+        // Add new fields only if they exist in the updates
+        if (updates.manholeFrom !== undefined) updateData.manhole_from = updates.manholeFrom;
+        if (updates.manholeTo !== undefined) updateData.manhole_to = updates.manholeTo;
+        if (updates.zone !== undefined) updateData.zone = updates.zone;
+        if (updates.road !== undefined) updateData.road = updates.road;
+        if (updates.line !== undefined) updateData.line = updates.line;
+
       const { error } = await supabase
         .from('wirs')
-        .update({
-          wir_number: updates.wirNumber,
-          description: updates.description,
-          description_ar: updates.descriptionAr,
-          submittal_date: updates.submittalDate,
-          received_date: updates.receivedDate,
-          status: updates.status,
-          result: updates.result,
-          status_conditions: updates.statusConditions,
-          calculated_amount: updates.calculatedAmount,
-          calculation_equation: updates.calculationEquation,
-          contractor: updates.contractor,
-          engineer: updates.engineer,
-          length_of_line: updates.lengthOfLine,
-          diameter_of_line: updates.diameterOfLine,
-          line_no: updates.lineNo,
-          region: updates.region,
-          value: updates.value,
-          linked_boq_items: updates.linkedBOQItems,
-          selected_breakdown_items: updates.selectedBreakdownItems
-        })
+        .update(updateData)
         .eq('id', id);
 
       if (error) throw error;

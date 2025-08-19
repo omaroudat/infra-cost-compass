@@ -141,6 +141,11 @@ export const mockWIRs: WIR[] = [
     diameterOfLine: 150,
     lineNo: "L-001",
     region: "North",
+    manholeFrom: "MH-001",
+    manholeTo: "MH-002",
+    zone: "Zone A",
+    road: "Main Street",
+    line: "Primary Line",
     value: 1000,
     linkedBOQItems: ["boq-1-1"]
   },
@@ -162,6 +167,11 @@ export const mockWIRs: WIR[] = [
     diameterOfLine: 200,
     lineNo: "L-002",
     region: "South",
+    manholeFrom: "MH-003",
+    manholeTo: "MH-004",
+    zone: "Zone B",
+    road: "Industrial Avenue",
+    line: "Secondary Line",
     value: 500,
     linkedBOQItems: ["boq-2-1"]
   },
@@ -183,6 +193,11 @@ export const mockWIRs: WIR[] = [
     diameterOfLine: 300,
     lineNo: "L-003",
     region: "East",
+    manholeFrom: "MH-005",
+    manholeTo: "MH-006",
+    zone: "Zone C",
+    road: "Service Road",
+    line: "Tertiary Line",
     value: 750,
     linkedBOQItems: ["boq-3-2"]
   }
