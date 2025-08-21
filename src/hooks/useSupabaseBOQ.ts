@@ -118,10 +118,10 @@ export const useSupabaseBOQ = () => {
         code: item.code,
         description: item.description,
         description_ar: item.descriptionAr || null,
-        quantity: item.quantity,
-        unit: item.unit,
+        quantity: item.quantity || 0,
+        unit: item.unit || '',
         unit_ar: item.unitAr || null,
-        unit_rate: item.unitRate,
+        unit_rate: item.unitRate || 0,
         parent_id: parentId || null,
         level: item.level || 0
       };
@@ -165,10 +165,10 @@ export const useSupabaseBOQ = () => {
         code: updates.code,
         description: updates.description,
         description_ar: updates.descriptionAr || null,
-        quantity: updates.quantity,
-        unit: updates.unit,
+        quantity: updates.quantity || 0,
+        unit: updates.unit || '',
         unit_ar: updates.unitAr || null,
-        unit_rate: updates.unitRate,
+        unit_rate: updates.unitRate || 0,
         level: updates.level
       };
 

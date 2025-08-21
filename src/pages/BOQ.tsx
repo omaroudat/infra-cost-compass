@@ -165,7 +165,7 @@ const BOQ = () => {
           console.log('Processing item:', itemData);
           
           // Only import if required fields are present
-          if (itemData.code && itemData.description && itemData.unit) {
+          if (itemData.code && itemData.description) {
             // Check if item already exists
             const existingItem = findItemByCode(boqItems, itemData.code);
             if (existingItem) {
@@ -275,8 +275,16 @@ const BOQ = () => {
   };
   
   const handleAddItem = () => {
-    if (!newItem.code || !newItem.description || !newItem.unit) {
-      toast.error('Please fill in all required fields.');
+    if (!newItem.code || !newItem.description) {
+      toast.error('Please fill in code and description.');
+      return;
+    }
+    
+    // For leaf items (items with actual quantity and unit values), validate these fields
+    // Parent items can have empty quantity/unit as they represent categories
+    const hasQuantityOrUnit = newItem.quantity !== undefined && newItem.quantity > 0 || newItem.unit;
+    if (hasQuantityOrUnit && (!newItem.unit || newItem.quantity === undefined || newItem.quantity === null)) {
+      toast.error('Please fill in both quantity and unit, or leave both empty for parent categories.');
       return;
     }
     
@@ -366,13 +374,13 @@ const BOQ = () => {
             <div>{language === 'en' ? item.description : (item.descriptionAr || item.description)}</div>
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {isParent ? '-' : item.quantity.toLocaleString('en-US')}
+            {(isParent || !item.quantity || item.quantity === 0) ? '-' : item.quantity.toLocaleString('en-US')}
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {isParent ? '-' : (language === 'en' ? item.unit : (item.unitAr || item.unit))}
+            {(isParent || !item.unit) ? '-' : (language === 'en' ? item.unit : (item.unitAr || item.unit))}
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {isParent ? '-' : formatter.format(item.unitRate)}
+            {(isParent || !item.unitRate || item.unitRate === 0) ? '-' : formatter.format(item.unitRate)}
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
             {formatter.format(totalValue)}
@@ -544,11 +552,10 @@ const BOQ = () => {
                     type="number"
                     step="0.01"
                     min="0"
-                    placeholder="e.g., 100 or 100.5"
+                    placeholder="e.g., 100 or 100.5 (leave empty for parent items)"
                     value={newItem.quantity}
                     onChange={handleInputChange}
                     className="col-span-3"
-                    required
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
@@ -558,10 +565,10 @@ const BOQ = () => {
                   <Input
                     id="unit"
                     name="unit"
+                    placeholder="e.g., m, kg, pcs (leave empty for parent items)"
                     value={newItem.unit}
                     onChange={handleInputChange}
                     className="col-span-3"
-                    required
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
