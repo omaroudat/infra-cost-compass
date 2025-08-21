@@ -149,6 +149,17 @@ const BOQ = () => {
         // Keep track of created items by code for parent lookup
         const createdItemsMap = new Map<string, string>(); // code -> id
         
+        // First, add all existing items to the map for parent lookup
+        const addExistingItemsToMap = (items: BOQItem[]) => {
+          items.forEach(item => {
+            createdItemsMap.set(item.code, item.id);
+            if (item.children && item.children.length > 0) {
+              addExistingItemsToMap(item.children);
+            }
+          });
+        };
+        addExistingItemsToMap(boqItems);
+        
         for (const row of sortedData) {
           const itemData = {
             code: row['Item Code'] || '',
@@ -180,21 +191,13 @@ const BOQ = () => {
             
             // Find parent if parentCode is provided
             if (itemData.parentCode) {
-              // First check in created items map
               const parentIdFromMap = createdItemsMap.get(itemData.parentCode);
               if (parentIdFromMap) {
                 parentId = parentIdFromMap;
                 console.log('Found parent from map for', itemData.code, ':', itemData.parentCode, parentIdFromMap);
               } else {
-                // Fallback to searching existing items
-                const parentItem = findItemByCode(boqItems, itemData.parentCode);
-                if (parentItem) {
-                  parentId = parentItem.id;
-                  createdItemsMap.set(itemData.parentCode, parentItem.id);
-                  console.log('Found parent in existing items for', itemData.code, ':', parentItem.code, parentItem.id);
-                } else {
-                  console.log('Parent not found for', itemData.code, ', parent code:', itemData.parentCode);
-                }
+                console.log('Parent not found for', itemData.code, ', parent code:', itemData.parentCode);
+                console.log('Available parent codes in map:', Array.from(createdItemsMap.keys()));
               }
             }
             
@@ -230,6 +233,8 @@ const BOQ = () => {
         
         if (importCount > 0) {
           toast.success(`Successfully imported ${importCount} BOQ items!${skippedCount > 0 ? ` (${skippedCount} items skipped)` : ''}`);
+          // Force a complete refresh of the data to show proper hierarchy
+          window.location.reload();
         } else {
           toast.warning('No items were imported. Please check the file format and data.');
         }
@@ -365,7 +370,7 @@ const BOQ = () => {
     const isParent = item.children && item.children.length > 0;
     
     return (
-      <React.Fragment key={item.id}>
+      <>
         <tr className={level === 0 ? 'bg-gray-50' : level === 1 ? 'bg-blue-50' : level === 2 ? 'bg-green-50' : 'bg-yellow-50'}>
           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" style={{ paddingLeft: `${indentLevel + 24}px` }}>
             {item.code}
@@ -442,7 +447,7 @@ const BOQ = () => {
           </td>
         </tr>
         {item.children && item.children.map(child => renderBOQItem(child, level + 1))}
-      </React.Fragment>
+      </>
     );
   };
   
@@ -644,7 +649,7 @@ const BOQ = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {boqItems.map(item => renderBOQItem(item))}
+              {boqItems.map(item => renderBOQItem(item, 0))}
             </tbody>
           </table>
         </div>
