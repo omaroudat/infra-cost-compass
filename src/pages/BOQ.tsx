@@ -152,7 +152,7 @@ const BOQ = () => {
         for (const row of sortedData) {
           const itemData = {
             code: row['Item Code'] || '',
-            description: row['Description (EN)'] || '',
+            description: row['Description (EN)'] || row['Item Code'] || '', // Fallback to code if no description
             descriptionAr: row['Description (AR)'] || '',
             quantity: parseFloat(row['Quantity']) || 0,
             unit: row['Unit (EN)'] || '',
@@ -164,8 +164,8 @@ const BOQ = () => {
           
           console.log('Processing item:', itemData);
           
-          // Only import if required fields are present
-          if (itemData.code && itemData.description) {
+          // Only import if at least code is provided (minimum requirement)
+          if (itemData.code) {
             // Check if item already exists
             const existingItem = findItemByCode(boqItems, itemData.code);
             if (existingItem) {
@@ -222,10 +222,10 @@ const BOQ = () => {
               console.error('Error adding item:', itemData.code, error);
               skippedCount++;
             }
-          } else {
-            console.log('Skipping item due to missing required fields:', itemData);
-            skippedCount++;
-          }
+            } else {
+              console.log('Skipping item due to missing item code:', itemData);
+              skippedCount++;
+            }
         }
         
         if (importCount > 0) {
