@@ -191,13 +191,29 @@ const BOQ = () => {
             
             // Find parent if parentCode is provided
             if (itemData.parentCode) {
+              console.log(`Looking for parent '${itemData.parentCode}' for item '${itemData.code}'`);
               const parentIdFromMap = createdItemsMap.get(itemData.parentCode);
               if (parentIdFromMap) {
                 parentId = parentIdFromMap;
-                console.log('Found parent from map for', itemData.code, ':', itemData.parentCode, parentIdFromMap);
+                console.log('✅ Found parent from map for', itemData.code, ':', itemData.parentCode, '→', parentIdFromMap);
               } else {
-                console.log('Parent not found for', itemData.code, ', parent code:', itemData.parentCode);
+                console.log('❌ Parent not found for', itemData.code, ', parent code:', itemData.parentCode);
                 console.log('Available parent codes in map:', Array.from(createdItemsMap.keys()));
+                
+                // Try to find a similar parent code (case-insensitive or with leading zeros)
+                const possibleParents = Array.from(createdItemsMap.keys()).filter(code => 
+                  code.toLowerCase() === itemData.parentCode.toLowerCase() ||
+                  code === itemData.parentCode.padStart(2, '0') ||
+                  code.padStart(2, '0') === itemData.parentCode
+                );
+                
+                if (possibleParents.length > 0) {
+                  const foundParentCode = possibleParents[0];
+                  parentId = createdItemsMap.get(foundParentCode);
+                  console.log('🔍 Found similar parent code:', foundParentCode, '→', parentId);
+                } else {
+                  console.log('💡 Suggestion: Make sure parent code matches exactly. Expected:', itemData.parentCode);
+                }
               }
             }
             
