@@ -62,9 +62,16 @@ const AppSidebar = () => {
     { name: 'Users', href: '/users', icon: Users, roles: ['admin'], color: 'from-pink-500 to-pink-600' },
   ];
 
-  const filteredNavigation = navigation.filter(item => 
-    hasRole(item.roles)
-  );
+  // For data_entry users, only show WIRs
+  const getFilteredNavigation = () => {
+    if (profile?.role === 'data_entry') {
+      return navigation.filter(item => item.href === '/wirs');
+    }
+    return navigation.filter(item => hasRole(item.roles));
+  };
+
+  const filteredNavigation = getFilteredNavigation();
+
 
   return (
     <Sidebar className="bg-white border-r border-gray-200/60 shadow-xl backdrop-blur-sm">
