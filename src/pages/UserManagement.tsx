@@ -169,6 +169,7 @@ const UserManagement = () => {
                     <SelectLabel>Roles</SelectLabel>
                     <SelectItem value="admin">Administrator</SelectItem>
                     <SelectItem value="editor">Editor</SelectItem>
+                    <SelectItem value="data_entry">Data Entry</SelectItem>
                     <SelectItem value="viewer">Viewer</SelectItem>
                   </SelectGroup>
                 </SelectContent>
@@ -213,10 +214,12 @@ const UserManagement = () => {
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       user.role === 'admin' ? 'bg-red-100 text-red-800' :
                       user.role === 'editor' ? 'bg-blue-100 text-blue-800' : 
+                      user.role === 'data_entry' ? 'bg-green-100 text-green-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
                       {user.role === 'admin' ? 'Administrator' : 
-                       user.role === 'editor' ? 'Editor' : 'Viewer'}
+                       user.role === 'editor' ? 'Editor' :
+                       user.role === 'data_entry' ? 'Data Entry' : 'Viewer'}
                     </span>
                   </TableCell>
                   <TableCell>
