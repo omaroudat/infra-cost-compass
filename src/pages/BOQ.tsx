@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Download, Upload, Plus, Edit } from 'lucide-react';
+import { Download, Upload, Plus, Edit, ChevronDown, ChevronRight, Expand, Shrink } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const BOQ = () => {
@@ -28,6 +28,7 @@ const BOQ = () => {
   const [parentId, setParentId] = useState<string | undefined>(undefined);
   const [language, setLanguage] = useState<'en' | 'ar'>('en');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   
   // Always use English number formatting
   const formatter = new Intl.NumberFormat('en-US', {
@@ -380,16 +381,62 @@ const BOQ = () => {
     toast.success(`BOQ item ${itemCode} deleted successfully.`);
   };
   
+  const toggleExpanded = (itemId: string) => {
+    setExpandedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+      } else {
+        newSet.add(itemId);
+      }
+      return newSet;
+    });
+  };
+
+  const expandAll = () => {
+    const getAllItemIds = (items: BOQItem[]): string[] => {
+      const ids: string[] = [];
+      items.forEach(item => {
+        if (item.children && item.children.length > 0) {
+          ids.push(item.id);
+          ids.push(...getAllItemIds(item.children));
+        }
+      });
+      return ids;
+    };
+    setExpandedItems(new Set(getAllItemIds(boqItems)));
+  };
+
+  const collapseAll = () => {
+    setExpandedItems(new Set());
+  };
+
   const renderBOQItem = (item: BOQItem, level: number = 0) => {
     const totalValue = calculateItemTotal(item);
-    const indentLevel = level * 30;
+    const indentLevel = level * 20;
     const isParent = item.children && item.children.length > 0;
+    const isExpanded = expandedItems.has(item.id);
     
     return (
       <>
         <tr className={level === 0 ? 'bg-gray-50' : level === 1 ? 'bg-blue-50' : level === 2 ? 'bg-green-50' : 'bg-yellow-50'}>
           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" style={{ paddingLeft: `${indentLevel + 24}px` }}>
-            {item.code}
+            <div className="flex items-center">
+              {isParent && (
+                <button
+                  onClick={() => toggleExpanded(item.id)}
+                  className="mr-2 p-1 hover:bg-gray-200 rounded transition-colors"
+                >
+                  {isExpanded ? (
+                    <ChevronDown className="w-4 h-4 transition-transform" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 transition-transform" />
+                  )}
+                </button>
+              )}
+              {!isParent && <div className="w-6 mr-2" />}
+              {item.code}
+            </div>
           </td>
           <td className="px-6 py-4 text-sm text-gray-500">
             <div>{language === 'en' ? item.description : (item.descriptionAr || item.description)}</div>
@@ -462,7 +509,7 @@ const BOQ = () => {
             </div>
           </td>
         </tr>
-        {item.children && item.children.map(child => renderBOQItem(child, level + 1))}
+        {isParent && isExpanded && item.children && item.children.map(child => renderBOQItem(child, level + 1))}
       </>
     );
   };
@@ -497,6 +544,14 @@ const BOQ = () => {
             accept=".xlsx,.xls"
             style={{ display: 'none' }}
           />
+          <Button variant="outline" size="sm" onClick={expandAll}>
+            <Expand className="w-4 h-4 mr-1" />
+            Expand All
+          </Button>
+          <Button variant="outline" size="sm" onClick={collapseAll}>
+            <Shrink className="w-4 h-4 mr-1" />
+            Collapse All
+          </Button>
           <Button variant="outline" onClick={importFromExcel}>
             <Upload className="w-4 h-4 mr-2" />
             Import Excel
