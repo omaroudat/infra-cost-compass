@@ -15,16 +15,44 @@ const ProgressSummary = () => {
   const [selectedBOQItem, setSelectedBOQItem] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Get only BOQ items that have breakdown items
-  const leafBOQItems = useMemo(() => {
-    // Get unique BOQ item IDs that have breakdown items
-    const boqItemsWithBreakdown = new Set(
-      breakdownItems.map(breakdown => breakdown.boqItemId)
-    );
-    
-    // Filter BOQ items to only show those that have breakdown items
-    return boqItems.filter(item => boqItemsWithBreakdown.has(item.id));
-  }, [boqItems, breakdownItems]);
+  // Show all BOQ items in hierarchical structure like in BOQ Module
+  const hierarchicalBOQItems = useMemo(() => {
+    // Create a hierarchical structure from flat BOQ items
+    const createHierarchy = (items: typeof boqItems): typeof boqItems => {
+      const itemMap = new Map(items.map(item => [item.id, { ...item, children: [] }]));
+      const rootItems: typeof boqItems = [];
+
+      items.forEach(item => {
+        const itemWithChildren = itemMap.get(item.id)!;
+        if (item.parentId && itemMap.has(item.parentId)) {
+          const parent = itemMap.get(item.parentId)!;
+          if (!parent.children) parent.children = [];
+          parent.children.push(itemWithChildren);
+        } else {
+          rootItems.push(itemWithChildren);
+        }
+      });
+
+      return rootItems;
+    };
+
+    // Flatten hierarchy for display in select dropdown
+    const flattenForSelect = (items: typeof boqItems, level: number = 0): Array<{ item: typeof boqItems[0], level: number }> => {
+      const result: Array<{ item: typeof boqItems[0], level: number }> = [];
+      
+      items.forEach(item => {
+        result.push({ item, level });
+        if (item.children && item.children.length > 0) {
+          result.push(...flattenForSelect(item.children, level + 1));
+        }
+      });
+      
+      return result;
+    };
+
+    const hierarchical = createHierarchy(boqItems);
+    return flattenForSelect(hierarchical);
+  }, [boqItems]);
 
   const summaryData = useProgressSummaryData(selectedBOQItem, true); // Always show approved only
   
@@ -80,9 +108,9 @@ const ProgressSummary = () => {
               <SelectValue placeholder={t('progressSummary.selectPlaceholder', 'Select a BOQ item to view progress')} />
             </SelectTrigger>
             <SelectContent>
-              {leafBOQItems.map((item) => (
+              {hierarchicalBOQItems.map(({ item, level }) => (
                 <SelectItem key={item.id} value={item.id}>
-                  <div className={`flex items-center gap-2 ${isRTL ? 'text-right flex-row-reverse' : 'text-left'}`}>
+                  <div className={`flex items-center gap-2 ${isRTL ? 'text-right flex-row-reverse' : 'text-left'}`} style={{ paddingLeft: `${level * 16}px` }}>
                     <Badge variant="outline" className="text-xs font-medium">
                       {item.code}
                     </Badge>
