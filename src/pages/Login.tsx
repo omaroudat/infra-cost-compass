@@ -33,7 +33,7 @@ const Login = () => {
       <Card className="w-[400px]">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">ConstructFin</CardTitle>
-          <CardDescription>Construction Financial Manager</CardDescription>
+          <CardDescription>Khuzam Project</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">

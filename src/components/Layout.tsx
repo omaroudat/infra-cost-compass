@@ -112,7 +112,7 @@ const AppSidebar = ({ side }: { side?: "left" | "right" }) => {
                 </h1>
               </div>
               <p className="text-gray-500 text-xs font-medium tracking-wide uppercase">
-                {t('layout.subtitle', 'Construction Financial Manager')}
+                {t('layout.subtitle', 'Khuzam Project')}
               </p>
             </div>
           </div>

@@ -20,7 +20,7 @@ const translations = {
   en: {
     // Layout
     'layout.title': 'WIR Management',
-    'layout.subtitle': 'Construction Financial Manager',
+    'layout.subtitle': 'Khuzam Project',
     'layout.copyright': '© 2025 WIR Management',
     'layout.logout': 'Log out',
     'layout.administrator': 'Administrator',
