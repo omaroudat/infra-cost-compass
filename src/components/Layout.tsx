@@ -48,18 +48,18 @@ import { LanguageSelector } from './LanguageSelector';
 
 const AppSidebar = () => {
   const { profile, signOut, hasRole } = useAuth();
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const location = useLocation();
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: Home, roles: ['admin', 'editor', 'viewer'], color: 'from-blue-500 to-blue-600' },
-    { name: 'BOQ Items', href: '/boq', icon: FileSpreadsheet, roles: ['admin', 'editor'], color: 'from-green-500 to-green-600' },
-    { name: 'Break-Down', href: '/breakdown', icon: Calculator, roles: ['admin', 'editor'], color: 'from-purple-500 to-purple-600' },
-    { name: 'WIRs', href: '/wirs', icon: FileCheck, roles: ['admin', 'editor', 'viewer', 'data_entry'], color: 'from-orange-500 to-orange-600' },
-    { name: 'Reports', href: '/reports', icon: BarChart3, roles: ['admin', 'editor', 'viewer'], color: 'from-red-500 to-red-600' },
-    { name: 'Progress Tracking', href: '/progress', icon: TrendingUp, roles: ['admin', 'editor', 'viewer'], color: 'from-indigo-500 to-indigo-600' },
+    { name: t('nav.dashboard', 'Dashboard'), href: '/dashboard', icon: Home, roles: ['admin', 'editor', 'viewer'], color: 'from-blue-500 to-blue-600' },
+    { name: t('nav.boq', 'BOQ Items'), href: '/boq', icon: FileSpreadsheet, roles: ['admin', 'editor'], color: 'from-green-500 to-green-600' },
+    { name: t('nav.breakdown', 'Break-Down'), href: '/breakdown', icon: Calculator, roles: ['admin', 'editor'], color: 'from-purple-500 to-purple-600' },
+    { name: t('nav.wirs', 'WIRs'), href: '/wirs', icon: FileCheck, roles: ['admin', 'editor', 'viewer', 'data_entry'], color: 'from-orange-500 to-orange-600' },
+    { name: t('nav.reports', 'Reports'), href: '/reports', icon: BarChart3, roles: ['admin', 'editor', 'viewer'], color: 'from-red-500 to-red-600' },
+    { name: t('nav.progress', 'Progress Tracking'), href: '/progress', icon: TrendingUp, roles: ['admin', 'editor', 'viewer'], color: 'from-indigo-500 to-indigo-600' },
     { name: 'Invoices', href: '/invoices', icon: Receipt, roles: ['admin', 'editor', 'viewer'], color: 'from-cyan-500 to-cyan-600' },
-    { name: 'Users', href: '/users', icon: Users, roles: ['admin'], color: 'from-pink-500 to-pink-600' },
+    { name: t('nav.users', 'Users'), href: '/users', icon: Users, roles: ['admin'], color: 'from-pink-500 to-pink-600' },
   ];
 
   // For data_entry users, only show WIRs
@@ -93,10 +93,10 @@ const AppSidebar = () => {
           
           <div className="text-center space-y-2">
             <div className="space-y-1">
-              <div className="text-gray-800 text-sm font-bold tracking-wide" dir="rtl">
+              <div className="text-gray-800 text-sm font-bold tracking-wide font-arabic" dir="rtl">
                 شركة سعد سعيد الصاعدي
               </div>
-              <div className="text-gray-600 text-xs font-medium" dir="rtl">
+              <div className="text-gray-600 text-xs font-medium font-arabic" dir="rtl">
                 وأولاده التضامنية
               </div>
             </div>
@@ -104,14 +104,14 @@ const AppSidebar = () => {
             <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent w-full"></div>
             
             <div className="space-y-1">
-              <div className="flex items-center justify-center space-x-1">
+              <div className={`flex items-center justify-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                 <Building2 className="w-4 h-4 text-blue-600" />
                 <h1 className="text-gray-900 text-sm font-bold">
-                  WIR Management System
+                  {t('layout.title', 'WIR Management System')}
                 </h1>
               </div>
               <p className="text-gray-500 text-xs font-medium tracking-wide uppercase">
-                Construction Financial Manager
+                {t('layout.subtitle', 'Construction Financial Manager')}
               </p>
             </div>
           </div>
@@ -139,7 +139,7 @@ const AppSidebar = () => {
                       `}
                     >
                       <Link to={item.href} className="flex items-center justify-between w-full relative z-10">
-                        <div className="flex items-center space-x-3">
+                        <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
                           <div className={`
                             p-2 rounded-lg transition-all duration-300 flex items-center justify-center
                             ${isActive 
@@ -149,17 +149,17 @@ const AppSidebar = () => {
                           `}>
                             <Icon className="h-4 w-4" />
                           </div>
-                          <span className="font-medium tracking-wide text-sm">{item.name}</span>
+                          <span className={`font-medium tracking-wide text-sm ${isRTL ? 'font-arabic' : ''}`}>{item.name}</span>
                         </div>
                         
                         {isActive ? (
-                          <div className="flex items-center space-x-1">
+                          <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                             <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
                             <div className="w-1 h-1 bg-blue-400 rounded-full"></div>
                             <div className="w-0.5 h-0.5 bg-blue-300 rounded-full"></div>
                           </div>
                         ) : (
-                          <ChevronRight className="w-3 h-3 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                          <ChevronRight className={`w-3 h-3 text-gray-400 group-hover:text-gray-600 transition-colors ${isRTL ? 'rotate-180' : ''}`} />
                         )}
                       </Link>
                     </SidebarMenuButton>
@@ -177,7 +177,7 @@ const AppSidebar = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton className="w-full text-gray-700 hover:bg-gray-100/60 hover:text-gray-900 rounded-xl p-3 transition-all duration-300 group border border-transparent hover:border-gray-200/40 hover:shadow-md">
-                  <div className="flex items-center space-x-3 w-full">
+                  <div className={`flex items-center w-full ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
                     <div className="relative">
                       <Avatar className="h-8 w-8 border-2 border-gray-200 shadow-md">
                         <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-xs">
@@ -186,23 +186,23 @@ const AppSidebar = () => {
                       </Avatar>
                       <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-white shadow-sm"></div>
                     </div>
-                    <div className="flex-1 text-left">
-                      <div className="font-semibold text-gray-900 truncate text-xs">{profile?.full_name || profile?.username}</div>
-                      <div className="text-xs text-gray-500 truncate capitalize font-medium">{profile?.role}</div>
+                    <div className={`flex-1 ${isRTL ? 'text-right' : 'text-left'}`}>
+                      <div className={`font-semibold text-gray-900 truncate text-xs ${isRTL ? 'font-arabic' : ''}`}>{profile?.full_name || profile?.username}</div>
+                      <div className={`text-xs text-gray-500 truncate capitalize font-medium ${isRTL ? 'font-arabic' : ''}`}>{t(`role.${profile?.role}`, profile?.role)}</div>
                     </div>
-                    <ChevronRight className="w-3 h-3 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                    <ChevronRight className={`w-3 h-3 text-gray-400 group-hover:text-gray-600 transition-colors ${isRTL ? 'rotate-180' : ''}`} />
                   </div>
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" className="w-64 bg-white/95 backdrop-blur-md border border-gray-200 shadow-2xl rounded-2xl">
-                <div className="px-4 py-3 text-sm text-gray-600 border-b border-gray-100">
-                  <div className="font-semibold text-gray-900">{profile?.full_name || profile?.username}</div>
-                  <div className="text-xs text-gray-500">{profile?.username}</div>
+                <div className={`px-4 py-3 text-sm text-gray-600 border-b border-gray-100 ${isRTL ? 'text-right' : ''}`}>
+                  <div className={`font-semibold text-gray-900 ${isRTL ? 'font-arabic' : ''}`}>{profile?.full_name || profile?.username}</div>
+                  <div className={`text-xs text-gray-500 ${isRTL ? 'font-arabic' : ''}`}>{profile?.username}</div>
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={signOut} className="text-red-600 hover:bg-red-50 focus:bg-red-50 transition-colors m-2 rounded-xl">
-                  <LogOut className="mr-3 h-4 w-4" />
-                  {t('auth.logout') || 'Logout'}
+                  <LogOut className={`h-4 w-4 ${isRTL ? 'ml-3' : 'mr-3'}`} />
+                  {t('layout.logout', 'Logout')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -214,19 +214,21 @@ const AppSidebar = () => {
 };
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
+  const { isRTL } = useLanguage();
+  
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-gray-50 to-gray-100">
         <AppSidebar />
         <SidebarInset className="flex-1">
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-white/80 backdrop-blur-sm px-6 shadow-sm">
+          <header className={`flex h-16 shrink-0 items-center gap-2 border-b bg-white/80 backdrop-blur-sm px-6 shadow-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
             <SidebarTrigger className="-ml-1 hover:bg-blue-50 transition-colors" />
-            <div className="ml-auto flex items-center space-x-4">
+            <div className={`flex items-center ${isRTL ? 'mr-auto space-x-reverse space-x-4' : 'ml-auto space-x-4'}`}>
               <UserProfileCard />
               <LanguageSelector />
             </div>
           </header>
-          <main className="flex-1 p-8 bg-gradient-to-br from-gray-50 to-gray-100">
+          <main className={`flex-1 p-8 bg-gradient-to-br from-gray-50 to-gray-100 ${isRTL ? 'font-arabic' : ''}`}>
             {children}
           </main>
         </SidebarInset>

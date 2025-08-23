@@ -1,6 +1,8 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -187,6 +189,52 @@
     -moz-osx-font-smoothing: grayscale;
     background: var(--gradient-backdrop);
   }
+
+  /* RTL Support */
+  html[dir="rtl"] {
+    font-family: 'Cairo', 'Inter', sans-serif;
+  }
+
+  html[dir="rtl"] h1, 
+  html[dir="rtl"] h2, 
+  html[dir="rtl"] h3, 
+  html[dir="rtl"] h4, 
+  html[dir="rtl"] h5, 
+  html[dir="rtl"] h6 {
+    font-family: 'Amiri', 'Cairo', serif;
+  }
+
+  /* RTL Number formatting */
+  html[dir="rtl"] .ltr-numbers {
+    unicode-bidi: bidi-override;
+    direction: ltr;
+    text-align: inherit;
+  }
+
+  /* RTL Spacing adjustments */
+  html[dir="rtl"] .space-x-reverse > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-x-reverse: 1;
+  }
+
+  html[dir="rtl"] .space-x-1 > :not([hidden]) ~ :not([hidden]) {
+    margin-right: calc(0.25rem * var(--tw-space-x-reverse));
+    margin-left: calc(0.25rem * calc(1 - var(--tw-space-x-reverse)));
+  }
+
+  html[dir="rtl"] .space-x-2 > :not([hidden]) ~ :not([hidden]) {
+    margin-right: calc(0.5rem * var(--tw-space-x-reverse));
+    margin-left: calc(0.5rem * calc(1 - var(--tw-space-x-reverse)));
+  }
+
+  html[dir="rtl"] .space-x-3 > :not([hidden]) ~ :not([hidden]) {
+    margin-right: calc(0.75rem * var(--tw-space-x-reverse));
+    margin-left: calc(0.75rem * calc(1 - var(--tw-space-x-reverse)));
+  }
+
+  html[dir="rtl"] .space-x-4 > :not([hidden]) ~ :not([hidden]) {
+    margin-right: calc(1rem * var(--tw-space-x-reverse));
+    margin-left: calc(1rem * calc(1 - var(--tw-space-x-reverse)));
+  }
   
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Playfair Display', serif;
@@ -201,6 +249,57 @@
 }
 
 @layer components {
+  /* RTL Utilities */
+  .rtl-flip {
+    transform: scaleX(-1);
+  }
+
+  html[dir="rtl"] .rtl-flip {
+    transform: scaleX(1);
+  }
+
+  .rtl-space-reverse {
+    flex-direction: row-reverse;
+  }
+
+  html[dir="rtl"] .rtl-space-reverse {
+    flex-direction: row;
+  }
+
+  /* RTL Positioning */
+  .rtl\:right-auto {
+    right: auto;
+  }
+
+  .rtl\:left-auto {
+    left: auto;
+  }
+
+  html[dir="rtl"] .rtl\:right-0 {
+    right: 0;
+  }
+
+  html[dir="rtl"] .rtl\:left-0 {
+    left: 0;
+  }
+
+  /* RTL Text alignment */
+  .rtl\:text-right {
+    text-align: right;
+  }
+
+  .rtl\:text-left {
+    text-align: left;
+  }
+
+  html[dir="rtl"] .rtl\:text-right {
+    text-align: right;
+  }
+
+  html[dir="rtl"] .rtl\:text-left {
+    text-align: left;
+  }
+
   /* Modern Shadow System */
   .shadow-elegant {
     box-shadow: var(--shadow-md);

@@ -115,7 +115,9 @@ export default {
 			},
 			fontFamily: {
 				'display': ['Playfair Display', 'serif'],
-				'body': ['Inter', 'sans-serif']
+				'body': ['Inter', 'sans-serif'],
+				'arabic': ['Cairo', 'Inter', 'sans-serif'],
+				'arabic-display': ['Amiri', 'Cairo', 'serif']
 			},
 			transitionDuration: {
 				'fast': '150ms',

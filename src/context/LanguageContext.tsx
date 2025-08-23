@@ -7,6 +7,10 @@ interface LanguageContextType {
   language: Language;
   setLanguage: (language: Language) => void;
   t: (key: string, fallback?: string) => string;
+  formatNumber: (num: number) => string;
+  formatCurrency: (amount: number) => string;
+  formatDate: (date: Date | string) => string;
+  isRTL: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -130,6 +134,12 @@ const translations = {
     'common.filter': 'تصفية',
     'common.export': 'تصدير',
     'common.import': 'استيراد',
+
+    // Role translations
+    'role.admin': 'مدير النظام',
+    'role.editor': 'محرر',
+    'role.viewer': 'مشاهد',
+    'role.data_entry': 'مشغل إدخال البيانات',
   }
 };
 
@@ -145,16 +155,70 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     // Update document direction and lang attribute
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = language;
+    
+    // Update body class for RTL styling
+    if (language === 'ar') {
+      document.body.classList.add('rtl');
+      document.body.classList.remove('ltr');
+    } else {
+      document.body.classList.add('ltr');
+      document.body.classList.remove('rtl');
+    }
   }, [language]);
 
   const t = (key: string, fallback?: string): string => {
     return translations[language][key] || fallback || key;
   };
 
+  // Utility functions for RTL support
+  const formatNumber = (num: number): string => {
+    if (language === 'ar') {
+      return new Intl.NumberFormat('ar-SA').format(num);
+    }
+    return new Intl.NumberFormat('en-US').format(num);
+  };
+
+  const formatCurrency = (amount: number): string => {
+    if (language === 'ar') {
+      return new Intl.NumberFormat('ar-SA', {
+        style: 'currency',
+        currency: 'SAR',
+        minimumFractionDigits: 2,
+      }).format(amount);
+    }
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+    }).format(amount);
+  };
+
+  const formatDate = (date: Date | string): string => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    if (language === 'ar') {
+      return new Intl.DateTimeFormat('ar-SA', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }).format(dateObj);
+    }
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }).format(dateObj);
+  };
+
+  const isRTL = language === 'ar';
+
   const value = {
     language,
     setLanguage,
-    t
+    t,
+    formatNumber,
+    formatCurrency,
+    formatDate,
+    isRTL
   };
 
   return (
