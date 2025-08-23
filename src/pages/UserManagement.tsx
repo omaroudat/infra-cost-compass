@@ -176,37 +176,17 @@ const UserManagement = () => {
                       
                       if (hasMultipleRoles) {
                         return (
-                          <div className="space-y-2">
-                            <div className="flex flex-wrap gap-1">
-                              {userRoles.map((role) => (
-                                <Badge 
-                                  key={role} 
-                                  variant={role === user.active_role ? getRoleColor(role) : 'outline'}
-                                  className="text-xs"
-                                >
-                                  {getRoleLabel(role)}
-                                  {role === user.active_role && ' (Active)'}
-                                </Badge>
-                              ))}
-                            </div>
-                            <Select 
-                              value={user.active_role || ''} 
-                              onValueChange={(newRole) => handleSwitchRole(user.id, newRole, user.username)}
-                            >
-                              <SelectTrigger className="w-full h-8">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {userRoles.map((role) => (
-                                  <SelectItem key={role} value={role}>
-                                    <div className="flex items-center gap-2">
-                                      <RefreshCw className="h-3 w-3" />
-                                      Switch to {getRoleLabel(role)}
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                          <div className="flex flex-wrap gap-1">
+                            {userRoles.map((role) => (
+                              <Badge 
+                                key={role} 
+                                variant={role === user.active_role ? getRoleColor(role) : 'outline'}
+                                className="text-xs"
+                              >
+                                {getRoleLabel(role)}
+                                {role === user.active_role && ' (Active)'}
+                              </Badge>
+                            ))}
                           </div>
                         );
                       } else {
