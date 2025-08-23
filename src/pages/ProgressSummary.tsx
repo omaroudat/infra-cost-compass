@@ -17,59 +17,13 @@ const ProgressSummary = () => {
 
   // Get only BOQ items that have breakdown items
   const leafBOQItems = useMemo(() => {
-    console.log('=== Progress Summary Debug ===');
-    console.log('All BOQ Items:', boqItems.map(item => ({ 
-      id: item.id, 
-      code: item.code, 
-      description: item.description, 
-      parentId: item.parentId,
-      level: item.level 
-    })));
-    
-    console.log('All Breakdown Items:', breakdownItems.map(breakdown => ({ 
-      id: breakdown.id, 
-      boqItemId: breakdown.boqItemId,
-      description: breakdown.description,
-      keyword: breakdown.keyword,
-      isLeaf: breakdown.isLeaf
-    })));
-    
-    // Find the specific BOQ item 02.06.3.9
-    const targetBOQ = boqItems.find(item => item.code === '02.06.3.9');
-    console.log('Target BOQ Item 02.06.3.9:', targetBOQ);
-    
-    if (targetBOQ) {
-      const targetBreakdowns = breakdownItems.filter(breakdown => breakdown.boqItemId === targetBOQ.id);
-      console.log('Breakdown items for 02.06.3.9:', targetBreakdowns);
-    }
-    
     // Get unique BOQ item IDs that have breakdown items
     const boqItemsWithBreakdown = new Set(
       breakdownItems.map(breakdown => breakdown.boqItemId)
     );
     
-    console.log('BOQ Item IDs with breakdown items:', Array.from(boqItemsWithBreakdown));
-    
-    const filtered = boqItems.filter(item => {
-      const hasBreakdownItems = boqItemsWithBreakdown.has(item.id);
-      if (item.code === '02.06.3.9') {
-        console.log(`*** BOQ Item ${item.code} ***:`, { 
-          id: item.id,
-          hasBreakdownItems,
-          parentId: item.parentId, 
-          level: item.level,
-          inBreakdownSet: boqItemsWithBreakdown.has(item.id)
-        });
-      }
-      return hasBreakdownItems;
-    });
-    
-    console.log('Filtered BOQ Items with breakdown items:', filtered.map(item => ({ 
-      code: item.code, 
-      description: item.description 
-    })));
-    
-    return filtered;
+    // Filter BOQ items to only show those that have breakdown items
+    return boqItems.filter(item => boqItemsWithBreakdown.has(item.id));
   }, [boqItems, breakdownItems]);
 
   const summaryData = useProgressSummaryData(selectedBOQItem, true); // Always show approved only
