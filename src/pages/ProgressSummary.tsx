@@ -10,12 +10,12 @@ import { Badge } from '@/components/ui/badge';
 import { Package, TrendingUp, Calculator } from 'lucide-react';
 
 const ProgressSummary = () => {
-  const { boqItems } = useAppContext();
+  const { boqItems, breakdownItems } = useAppContext();
   const { t, isRTL } = useLanguage();
   const [selectedBOQItem, setSelectedBOQItem] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Get only leaf nodes (items without children)
+  // Get only BOQ items that have breakdown items
   const leafBOQItems = useMemo(() => {
     console.log('All BOQ Items:', boqItems.map(item => ({ 
       id: item.id, 
@@ -25,24 +25,31 @@ const ProgressSummary = () => {
       level: item.level 
     })));
     
+    // Get unique BOQ item IDs that have breakdown items
+    const boqItemsWithBreakdown = new Set(
+      breakdownItems.map(breakdown => breakdown.boqItemId)
+    );
+    
+    console.log('BOQ Items with breakdown items:', Array.from(boqItemsWithBreakdown));
+    
     const filtered = boqItems.filter(item => {
-      const hasChildren = boqItems.some(child => child.parentId === item.id);
+      const hasBreakdownItems = boqItemsWithBreakdown.has(item.id);
       console.log(`BOQ Item ${item.code}:`, { 
-        hasChildren, 
+        id: item.id,
+        hasBreakdownItems,
         parentId: item.parentId, 
-        level: item.level,
-        isLeaf: !hasChildren 
+        level: item.level
       });
-      return !hasChildren;
+      return hasBreakdownItems;
     });
     
-    console.log('Filtered leaf BOQ Items:', filtered.map(item => ({ 
+    console.log('Filtered BOQ Items with breakdown items:', filtered.map(item => ({ 
       code: item.code, 
       description: item.description 
     })));
     
     return filtered;
-  }, [boqItems]);
+  }, [boqItems, breakdownItems]);
 
   const summaryData = useProgressSummaryData(selectedBOQItem, true); // Always show approved only
   
