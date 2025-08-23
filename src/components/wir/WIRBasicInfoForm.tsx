@@ -80,7 +80,8 @@ const WIRBasicInfoForm: React.FC<WIRBasicInfoFormProps> = ({
           value={newWIR.value || ''}
           onChange={(e) => setNewWIR(prev => ({ ...prev, value: parseFloat(e.target.value) || 0 }))}
           placeholder="Enter value"
-          disabled={isResultSubmission}
+          readOnly={isResultSubmission}
+          className={isResultSubmission ? 'bg-gray-50 cursor-not-allowed' : ''}
         />
       </div>
 
