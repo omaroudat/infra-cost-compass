@@ -19,11 +19,17 @@ export const useWIROperations = () => {
       contractor: wir.contractor || '',
       engineer: wir.engineer || '',
       region: wir.region || '',
+      manholeFrom: wir.manholeFrom || '',
+      manholeTo: wir.manholeTo || '',
+      zone: wir.zone || '',
+      road: wir.road || '',
+      line: wir.line || '',
       value: wir.value || 0,
       linkedBOQItems: wir.linkedBOQItems || [wir.boqItemId],
       lengthOfLine: wir.lengthOfLine || 0,
       diameterOfLine: wir.diameterOfLine || 0,
       lineNo: wir.lineNo || '',
+      selectedBreakdownItems: wir.selectedBreakdownItems || [],
       wirNumber: wir.wirNumber || '' // Include WIR number for editing
     });
     setEditingWIR(wir.id);
@@ -43,11 +49,17 @@ export const useWIROperations = () => {
       contractor: wir.contractor || '',
       engineer: wir.engineer || '',
       region: wir.region || '',
+      manholeFrom: wir.manholeFrom || '',
+      manholeTo: wir.manholeTo || '',
+      zone: wir.zone || '',
+      road: wir.road || '',
+      line: wir.line || '',
       value: wir.value || 0,
       linkedBOQItems: wir.linkedBOQItems || [wir.boqItemId],
       lengthOfLine: wir.lengthOfLine || 0,
       diameterOfLine: wir.diameterOfLine || 0,
       lineNo: wir.lineNo || '',
+      selectedBreakdownItems: wir.selectedBreakdownItems || [],
       wirNumber: wir.wirNumber || '' // Include WIR number for result submission
     });
     setEditingWIR(wir.id);
