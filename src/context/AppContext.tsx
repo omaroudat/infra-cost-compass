@@ -5,6 +5,7 @@ import { useSupabaseBOQ } from '../hooks/useSupabaseBOQ';
 import { useSupabaseBreakdown } from '../hooks/useSupabaseBreakdown';
 import { useSupabaseWIRs } from '../hooks/useSupabaseWIRs';
 import { useSupabaseStaff } from '../hooks/useSupabaseStaff';
+import { useRealtimeSync } from '../hooks/useRealtimeSync';
 
 interface AppContextType {
   boqItems: BOQItem[];
@@ -82,6 +83,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     deleteEngineer,
     refetch: refetchStaff
   } = useSupabaseStaff();
+
+  // Set up real-time sync to automatically update breakdown items when BOQ items change
+  useRealtimeSync({
+    boqItems,
+    breakdownItems,
+    onBOQUpdate: refetchBOQ,
+    onBreakdownUpdate: refetchBreakdown
+  });
 
   const loading = boqLoading || breakdownLoading || wirsLoading || staffLoading;
 
