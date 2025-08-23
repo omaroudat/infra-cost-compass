@@ -46,7 +46,7 @@ import {
 } from 'lucide-react';
 import { LanguageSelector } from './LanguageSelector';
 
-const AppSidebar = () => {
+const AppSidebar = ({ side }: { side?: "left" | "right" }) => {
   const { profile, signOut, hasRole } = useAuth();
   const { t, isRTL } = useLanguage();
   const location = useLocation();
@@ -74,7 +74,7 @@ const AppSidebar = () => {
 
 
   return (
-    <Sidebar className="bg-white border-r border-gray-200/60 shadow-xl backdrop-blur-sm">
+    <Sidebar side={side} className="bg-white border-r border-gray-200/60 shadow-xl backdrop-blur-sm">
       <SidebarHeader className="border-b border-gray-100 p-4 bg-gradient-to-br from-slate-50 to-white">
         <div className="flex flex-col items-center space-y-3">
           <div className="relative group">
@@ -219,7 +219,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-gray-50 to-gray-100">
-        <AppSidebar />
+        <AppSidebar side={isRTL ? "right" : "left"} />
         <SidebarInset className="flex-1">
           <header className={`flex h-16 shrink-0 items-center gap-2 border-b bg-white/80 backdrop-blur-sm px-6 shadow-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
             <SidebarTrigger className="-ml-1 hover:bg-blue-50 transition-colors" />
