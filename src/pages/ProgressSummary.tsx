@@ -2,12 +2,15 @@ import React, { useState, useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import SearchFilter from '@/components/ui/search-filter';
 import { ProgressSummaryTable } from '@/components/progress/ProgressSummaryTable';
 import { useProgressSummaryData } from '@/hooks/useProgressSummaryData';
 import { Badge } from '@/components/ui/badge';
-import { Package, TrendingUp, Calculator } from 'lucide-react';
+import { Package, TrendingUp, Calculator, Check, ChevronsUpDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const ProgressSummary = () => {
   const { boqItems, breakdownItems } = useAppContext();
@@ -86,25 +89,78 @@ const ProgressSummary = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Select value={selectedBOQItem} onValueChange={setSelectedBOQItem}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder={t('progressSummary.selectPlaceholder', 'Select a BOQ item to view progress')} />
-            </SelectTrigger>
-            <SelectContent>
-              {hierarchicalBOQItems.map(({ item, level }) => (
-                <SelectItem key={item.id} value={item.id}>
-                  <div className={`flex items-center gap-2 ${isRTL ? 'text-right flex-row-reverse' : 'text-left'}`} style={{ paddingLeft: `${level * 16}px` }}>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                className={cn(
+                  "w-full justify-between",
+                  !selectedBOQItem && "text-muted-foreground"
+                )}
+              >
+                {selectedBOQItem ? (
+                  <div className={`flex items-center gap-2 ${isRTL ? 'text-right flex-row-reverse' : 'text-left'}`}>
                     <Badge variant="outline" className="text-xs font-medium">
-                      {item.code}
+                      {hierarchicalBOQItems.find(({ item }) => item.id === selectedBOQItem)?.item.code}
                     </Badge>
-                    <span className="font-medium">
-                      {isRTL && item.descriptionAr ? item.descriptionAr : item.description}
+                    <span className="font-medium truncate">
+                      {(() => {
+                        const selectedItem = hierarchicalBOQItems.find(({ item }) => item.id === selectedBOQItem)?.item;
+                        return selectedItem ? (isRTL && selectedItem.descriptionAr ? selectedItem.descriptionAr : selectedItem.description) : '';
+                      })()}
                     </span>
                   </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+                ) : (
+                  t('progressSummary.selectPlaceholder', 'Select a BOQ item to view progress')
+                )}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[--radix-popover-trigger-width] max-w-none p-0" align="start">
+              <Command className="w-full">
+                <CommandInput 
+                  placeholder={t('progressSummary.searchPlaceholder', 'Search BOQ items by code or description...')}
+                  className="h-9" 
+                />
+                <CommandEmpty>
+                  {t('progressSummary.noResults', 'No BOQ items found.')}
+                </CommandEmpty>
+                <CommandList className="max-h-[300px]">
+                  <CommandGroup>
+                    {hierarchicalBOQItems.map(({ item, level }) => (
+                      <CommandItem
+                        key={item.id}
+                        value={`${item.code} ${item.description} ${item.descriptionAr || ''}`}
+                        onSelect={() => {
+                          setSelectedBOQItem(item.id);
+                        }}
+                        className="cursor-pointer"
+                      >
+                        <div 
+                          className={`flex items-center gap-2 w-full ${isRTL ? 'text-right flex-row-reverse' : 'text-left'}`} 
+                          style={{ paddingLeft: `${level * 16}px` }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedBOQItem === item.id ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          <Badge variant="outline" className="text-xs font-medium flex-shrink-0">
+                            {item.code}
+                          </Badge>
+                          <span className="font-medium truncate">
+                            {isRTL && item.descriptionAr ? item.descriptionAr : item.description}
+                          </span>
+                        </div>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
 
           {selectedBOQItem && (
             <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
