@@ -20,18 +20,21 @@ export interface ProgressSummaryData {
   segments: ProgressSegment[];
 }
 
-export const useProgressSummaryData = (boqItemId: string): ProgressSummaryData | null => {
+export const useProgressSummaryData = (boqItemId: string, approvedOnly: boolean = true): ProgressSummaryData | null => {
   const { wirs, breakdownItems } = useAppContext();
 
   return useMemo(() => {
     if (!boqItemId) return null;
 
-    // Get all WIRs for this BOQ item - only approved ones (A or B)
-    const relatedWIRs = wirs.filter(wir => 
-      (wir.boqItemId === boqItemId || 
-      (wir.linkedBOQItems && wir.linkedBOQItems.includes(boqItemId))) &&
-      (wir.result === 'A' || wir.result === 'B')
-    );
+    // Get WIRs for this BOQ item - filter based on approval setting
+    const relatedWIRs = wirs.filter(wir => {
+      const isRelatedBOQ = wir.boqItemId === boqItemId || 
+        (wir.linkedBOQItems && wir.linkedBOQItems.includes(boqItemId));
+      
+      if (!isRelatedBOQ) return false;
+      
+      return approvedOnly ? (wir.result === 'A' || wir.result === 'B') : true;
+    });
 
     // Get all breakdown items for this BOQ item
     const relatedBreakdownItems = breakdownItems.filter(item => 
@@ -95,5 +98,5 @@ export const useProgressSummaryData = (boqItemId: string): ProgressSummaryData |
       breakdownItems: relatedBreakdownItems,
       segments
     };
-  }, [boqItemId, wirs, breakdownItems]);
+  }, [boqItemId, wirs, breakdownItems, approvedOnly]);
 };
