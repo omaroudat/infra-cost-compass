@@ -30,9 +30,10 @@ const ProgressSummary = () => {
         </p>
       </div>
 
-      <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm">
-        <CardHeader className="pb-4">
-          <CardTitle className={`text-lg font-semibold ${isRTL ? 'text-right font-arabic' : 'text-left'}`}>
+      <Card className="shadow-lg border border-border bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm">
+        <CardHeader className="pb-4 border-b border-border/50">
+          <CardTitle className={`text-lg font-bold text-foreground flex items-center gap-2 ${isRTL ? 'text-right font-arabic flex-row-reverse' : 'text-left'}`}>
+            <div className="w-2 h-2 rounded-full bg-primary"></div>
             {t('progressSummary.selectBOQ', 'Select BOQ Item')}
           </CardTitle>
         </CardHeader>
@@ -58,10 +59,14 @@ const ProgressSummary = () => {
       </Card>
 
       {selectedBOQItem && summaryData && (
-        <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm">
-          <CardHeader className="pb-4">
-            <CardTitle className={`text-lg font-semibold ${isRTL ? 'text-right font-arabic' : 'text-left'}`}>
+        <Card className="shadow-lg border border-border bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm">
+          <CardHeader className="pb-4 border-b border-border/50">
+            <CardTitle className={`text-lg font-bold text-foreground flex items-center gap-2 ${isRTL ? 'text-right font-arabic flex-row-reverse' : 'text-left'}`}>
+              <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
               {t('progressSummary.tableTitle', 'Progress Summary Table')}
+              <span className="text-xs font-normal text-muted-foreground bg-primary/10 px-2 py-1 rounded-md ml-2">
+                Approved WIRs Only
+              </span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -71,10 +76,22 @@ const ProgressSummary = () => {
       )}
 
       {selectedBOQItem && (!summaryData || summaryData.segments.length === 0) && (
-        <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm">
-          <CardContent className="py-8">
-            <div className={`text-center text-gray-500 ${isRTL ? 'text-right' : 'text-left'}`}>
-              {t('progressSummary.noData', 'No progress data available for the selected BOQ item')}
+        <Card className="shadow-lg border border-border bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm">
+          <CardContent className="py-12">
+            <div className={`text-center ${isRTL ? 'text-right' : 'text-left'}`}>
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center">
+                  <div className="w-8 h-8 border-2 border-muted-foreground/30 rounded-full"></div>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-muted-foreground font-medium text-lg">
+                    {t('progressSummary.noData', 'No progress data available for the selected BOQ item')}
+                  </p>
+                  <p className="text-xs text-muted-foreground/70">
+                    Only approved WIRs (results A or B) are displayed in the progress summary
+                  </p>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>

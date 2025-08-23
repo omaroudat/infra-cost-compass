@@ -26,10 +26,11 @@ export const useProgressSummaryData = (boqItemId: string): ProgressSummaryData |
   return useMemo(() => {
     if (!boqItemId) return null;
 
-    // Get all WIRs for this BOQ item
+    // Get all WIRs for this BOQ item - only approved ones (A or B)
     const relatedWIRs = wirs.filter(wir => 
-      wir.boqItemId === boqItemId || 
-      (wir.linkedBOQItems && wir.linkedBOQItems.includes(boqItemId))
+      (wir.boqItemId === boqItemId || 
+      (wir.linkedBOQItems && wir.linkedBOQItems.includes(boqItemId))) &&
+      (wir.result === 'A' || wir.result === 'B')
     );
 
     // Get all breakdown items for this BOQ item
@@ -74,9 +75,8 @@ export const useProgressSummaryData = (boqItemId: string): ProgressSummaryData |
             segment.breakdownWIRs[breakdownId].push(wir.wirNumber || wir.id);
           }
         });
-      } else if (wir.result === 'A' || wir.status === 'completed') {
-        // If no specific breakdown items selected but WIR is approved/completed,
-        // add to all breakdown items for this BOQ
+      } else {
+        // If no specific breakdown items selected, add to all breakdown items for this BOQ
         relatedBreakdownItems.forEach(breakdown => {
           segment.breakdownWIRs[breakdown.id].push(wir.wirNumber || wir.id);
         });
