@@ -6,7 +6,7 @@ import ConnectionTest from '@/components/ConnectionTest';
 
 const Index = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, profile } = useAuth();
   const [showConnectionTest, setShowConnectionTest] = useState(false);
   const [redirectAttempted, setRedirectAttempted] = useState(false);
   
@@ -31,10 +31,16 @@ const Index = () => {
     }, 2000);
     
     // Attempt redirect
-    if (isAuthenticated) {
-      console.log('User authenticated, redirecting to dashboard...');
+    if (isAuthenticated && profile) {
+      console.log('User authenticated, redirecting based on role...');
       setRedirectAttempted(true);
-      navigate('/dashboard', { replace: true });
+      
+      // Redirect data_entry users to WIRs page, others to dashboard
+      if (profile.role === 'data_entry') {
+        navigate('/wirs', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
       clearTimeout(timer);
     } else {
       console.log('User not authenticated, redirecting to auth...');
@@ -46,7 +52,7 @@ const Index = () => {
     return () => {
       clearTimeout(timer);
     };
-  }, [navigate, isAuthenticated, loading, redirectAttempted]);
+  }, [navigate, isAuthenticated, loading, redirectAttempted, profile]);
   
   // Show a simple loading state while determining where to redirect
   if (loading) {

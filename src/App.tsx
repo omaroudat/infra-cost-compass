@@ -66,7 +66,7 @@ function App() {
                     <Route
                       path="/dashboard"
                       element={
-                        <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer', 'data_entry']}>
+                        <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer']}>
                           <Layout>
                             <Dashboard />
                           </Layout>
@@ -76,7 +76,7 @@ function App() {
                     <Route
                       path="/boq"
                       element={
-                        <ProtectedRoute requiredRoles={['admin', 'editor', 'data_entry']}>
+                        <ProtectedRoute requiredRoles={['admin', 'editor']}>
                           <Layout>
                             <BOQ />
                           </Layout>
@@ -86,7 +86,7 @@ function App() {
                     <Route
                       path="/breakdown"
                       element={
-                        <ProtectedRoute requiredRoles={['admin', 'editor', 'data_entry']}>
+                        <ProtectedRoute requiredRoles={['admin', 'editor']}>
                           <Layout>
                             <Breakdown />
                           </Layout>
@@ -96,7 +96,7 @@ function App() {
                     <Route
                       path="/adjustments"
                       element={
-                        <ProtectedRoute requiredRoles={['admin', 'editor', 'data_entry']}>
+                        <ProtectedRoute requiredRoles={['admin', 'editor']}>
                           <Layout>
                             <Adjustments />
                           </Layout>
@@ -106,7 +106,7 @@ function App() {
                     <Route
                       path="/wirs"
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['admin', 'editor', 'data_entry']}>
                           <Layout>
                             <WIRs />
                           </Layout>
@@ -116,7 +116,7 @@ function App() {
                     <Route
                       path="/progress"
                       element={
-                        <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer', 'data_entry']}>
+                        <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer']}>
                           <Layout>
                             <ProgressTracking />
                           </Layout>
@@ -126,7 +126,7 @@ function App() {
                     <Route
                       path="/reports"
                       element={
-                        <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer', 'data_entry']}>
+                        <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer']}>
                           <Layout>
                             <Reports />
                           </Layout>
@@ -136,7 +136,7 @@ function App() {
                     <Route
                       path="/invoices"
                       element={
-                        <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer', 'data_entry']}>
+                        <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer']}>
                           <Layout>
                             <Invoices />
                           </Layout>
