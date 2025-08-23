@@ -29,7 +29,7 @@ export const ProgressSummaryTable: React.FC<ProgressSummaryTableProps> = ({ data
                   variant="secondary"
                   className="text-[10px] px-2 py-0.5 font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 cursor-pointer transition-colors duration-200"
                 >
-                  {wirNumber.split('-').pop() || wirNumber}
+                  {wirNumber}
                 </Badge>
               </TooltipTrigger>
               <TooltipContent>
@@ -49,12 +49,9 @@ export const ProgressSummaryTable: React.FC<ProgressSummaryTableProps> = ({ data
     );
     
     return (
-      <Badge 
-        variant="outline" 
-        className="text-xs font-mono font-semibold bg-primary/5 text-primary border-primary/20 px-2 py-1"
-      >
+      <span className="inline-flex items-center px-2 py-1 text-xs font-mono font-semibold bg-primary/5 text-primary border border-primary/20 rounded-md whitespace-nowrap">
         {value}
-      </Badge>
+      </span>
     );
   };
 
@@ -100,9 +97,9 @@ export const ProgressSummaryTable: React.FC<ProgressSummaryTableProps> = ({ data
                 <span className="text-sm">Line</span>
               </TableHead>
               {data.breakdownItems.map((breakdown) => {
-                const displayTitle = isRTL && breakdown.keywordAr ? breakdown.keywordAr : breakdown.keyword;
-                const description = isRTL && breakdown.descriptionAr ? breakdown.descriptionAr : breakdown.description;
-                const fullTitle = description || displayTitle || '';
+                const displayTitle = isRTL && breakdown.descriptionAr ? breakdown.descriptionAr : breakdown.description;
+                const fallbackTitle = isRTL && breakdown.keywordAr ? breakdown.keywordAr : breakdown.keyword;
+                const finalTitle = displayTitle || fallbackTitle || '';
                 
                 return (
                   <TableHead 
@@ -114,7 +111,7 @@ export const ProgressSummaryTable: React.FC<ProgressSummaryTableProps> = ({ data
                         <TooltipTrigger asChild>
                           <div className="space-y-1 cursor-help">
                             <div className="text-xs font-medium text-foreground">
-                              {truncateText(displayTitle || '', 20)}
+                              {truncateText(finalTitle, 20)}
                             </div>
                             <div className="inline-flex items-center gap-1 text-[10px] text-primary font-medium bg-primary/10 px-1.5 py-0.5 rounded">
                               WIR Refs
@@ -122,9 +119,9 @@ export const ProgressSummaryTable: React.FC<ProgressSummaryTableProps> = ({ data
                           </div>
                         </TooltipTrigger>
                         <TooltipContent side="top" className="max-w-xs">
-                          <p className="font-medium">{displayTitle}</p>
-                          {description && description !== displayTitle && (
-                            <p className="text-xs text-muted-foreground mt-1">{description}</p>
+                          <p className="font-medium">{finalTitle}</p>
+                          {displayTitle && fallbackTitle && displayTitle !== fallbackTitle && (
+                            <p className="text-xs text-muted-foreground mt-1">{fallbackTitle}</p>
                           )}
                         </TooltipContent>
                       </Tooltip>

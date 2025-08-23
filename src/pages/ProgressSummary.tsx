@@ -3,8 +3,6 @@ import { useAppContext } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import SearchFilter from '@/components/ui/search-filter';
 import { ProgressSummaryTable } from '@/components/progress/ProgressSummaryTable';
 import { useProgressSummaryData } from '@/hooks/useProgressSummaryData';
@@ -15,7 +13,6 @@ const ProgressSummary = () => {
   const { boqItems } = useAppContext();
   const { t, isRTL } = useLanguage();
   const [selectedBOQItem, setSelectedBOQItem] = useState<string>('');
-  const [showApprovedOnly, setShowApprovedOnly] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
   // Get only leaf nodes (items without children)
@@ -24,7 +21,7 @@ const ProgressSummary = () => {
     return !hasChildren;
   });
 
-  const summaryData = useProgressSummaryData(selectedBOQItem, showApprovedOnly);
+  const summaryData = useProgressSummaryData(selectedBOQItem, true); // Always show approved only
   
   // Get selected BOQ item details
   const selectedBOQ = boqItems.find(item => item.id === selectedBOQItem);
@@ -94,26 +91,13 @@ const ProgressSummary = () => {
           </Select>
 
           {selectedBOQItem && (
-            <div className="flex flex-wrap items-center gap-4 p-4 rounded-lg bg-muted/30 border border-border/50">
-              <div className="flex items-center gap-2">
-                <Switch 
-                  id="approved-only" 
-                  checked={showApprovedOnly} 
-                  onCheckedChange={setShowApprovedOnly}
-                />
-                <Label htmlFor="approved-only" className="text-sm font-medium">
-                  Approved WIRs Only (A/B)
-                </Label>
-              </div>
-              
-              <div className="flex-1 min-w-[200px]">
-                <SearchFilter
-                  searchTerm={searchTerm}
-                  onSearchChange={setSearchTerm}
-                  placeholder="Search segments by manhole, zone, road, or line..."
-                  className="w-full"
-                />
-              </div>
+            <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
+              <SearchFilter
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                placeholder="Search segments by manhole, zone, road, or line..."
+                className="w-full"
+              />
             </div>
           )}
         </CardContent>
@@ -154,11 +138,9 @@ const ProgressSummary = () => {
               <CardTitle className={`text-lg font-semibold text-foreground flex items-center gap-2 ${isRTL ? 'text-right flex-row-reverse' : 'text-left'}`}>
                 <TrendingUp className="w-5 h-5 text-emerald-500" />
                 {t('progressSummary.tableTitle', 'Manhole Segments & WIR Progress')}
-                {showApprovedOnly && (
-                  <Badge variant="secondary" className="text-xs font-medium">
-                    Approved Only (A/B)
-                  </Badge>
-                )}
+                <Badge variant="secondary" className="text-xs font-medium">
+                  Approved Only (A/B)
+                </Badge>
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
@@ -181,14 +163,12 @@ const ProgressSummary = () => {
                 <h3 className="text-lg font-semibold text-foreground">
                   {searchTerm ? 'No matching segments found' : t('progressSummary.noData', 'No progress data available')}
                 </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {searchTerm 
-                    ? 'Try adjusting your search filters or check if there are approved WIRs for this BOQ item.'
-                    : showApprovedOnly 
-                      ? 'No approved WIRs (A/B results) found for this BOQ item yet. Create WIRs and set their results to A or B to see progress here.'
-                      : 'No WIRs have been created for this BOQ item yet.'
-                  }
-                </p>
+                 <p className="text-sm text-muted-foreground leading-relaxed">
+                   {searchTerm 
+                     ? 'Try adjusting your search filters or check if there are approved WIRs for this BOQ item.'
+                     : 'No approved WIRs (A/B results) found for this BOQ item yet. Create WIRs and set their results to A or B to see progress here.'
+                   }
+                 </p>
               </div>
             </div>
           </CardContent>
