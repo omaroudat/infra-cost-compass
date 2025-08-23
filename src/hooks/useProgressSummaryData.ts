@@ -26,15 +26,41 @@ export const useProgressSummaryData = (boqItemId: string, approvedOnly: boolean 
   return useMemo(() => {
     if (!boqItemId) return null;
 
+    // Debug: Log all WIRs and the selected BOQ item ID
+    console.log('Progress Summary Debug:');
+    console.log('Selected BOQ Item ID:', boqItemId);
+    console.log('All WIRs:', wirs.map(wir => ({ 
+      id: wir.id, 
+      wirNumber: wir.wirNumber, 
+      boqItemId: wir.boqItemId, 
+      linkedBOQItems: wir.linkedBOQItems,
+      result: wir.result,
+      description: wir.description
+    })));
+
     // Get WIRs for this BOQ item - filter based on approval setting
     const relatedWIRs = wirs.filter(wir => {
       const isRelatedBOQ = wir.boqItemId === boqItemId || 
         (wir.linkedBOQItems && wir.linkedBOQItems.includes(boqItemId));
       
+      console.log(`WIR ${wir.wirNumber || wir.id}:`, {
+        boqItemId: wir.boqItemId,
+        linkedBOQItems: wir.linkedBOQItems,
+        isRelatedBOQ,
+        result: wir.result,
+        passesApprovalFilter: wir.result === 'A' || wir.result === 'B'
+      });
+      
       if (!isRelatedBOQ) return false;
       
       return approvedOnly ? (wir.result === 'A' || wir.result === 'B') : true;
     });
+
+    console.log('Related WIRs after filtering:', relatedWIRs.map(wir => ({ 
+      id: wir.id, 
+      wirNumber: wir.wirNumber, 
+      result: wir.result 
+    })));
 
     // Get all breakdown items for this BOQ item
     const relatedBreakdownItems = breakdownItems.filter(item => 
