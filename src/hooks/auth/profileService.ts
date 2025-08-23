@@ -107,15 +107,33 @@ export const profileService = {
 
   async getAllProfiles(): Promise<ServiceResult<any[]>> {
     try {
-      const result = await supabase
+      // First get all profiles
+      const profilesResult = await supabase
         .from('profiles')
-        .select(`
-          id, username, full_name, role, active_role, department, created_at, updated_at,
-          user_roles:user_roles(role)
-        `)
+        .select('id, username, full_name, role, active_role, department, created_at, updated_at')
         .order('created_at', { ascending: false });
 
-      return { data: result.data, error: result.error };
+      if (profilesResult.error) {
+        return { data: null, error: profilesResult.error };
+      }
+
+      // Then get all user roles
+      const rolesResult = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .eq('is_active', true);
+
+      if (rolesResult.error) {
+        return { data: profilesResult.data, error: null }; // Return profiles even if roles fail
+      }
+
+      // Combine the data
+      const profilesWithRoles = profilesResult.data?.map(profile => ({
+        ...profile,
+        user_roles: rolesResult.data?.filter(role => role.user_id === profile.id).map(r => ({ role: r.role })) || []
+      })) || [];
+
+      return { data: profilesWithRoles, error: null };
     } catch (error) {
       return { data: null, error };
     }
