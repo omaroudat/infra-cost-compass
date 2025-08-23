@@ -5,11 +5,13 @@ export interface Profile {
   id: string;
   username: string;
   full_name: string;
-  role: 'admin' | 'editor' | 'viewer' | 'data_entry';
+  role: string;
+  active_role?: string;
+  user_roles?: string[];
   department?: string;
   password?: string;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface AuthState {

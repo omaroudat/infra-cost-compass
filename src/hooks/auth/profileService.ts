@@ -23,9 +23,21 @@ export const profileService = {
 
   async createProfile(profileData: Omit<Profile, 'updated_at'>): Promise<ServiceResult<Profile>> {
     try {
+      // Extract only the fields that exist in the database
+      const dbData = {
+        id: profileData.id,
+        username: profileData.username,
+        full_name: profileData.full_name,
+        role: profileData.role,
+        active_role: profileData.active_role || 'viewer',
+        department: profileData.department,
+        password: profileData.password,
+        created_at: profileData.created_at
+      };
+
       const result = await supabase
         .from('profiles')
-        .insert([profileData])
+        .insert([dbData])
         .select()
         .single();
 
@@ -41,7 +53,7 @@ export const profileService = {
       // For now, let's just find by username and handle password checking in the auth context
       const result = await supabase
         .from('profiles')
-        .select('id, username, full_name, role, department, created_at, updated_at')
+        .select('id, username, full_name, role, active_role, department, created_at, updated_at')
         .eq('username', username);
 
       return { data: result.data as Profile[] | null, error: result.error };
@@ -52,9 +64,18 @@ export const profileService = {
 
   async updateProfile(id: string, updates: Partial<Profile>): Promise<ServiceResult<Profile>> {
     try {
+      // Extract only the fields that exist in the database
+      const dbUpdates: any = {};
+      if (updates.username !== undefined) dbUpdates.username = updates.username;
+      if (updates.full_name !== undefined) dbUpdates.full_name = updates.full_name;
+      if (updates.role !== undefined) dbUpdates.role = updates.role;
+      if (updates.active_role !== undefined) dbUpdates.active_role = updates.active_role;
+      if (updates.department !== undefined) dbUpdates.department = updates.department;
+      if (updates.password !== undefined) dbUpdates.password = updates.password;
+
       const result = await supabase
         .from('profiles')
-        .update(updates)
+        .update(dbUpdates)
         .eq('id', id)
         .select()
         .single();
@@ -69,7 +90,7 @@ export const profileService = {
     try {
       const result = await supabase
         .from('profiles')
-        .select('id, username, full_name, role, department, created_at, updated_at')
+        .select('id, username, full_name, role, active_role, department, created_at, updated_at')
         .eq('id', id)
         .single();
 
@@ -83,7 +104,7 @@ export const profileService = {
     try {
       const result = await supabase
         .from('profiles')
-        .select('id, username, full_name, role, department, created_at, updated_at')
+        .select('id, username, full_name, role, active_role, department, created_at, updated_at')
         .order('created_at', { ascending: false });
 
       return { data: result.data as Profile[] | null, error: result.error };

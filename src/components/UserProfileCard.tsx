@@ -13,21 +13,42 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuSub,
 } from '@/components/ui/dropdown-menu';
-import { User, Settings, LogOut, Mail, Building2, Crown, Shield, Eye, Users, ChevronDown, Sparkles } from 'lucide-react';
+import { User, Settings, LogOut, Mail, Building2, Crown, Shield, Eye, Users, ChevronDown, Sparkles, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 
 const UserProfileCard: React.FC = () => {
-  const { profile, signOut, updateProfile } = useAuth();
+  const { profile, signOut, updateProfile, userRoles, activeRole, switchRole, hasAnyRole } = useAuth();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editData, setEditData] = useState({
     full_name: profile?.full_name || '',
     username: profile?.username || '',
     department: profile?.department || ''
   });
+  const [switchingRole, setSwitchingRole] = useState(false);
 
   const handleSaveProfile = async () => {
     await updateProfile(editData);
     setIsEditDialogOpen(false);
+  };
+
+  const handleSwitchRole = async (role: string) => {
+    if (role === activeRole) return;
+    
+    setSwitchingRole(true);
+    try {
+      const result = await switchRole(role);
+      if (!result.success) {
+        toast.error(result.error || 'Failed to switch role');
+      }
+    } catch (error) {
+      toast.error('Failed to switch role');
+    } finally {
+      setSwitchingRole(false);
+    }
   };
 
   if (!profile) return null;
@@ -72,8 +93,8 @@ const UserProfileCard: React.FC = () => {
     }
   };
 
-  const roleConfig = getRoleConfig(profile.role);
-  const RoleIcon = roleConfig.icon;
+  const currentRoleConfig = getRoleConfig(activeRole || profile.role);
+  const CurrentRoleIcon = currentRoleConfig.icon;
 
   return (
     <div className="flex items-center">
@@ -100,9 +121,9 @@ const UserProfileCard: React.FC = () => {
                 {profile.full_name || profile.username}
               </div>
               <div className="flex items-center space-x-1">
-                <RoleIcon className="h-3 w-3 text-muted-foreground" />
+                <CurrentRoleIcon className="h-3 w-3 text-muted-foreground" />
                 <span className="text-xs text-muted-foreground font-medium capitalize">
-                  {roleConfig.label}
+                  {currentRoleConfig.label}
                 </span>
               </div>
             </div>
@@ -141,10 +162,15 @@ const UserProfileCard: React.FC = () => {
                 </p>
                 
                 <div className="flex items-center space-x-2 mt-3">
-                  <Badge className={`${roleConfig.color} px-3 py-1 text-xs font-semibold shadow-elegant`}>
-                    <RoleIcon className="h-3 w-3 mr-1.5" />
-                    {roleConfig.label}
+                  <Badge className={`${currentRoleConfig.color} px-3 py-1 text-xs font-semibold shadow-elegant`}>
+                    <CurrentRoleIcon className="h-3 w-3 mr-1.5" />
+                    {currentRoleConfig.label}
                   </Badge>
+                  {userRoles.length > 1 && (
+                    <Badge variant="outline" className="text-xs">
+                      +{userRoles.length - 1} more
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>
@@ -173,17 +199,44 @@ const UserProfileCard: React.FC = () => {
                 </div>
               </div>
             )}
-            
-            <div className="flex items-center space-x-3 text-sm">
-              <div className="flex items-center justify-center w-8 h-8 bg-muted/30 rounded-lg">
-                <RoleIcon className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="font-medium text-foreground">Access Level</p>
-                <p className="text-muted-foreground text-xs">{roleConfig.description}</p>
-              </div>
-            </div>
           </div>
+
+          {/* Role Switching */}
+          {userRoles.length > 1 && (
+            <div className="p-4 border-b border-border/50">
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className="cursor-pointer p-3 rounded-xl hover:bg-accent/50 transition-colors w-full">
+                  <RefreshCw className={`mr-3 h-4 w-4 text-primary ${switchingRole ? 'animate-spin' : ''}`} />
+                  <span className="font-medium">Switch Role</span>
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="w-48 glass-card">
+                  {userRoles.map((role) => {
+                    const roleConfig = getRoleConfig(role);
+                    const RoleIcon = roleConfig.icon;
+                    const isCurrentRole = role === activeRole;
+                    
+                    return (
+                      <DropdownMenuItem
+                        key={role}
+                        className={`cursor-pointer p-3 ${isCurrentRole ? 'bg-primary/10' : ''}`}
+                        onClick={() => handleSwitchRole(role)}
+                        disabled={switchingRole || isCurrentRole}
+                      >
+                        <RoleIcon className="mr-3 h-4 w-4" />
+                        <div className="flex-1">
+                          <div className="font-medium">{roleConfig.label}</div>
+                          <div className="text-xs text-muted-foreground">{roleConfig.description}</div>
+                        </div>
+                        {isCurrentRole && (
+                          <Badge variant="outline" className="ml-2 text-xs">Current</Badge>
+                        )}
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="p-2">
