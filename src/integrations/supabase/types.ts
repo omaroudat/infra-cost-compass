@@ -404,6 +404,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin_user: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       switch_user_role: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean

@@ -1,27 +1,22 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/ManualAuthContext';
-import { UserRole } from '../types/auth';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { UserPlus, UserX, UserCheck, Trash2 } from 'lucide-react';
+import { UserPlus, UserCheck, Trash2, Edit, Settings } from 'lucide-react';
 import { useUserManagement } from '@/hooks/useUserManagement';
 import { profileService } from '@/hooks/auth/profileService';
+import { UserDialog } from '@/components/UserDialog';
+import RoleManager from '@/components/RoleManager';
 
 const UserManagement = () => {
   const { hasRole } = useAuth();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState<UserRole>('viewer');
   const [users, setUsers] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const { createUser } = useUserManagement();
+  const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<any>(null);
+  const [roleManageUser, setRoleManageUser] = useState<any>(null);
 
   // Fetch users on component mount
   useEffect(() => {
@@ -43,40 +38,27 @@ const UserManagement = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Simple validation
-    if (!username.trim() || !password.trim()) {
-      toast.error('Username and password are required');
-      return;
-    }
+  const handleAddUser = () => {
+    setEditingUser(null);
+    setIsUserDialogOpen(true);
+  };
 
-    if (password.length < 6) {
-      toast.error('Password must be at least 6 characters long');
-      return;
-    }
-    
-    setIsLoading(true);
-    
-    const result = await createUser({
-      username: username.trim(),
-      password: password.trim(),
-      role,
-      fullName: fullName.trim() || username.trim()
-    });
-    
-    if (result.success) {
-      // Reset form
-      setUsername('');
-      setPassword('');
-      setFullName('');
-      setRole('viewer');
-      // Refresh users list
-      await fetchUsers();
-    }
-    
-    setIsLoading(false);
+  const handleEditUser = (user: any) => {
+    setEditingUser(user);
+    setIsUserDialogOpen(true);
+  };
+
+  const handleUserDialogClose = () => {
+    setIsUserDialogOpen(false);
+    setEditingUser(null);
+  };
+
+  const handleUserDialogSuccess = () => {
+    fetchUsers();
+  };
+
+  const handleManageRoles = (user: any) => {
+    setRoleManageUser(user);
   };
 
   const handleDeleteUser = async (userId: string, username: string) => {
@@ -115,86 +97,25 @@ const UserManagement = () => {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <UserPlus className="h-5 w-5" />
-            Add New User
-          </CardTitle>
-          <CardDescription>Create a new user and assign permissions</CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <UserCheck className="h-5 w-5" />
+              User Management
+            </CardTitle>
+            <CardDescription>
+              Manage system users and their roles ({users.length} users)
+            </CardDescription>
+          </div>
+          <Button onClick={handleAddUser} className="flex items-center gap-2">
+            <UserPlus className="h-4 w-4" />
+            Add User
+          </Button>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input 
-                id="username"
-                placeholder="Enter username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                disabled={isLoading}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name (Optional)</Label>
-              <Input 
-                id="fullName"
-                placeholder="Enter full name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input 
-                id="password"
-                type="password"
-                placeholder="Enter password (min 6 characters)"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                disabled={isLoading}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
-              <Select value={role} onValueChange={(value: UserRole) => setRole(value)} disabled={isLoading}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Roles</SelectLabel>
-                    <SelectItem value="admin">Administrator</SelectItem>
-                    <SelectItem value="editor">Editor</SelectItem>
-                    <SelectItem value="data_entry">Data Entry</SelectItem>
-                    <SelectItem value="viewer">Viewer</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Creating User...' : 'Create User'}
-            </Button>
-          </CardFooter>
-        </form>
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <UserCheck className="h-5 w-5" />
-            Existing Users
-          </CardTitle>
-          <CardDescription>
-            Manage system users ({users.length} users)
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
@@ -212,10 +133,10 @@ const UserManagement = () => {
                   <TableCell>{user.full_name || '-'}</TableCell>
                   <TableCell>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      user.role === 'admin' ? 'bg-red-100 text-red-800' :
-                      user.role === 'editor' ? 'bg-blue-100 text-blue-800' : 
-                      user.role === 'data_entry' ? 'bg-green-100 text-green-800' :
-                      'bg-gray-100 text-gray-800'
+                      user.role === 'admin' ? 'bg-destructive/10 text-destructive' :
+                      user.role === 'editor' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' : 
+                      user.role === 'data_entry' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
+                      'bg-muted text-muted-foreground'
                     }`}>
                       {user.role === 'admin' ? 'Administrator' : 
                        user.role === 'editor' ? 'Editor' :
@@ -226,14 +147,30 @@ const UserManagement = () => {
                     {user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDeleteUser(user.id, user.username)}
-                      disabled={user.username === 'admin'} // Prevent deleting the main admin
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditUser(user)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleManageRoles(user)}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteUser(user.id, user.username)}
+                        disabled={user.username === 'admin'} // Prevent deleting the main admin
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -248,6 +185,26 @@ const UserManagement = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* User Dialog */}
+      <UserDialog 
+        isOpen={isUserDialogOpen}
+        onClose={handleUserDialogClose}
+        onSuccess={handleUserDialogSuccess}
+        user={editingUser}
+      />
+
+      {/* Role Manager Dialog */}
+      {roleManageUser && (
+        <RoleManager 
+          userId={roleManageUser.id}
+          currentRoles={roleManageUser.user_roles || [roleManageUser.role]} 
+          onRolesUpdated={() => {
+            fetchUsers();
+            setRoleManageUser(null);
+          }}
+        />
+      )}
     </div>
   );
 };
