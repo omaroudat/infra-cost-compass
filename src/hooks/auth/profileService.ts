@@ -23,13 +23,13 @@ export const profileService = {
 
   async createProfile(profileData: Omit<Profile, 'updated_at'>): Promise<ServiceResult<Profile>> {
     try {
-      // Extract only the fields that exist in the database
+      // Extract only the fields that exist in the database and use proper types
       const dbData = {
         id: profileData.id,
         username: profileData.username,
         full_name: profileData.full_name,
         role: profileData.role,
-        active_role: profileData.active_role || 'viewer',
+        active_role: (profileData.active_role || 'viewer') as 'admin' | 'editor' | 'viewer' | 'data_entry',
         department: profileData.department,
         password: profileData.password,
         created_at: profileData.created_at
@@ -37,7 +37,7 @@ export const profileService = {
 
       const result = await supabase
         .from('profiles')
-        .insert([dbData])
+        .insert(dbData)
         .select()
         .single();
 
@@ -65,7 +65,7 @@ export const profileService = {
   async updateProfile(id: string, updates: Partial<Profile>): Promise<ServiceResult<Profile>> {
     try {
       // Extract only the fields that exist in the database
-      const dbUpdates: any = {};
+      const dbUpdates: Record<string, any> = {};
       if (updates.username !== undefined) dbUpdates.username = updates.username;
       if (updates.full_name !== undefined) dbUpdates.full_name = updates.full_name;
       if (updates.role !== undefined) dbUpdates.role = updates.role;

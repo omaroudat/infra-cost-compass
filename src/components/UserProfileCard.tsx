@@ -20,6 +20,9 @@ import {
 import { User, Settings, LogOut, Mail, Building2, Crown, Shield, Eye, Users, ChevronDown, Sparkles, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
+// Define the role types to match our database enum
+type AppRole = 'admin' | 'editor' | 'viewer' | 'data_entry';
+
 const UserProfileCard: React.FC = () => {
   const { profile, signOut, updateProfile, userRoles, activeRole, switchRole, hasAnyRole } = useAuth();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -40,7 +43,7 @@ const UserProfileCard: React.FC = () => {
     
     setSwitchingRole(true);
     try {
-      const result = await switchRole(role);
+      const result = await switchRole(role as AppRole);
       if (!result.success) {
         toast.error(result.error || 'Failed to switch role');
       }

@@ -8,9 +8,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Crown, Shield, Eye, Users, Plus } from 'lucide-react';
 
+// Define the role types to match our database enum
+type AppRole = 'admin' | 'editor' | 'viewer' | 'data_entry';
+
 interface RoleManagerProps {
   userId: string;
-  currentRoles: string[];
+  currentRoles: AppRole[];
   onRolesUpdated: () => void;
 }
 
@@ -19,22 +22,27 @@ const RoleManager: React.FC<RoleManagerProps> = ({ userId, currentRoles, onRoles
   const [selectedRole, setSelectedRole] = useState<string>('');
 
   const availableRoles = [
-    { value: 'admin', label: 'Administrator', icon: Crown, color: 'bg-red-500' },
-    { value: 'editor', label: 'Editor', icon: Shield, color: 'bg-blue-500' },
-    { value: 'viewer', label: 'Viewer', icon: Eye, color: 'bg-gray-500' },
-    { value: 'data_entry', label: 'Data Entry', icon: Users, color: 'bg-green-500' }
+    { value: 'admin' as AppRole, label: 'Administrator', icon: Crown, color: 'bg-red-500' },
+    { value: 'editor' as AppRole, label: 'Editor', icon: Shield, color: 'bg-blue-500' },
+    { value: 'viewer' as AppRole, label: 'Viewer', icon: Eye, color: 'bg-gray-500' },
+    { value: 'data_entry' as AppRole, label: 'Data Entry', icon: Users, color: 'bg-green-500' }
   ];
 
   const handleAddRole = async () => {
-    if (!selectedRole || currentRoles.includes(selectedRole)) {
-      toast.error('Role already assigned or invalid selection');
+    if (!selectedRole) {
+      toast.error('Please select a role');
+      return;
+    }
+
+    if (currentRoles.includes(selectedRole as AppRole)) {
+      toast.error('Role already assigned');
       return;
     }
 
     try {
       const { error } = await supabase
         .from('user_roles')
-        .insert([{ user_id: userId, role: selectedRole }]);
+        .insert([{ user_id: userId, role: selectedRole as AppRole }]);
 
       if (error) throw error;
 
@@ -48,7 +56,7 @@ const RoleManager: React.FC<RoleManagerProps> = ({ userId, currentRoles, onRoles
     }
   };
 
-  const handleRemoveRole = async (role: string) => {
+  const handleRemoveRole = async (role: AppRole) => {
     if (currentRoles.length === 1) {
       toast.error('Cannot remove the last role');
       return;

@@ -7,17 +7,20 @@ import { useAuthProfileUpdate } from '@/hooks/auth/useAuthProfileUpdate';
 import { useAuthPermissions } from '@/hooks/auth/useAuthPermissions';
 import { supabase } from '@/integrations/supabase/client';
 
+// Define the role types to match our database enum
+type AppRole = 'admin' | 'editor' | 'viewer' | 'data_entry';
+
 interface ManualAuthContextType {
   profile: Profile | null;
-  userRoles: string[];
-  activeRole: string | null;
+  userRoles: AppRole[];
+  activeRole: AppRole | null;
   loading: boolean;
   signIn: (username: string, password: string) => Promise<{ data: any; error: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
-  switchRole: (role: string) => Promise<{ success: boolean; error?: any }>;
+  switchRole: (role: AppRole) => Promise<{ success: boolean; error?: any }>;
   hasRole: (roles: string[]) => boolean;
-  hasAnyRole: (roles: string[]) => boolean;
+  hasAnyRole: (roles: AppRole[]) => boolean;
   canEdit: () => boolean;
   canDelete: () => boolean;
   isAdmin: () => boolean;
@@ -28,15 +31,15 @@ const ManualAuthContext = createContext<ManualAuthContextType | undefined>(undef
 
 export const ManualAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [userRoles, setUserRoles] = useState<string[]>([]);
-  const [activeRole, setActiveRole] = useState<string | null>(null);
+  const [userRoles, setUserRoles] = useState<AppRole[]>([]);
+  const [activeRole, setActiveRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(true);
 
   const { signIn: authSignIn } = useAuthSignIn();
   const { updateProfile: authUpdateProfile } = useAuthProfileUpdate();
   const { hasRole, canEdit, canDelete, isAdmin } = useAuthPermissions(profile);
 
-  const fetchUserRoles = async (userId: string) => {
+  const fetchUserRoles = async (userId: string): Promise<AppRole[]> => {
     try {
       const { data: rolesData, error } = await supabase
         .from('user_roles')
@@ -49,18 +52,18 @@ export const ManualAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         return [];
       }
 
-      return rolesData?.map(r => r.role) || [];
+      return (rolesData?.map(r => r.role) as AppRole[]) || [];
     } catch (error) {
       console.error('Error in fetchUserRoles:', error);
       return [];
     }
   };
 
-  const hasAnyRole = (roles: string[]): boolean => {
+  const hasAnyRole = (roles: AppRole[]): boolean => {
     return userRoles.some(role => roles.includes(role));
   };
 
-  const switchRole = async (role: string) => {
+  const switchRole = async (role: AppRole) => {
     if (!profile) return { success: false, error: 'Not authenticated' };
 
     try {
@@ -102,7 +105,7 @@ export const ManualAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           if (parsedProfile.id) {
             const roles = await fetchUserRoles(parsedProfile.id);
             setUserRoles(roles);
-            setActiveRole(parsedProfile.active_role || roles[0] || 'viewer');
+            setActiveRole((parsedProfile.active_role as AppRole) || roles[0] || 'viewer');
           }
         }
       } catch (error) {
@@ -126,7 +129,7 @@ export const ManualAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         // Fetch user roles
         const roles = await fetchUserRoles(profileWithRoles.id);
         setUserRoles(roles);
-        setActiveRole(profileWithRoles.active_role || roles[0] || 'viewer');
+        setActiveRole((profileWithRoles.active_role as AppRole) || roles[0] || 'viewer');
         
         const updatedProfile = {
           ...profileWithRoles,
