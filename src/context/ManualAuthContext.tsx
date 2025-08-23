@@ -67,26 +67,26 @@ export const ManualAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     if (!profile) return { success: false, error: 'Not authenticated' };
 
     try {
-      // Call the database function to switch role
-      const { data, error } = await supabase.rpc('switch_user_role', { 
-        _role: role 
-      });
+      // Update the profile directly in the database
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({ active_role: role, updated_at: new Date().toISOString() })
+        .eq('id', profile.id)
+        .select()
+        .single();
 
       if (error) {
         console.error('Error switching role:', error);
         return { success: false, error };
       }
 
-      if (data === true) {
-        setActiveRole(role);
-        const updatedProfile = { ...profile, active_role: role };
-        setProfile(updatedProfile);
-        localStorage.setItem('currentUser', JSON.stringify(updatedProfile));
-        toast.success(`Switched to ${role} role`);
-        return { success: true };
-      } else {
-        return { success: false, error: 'Role switch failed - user may not have this role' };
-      }
+      // Update local state
+      setActiveRole(role);
+      const updatedProfile = { ...profile, active_role: role };
+      setProfile(updatedProfile);
+      localStorage.setItem('currentUser', JSON.stringify(updatedProfile));
+      toast.success(`Switched to ${role} role`);
+      return { success: true };
     } catch (error) {
       console.error('Error switching role:', error);
       return { success: false, error };
