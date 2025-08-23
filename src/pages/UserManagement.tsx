@@ -4,10 +4,12 @@ import { useAuth } from '@/context/ManualAuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { UserPlus, UserCheck, Trash2, Edit, Settings } from 'lucide-react';
+import { UserPlus, UserCheck, Trash2, Edit, Settings, RefreshCw } from 'lucide-react';
 import { useUserManagement } from '@/hooks/useUserManagement';
-import { profileService } from '@/hooks/auth/profileService';
+import { profileService, ProfileWithRoles } from '@/hooks/auth/profileService';
 import { UserDialog } from '@/components/UserDialog';
 import RoleManager from '@/components/RoleManager';
 
@@ -81,6 +83,42 @@ const UserManagement = () => {
     }
   };
 
+  const handleSwitchRole = async (userId: string, newRole: string, username: string) => {
+    try {
+      const { error } = await profileService.switchUserRole(userId, newRole as 'admin' | 'editor' | 'viewer' | 'data_entry');
+      if (error) {
+        console.error('Error switching role:', error);
+        toast.error('Failed to switch role');
+      } else {
+        toast.success(`${username}'s active role switched to ${newRole}`);
+        await fetchUsers();
+      }
+    } catch (error) {
+      console.error('Error switching role:', error);
+      toast.error('Failed to switch role');
+    }
+  };
+
+  const getRoleLabel = (role: string) => {
+    switch (role) {
+      case 'admin': return 'Administrator';
+      case 'editor': return 'Editor';
+      case 'data_entry': return 'Data Entry';
+      case 'viewer': return 'Viewer';
+      default: return role;
+    }
+  };
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'admin': return 'destructive';
+      case 'editor': return 'default';
+      case 'data_entry': return 'secondary';
+      case 'viewer': return 'outline';
+      default: return 'outline';
+    }
+  };
+
   if (!hasRole(['admin'])) {
     return (
       <div className="p-4">
@@ -132,16 +170,55 @@ const UserManagement = () => {
                   <TableCell className="font-medium">{user.username}</TableCell>
                   <TableCell>{user.full_name || '-'}</TableCell>
                   <TableCell>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      user.role === 'admin' ? 'bg-destructive/10 text-destructive' :
-                      user.role === 'editor' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' : 
-                      user.role === 'data_entry' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
-                      'bg-muted text-muted-foreground'
-                    }`}>
-                      {user.role === 'admin' ? 'Administrator' : 
-                       user.role === 'editor' ? 'Editor' :
-                       user.role === 'data_entry' ? 'Data Entry' : 'Viewer'}
-                    </span>
+                    {(() => {
+                      const userRoles = user.user_roles?.map(r => r?.role).filter(Boolean) || [];
+                      const hasMultipleRoles = userRoles.length > 1;
+                      
+                      if (hasMultipleRoles) {
+                        return (
+                          <div className="space-y-2">
+                            <div className="flex flex-wrap gap-1">
+                              {userRoles.map((role) => (
+                                <Badge 
+                                  key={role} 
+                                  variant={role === user.active_role ? getRoleColor(role) : 'outline'}
+                                  className="text-xs"
+                                >
+                                  {getRoleLabel(role)}
+                                  {role === user.active_role && ' (Active)'}
+                                </Badge>
+                              ))}
+                            </div>
+                            <Select 
+                              value={user.active_role || ''} 
+                              onValueChange={(newRole) => handleSwitchRole(user.id, newRole, user.username)}
+                            >
+                              <SelectTrigger className="w-full h-8">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {userRoles.map((role) => (
+                                  <SelectItem key={role} value={role}>
+                                    <div className="flex items-center gap-2">
+                                      <RefreshCw className="h-3 w-3" />
+                                      Switch to {getRoleLabel(role)}
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        );
+                      } else {
+                        // Single role or fallback to legacy role
+                        const displayRole = userRoles[0] || user.role;
+                        return (
+                          <Badge variant={getRoleColor(displayRole)} className="text-xs">
+                            {getRoleLabel(displayRole)}
+                          </Badge>
+                        );
+                      }
+                    })()}
                   </TableCell>
                   <TableCell>
                     {user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}

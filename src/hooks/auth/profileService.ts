@@ -7,6 +7,11 @@ type ServiceResult<T> = {
   error: any;
 };
 
+// Extended profile type for user management with roles
+export type ProfileWithRoles = Profile & {
+  user_roles?: { role: string }[];
+};
+
 export const profileService = {
   async checkExistingProfile(username: string): Promise<ServiceResult<Profile[]>> {
     try {
@@ -100,16 +105,32 @@ export const profileService = {
     }
   },
 
-  async getAllProfiles(): Promise<ServiceResult<Profile[]>> {
+  async getAllProfiles(): Promise<ServiceResult<any[]>> {
     try {
       const result = await supabase
         .from('profiles')
-        .select('id, username, full_name, role, active_role, department, created_at, updated_at')
+        .select(`
+          id, username, full_name, role, active_role, department, created_at, updated_at,
+          user_roles:user_roles(role)
+        `)
         .order('created_at', { ascending: false });
 
-      return { data: result.data as Profile[] | null, error: result.error };
+      return { data: result.data, error: result.error };
     } catch (error) {
       return { data: null, error };
+    }
+  },
+
+  async switchUserRole(userId: string, newRole: 'admin' | 'editor' | 'viewer' | 'data_entry'): Promise<ServiceResult<boolean>> {
+    try {
+      const result = await supabase
+        .from('profiles')
+        .update({ active_role: newRole })
+        .eq('id', userId);
+
+      return { data: !result.error, error: result.error };
+    } catch (error) {
+      return { data: false, error };
     }
   },
 
