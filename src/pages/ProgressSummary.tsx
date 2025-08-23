@@ -17,35 +17,6 @@ const ProgressSummary = () => {
 
   // Show all BOQ items in hierarchical structure like in BOQ Module
   const hierarchicalBOQItems = useMemo(() => {
-    console.log('=== Hierarchical BOQ Debug ===');
-    console.log('All BOQ Items:', boqItems.map(item => ({
-      id: item.id,
-      code: item.code, 
-      description: item.description,
-      parentId: item.parentId,
-      level: item.level
-    })));
-
-    // Create a hierarchical structure from flat BOQ items
-    const createHierarchy = (items: typeof boqItems): typeof boqItems => {
-      const itemMap = new Map(items.map(item => [item.id, { ...item, children: [] }]));
-      const rootItems: typeof boqItems = [];
-
-      items.forEach(item => {
-        const itemWithChildren = itemMap.get(item.id)!;
-        if (item.parentId && itemMap.has(item.parentId)) {
-          const parent = itemMap.get(item.parentId)!;
-          if (!parent.children) parent.children = [];
-          parent.children.push(itemWithChildren);
-        } else {
-          rootItems.push(itemWithChildren);
-        }
-      });
-
-      console.log('Root Items:', rootItems.map(item => ({ code: item.code, childrenCount: item.children?.length || 0 })));
-      return rootItems;
-    };
-
     // Flatten hierarchy for display in select dropdown
     const flattenForSelect = (items: typeof boqItems, level: number = 0): Array<{ item: typeof boqItems[0], level: number }> => {
       const result: Array<{ item: typeof boqItems[0], level: number }> = [];
@@ -60,22 +31,16 @@ const ProgressSummary = () => {
       return result;
     };
 
-    const hierarchical = createHierarchy(boqItems);
-    const flattened = flattenForSelect(hierarchical);
-    
-    console.log('Flattened for select:', flattened.map(({ item, level }) => ({
-      code: item.code,
-      level,
-      hasChildren: item.children?.length > 0
-    })));
-    
-    return flattened;
+    return flattenForSelect(boqItems);
   }, [boqItems]);
 
   const summaryData = useProgressSummaryData(selectedBOQItem, true); // Always show approved only
   
-  // Get selected BOQ item details
-  const selectedBOQ = boqItems.find(item => item.id === selectedBOQItem);
+  // Get selected BOQ item details from flattened hierarchy
+  const selectedBOQ = useMemo(() => {
+    if (!selectedBOQItem) return null;
+    return hierarchicalBOQItems.find(({ item }) => item.id === selectedBOQItem)?.item || null;
+  }, [selectedBOQItem, hierarchicalBOQItems]);
 
   // Filter segments based on search term
   const filteredSummaryData = useMemo(() => {
