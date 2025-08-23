@@ -275,7 +275,7 @@ const UserManagement = () => {
       {roleManageUser && (
         <RoleManager 
           userId={roleManageUser.id}
-          currentRoles={roleManageUser.user_roles || [roleManageUser.role]} 
+          currentRoles={roleManageUser.user_roles?.map(r => r.role) || [roleManageUser.role]} 
           onRolesUpdated={() => {
             fetchUsers();
             setRoleManageUser(null);
