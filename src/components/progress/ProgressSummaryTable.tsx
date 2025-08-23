@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ProgressSummaryData } from '@/hooks/useProgressSummaryData';
 import { useLanguage } from '@/context/LanguageContext';
-import { Hash, MapPin, Route } from 'lucide-react';
+import { Hash, MapPin, Navigation } from 'lucide-react';
 
 interface ProgressSummaryTableProps {
   data: ProgressSummaryData;
@@ -92,7 +92,7 @@ export const ProgressSummaryTable: React.FC<ProgressSummaryTableProps> = ({ data
               </TableHead>
               <TableHead className={`font-semibold text-foreground py-3 px-3 ${isRTL ? 'text-right' : 'text-left'}`}>
                 <div className="flex items-center gap-2">
-                  <Route className="w-4 h-4 text-gray-500" />
+                  <Navigation className="w-4 h-4 text-gray-500" />
                   <span className="text-sm">Road</span>
                 </div>
               </TableHead>
