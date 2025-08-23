@@ -17,6 +17,15 @@ const ProgressSummary = () => {
 
   // Show all BOQ items in hierarchical structure like in BOQ Module
   const hierarchicalBOQItems = useMemo(() => {
+    console.log('=== Hierarchical BOQ Debug ===');
+    console.log('All BOQ Items:', boqItems.map(item => ({
+      id: item.id,
+      code: item.code, 
+      description: item.description,
+      parentId: item.parentId,
+      level: item.level
+    })));
+
     // Create a hierarchical structure from flat BOQ items
     const createHierarchy = (items: typeof boqItems): typeof boqItems => {
       const itemMap = new Map(items.map(item => [item.id, { ...item, children: [] }]));
@@ -33,6 +42,7 @@ const ProgressSummary = () => {
         }
       });
 
+      console.log('Root Items:', rootItems.map(item => ({ code: item.code, childrenCount: item.children?.length || 0 })));
       return rootItems;
     };
 
@@ -51,7 +61,15 @@ const ProgressSummary = () => {
     };
 
     const hierarchical = createHierarchy(boqItems);
-    return flattenForSelect(hierarchical);
+    const flattened = flattenForSelect(hierarchical);
+    
+    console.log('Flattened for select:', flattened.map(({ item, level }) => ({
+      code: item.code,
+      level,
+      hasChildren: item.children?.length > 0
+    })));
+    
+    return flattened;
   }, [boqItems]);
 
   const summaryData = useProgressSummaryData(selectedBOQItem, true); // Always show approved only
