@@ -1,4 +1,3 @@
-
 import { toast } from 'sonner';
 import { profileService } from './profileService';
 import { Profile } from './types';
@@ -7,8 +6,12 @@ import { supabase } from '@/integrations/supabase/client';
 export const useAuthSignIn = () => {
   const signIn = async (username: string, password: string) => {
     try {
+      console.log('🔐 Starting authentication for:', username);
+      
       // Check admin credentials and fetch from database
       if (username === 'Admin' && password === 'Admin123') {
+        console.log('🔍 Fetching admin profile from database...');
+        
         // Fetch the admin profile from database
         const { data: adminData, error: adminError } = await supabase
           .from('profiles')
@@ -18,8 +21,11 @@ export const useAuthSignIn = () => {
           .single();
 
         if (adminError || !adminData) {
+          console.error('❌ Admin user not found in database:', adminError);
           throw new Error('Admin user not found in database');
         }
+
+        console.log('✅ Admin profile found:', adminData);
 
         // Fetch user roles for admin
         const { data: rolesData, error: rolesError } = await supabase
@@ -27,6 +33,8 @@ export const useAuthSignIn = () => {
           .select('role')
           .eq('user_id', adminData.id)
           .eq('is_active', true);
+
+        console.log('👥 User roles query result:', rolesData, rolesError);
 
         const userRoles = rolesData?.map(r => r.role) || ['admin'];
 
@@ -42,6 +50,7 @@ export const useAuthSignIn = () => {
           updated_at: adminData.updated_at || new Date().toISOString()
         };
 
+        console.log('🎉 Final admin profile:', adminProfile);
         toast.success('Signed in successfully!');
         return { data: { profile: adminProfile }, error: null };
       }
