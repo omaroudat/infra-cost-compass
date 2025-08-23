@@ -16,10 +16,33 @@ const ProgressSummary = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   // Get only leaf nodes (items without children)
-  const leafBOQItems = boqItems.filter(item => {
-    const hasChildren = boqItems.some(child => child.parentId === item.id);
-    return !hasChildren;
-  });
+  const leafBOQItems = useMemo(() => {
+    console.log('All BOQ Items:', boqItems.map(item => ({ 
+      id: item.id, 
+      code: item.code, 
+      description: item.description, 
+      parentId: item.parentId,
+      level: item.level 
+    })));
+    
+    const filtered = boqItems.filter(item => {
+      const hasChildren = boqItems.some(child => child.parentId === item.id);
+      console.log(`BOQ Item ${item.code}:`, { 
+        hasChildren, 
+        parentId: item.parentId, 
+        level: item.level,
+        isLeaf: !hasChildren 
+      });
+      return !hasChildren;
+    });
+    
+    console.log('Filtered leaf BOQ Items:', filtered.map(item => ({ 
+      code: item.code, 
+      description: item.description 
+    })));
+    
+    return filtered;
+  }, [boqItems]);
 
   const summaryData = useProgressSummaryData(selectedBOQItem, true); // Always show approved only
   
