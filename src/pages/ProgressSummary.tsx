@@ -9,7 +9,9 @@ import SearchFilter from '@/components/ui/search-filter';
 import { ProgressSummaryTable } from '@/components/progress/ProgressSummaryTable';
 import { useProgressSummaryData } from '@/hooks/useProgressSummaryData';
 import { Badge } from '@/components/ui/badge';
-import { Package, TrendingUp, Calculator, Check, ChevronsUpDown } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Package, TrendingUp, Calculator, Check, ChevronsUpDown, Filter } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const ProgressSummary = () => {
@@ -17,6 +19,10 @@ const ProgressSummary = () => {
   const { t, isRTL } = useLanguage();
   const [selectedBOQItem, setSelectedBOQItem] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [manholeFromFilter, setManholeFromFilter] = useState('');
+  const [manholeToFilter, setManholeToFilter] = useState('');
+  const [zoneFilter, setZoneFilter] = useState('');
+  const [roadFilter, setRoadFilter] = useState('');
 
   // Show all BOQ items in hierarchical structure like in BOQ Module
   const hierarchicalBOQItems = useMemo(() => {
@@ -45,23 +51,38 @@ const ProgressSummary = () => {
     return hierarchicalBOQItems.find(({ item }) => item.id === selectedBOQItem)?.item || null;
   }, [selectedBOQItem, hierarchicalBOQItems]);
 
-  // Filter segments based on search term
+  // Filter segments based on all search filters
   const filteredSummaryData = useMemo(() => {
-    if (!summaryData || !searchTerm.trim()) return summaryData;
+    if (!summaryData) return summaryData;
     
-    const filteredSegments = summaryData.segments.filter(segment => 
-      segment.manholeFrom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      segment.manholeTo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      segment.zone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      segment.road?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      segment.line?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const hasAnyFilter = searchTerm.trim() || manholeFromFilter.trim() || manholeToFilter.trim() || zoneFilter.trim() || roadFilter.trim();
+    
+    if (!hasAnyFilter) return summaryData;
+    
+    const filteredSegments = summaryData.segments.filter(segment => {
+      // General search term (searches across all fields)
+      const matchesSearchTerm = !searchTerm.trim() || (
+        segment.manholeFrom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        segment.manholeTo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        segment.zone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        segment.road?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        segment.line?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      
+      // Specific field filters
+      const matchesManholeFrom = !manholeFromFilter.trim() || segment.manholeFrom?.toLowerCase().includes(manholeFromFilter.toLowerCase());
+      const matchesManholeTo = !manholeToFilter.trim() || segment.manholeTo?.toLowerCase().includes(manholeToFilter.toLowerCase());
+      const matchesZone = !zoneFilter.trim() || segment.zone?.toLowerCase().includes(zoneFilter.toLowerCase());
+      const matchesRoad = !roadFilter.trim() || segment.road?.toLowerCase().includes(roadFilter.toLowerCase());
+      
+      return matchesSearchTerm && matchesManholeFrom && matchesManholeTo && matchesZone && matchesRoad;
+    });
     
     return {
       ...summaryData,
       segments: filteredSegments
     };
-  }, [summaryData, searchTerm]);
+  }, [summaryData, searchTerm, manholeFromFilter, manholeToFilter, zoneFilter, roadFilter]);
 
   return (
     <div className="space-y-6 p-6">
@@ -163,14 +184,104 @@ const ProgressSummary = () => {
           </Popover>
 
           {selectedBOQItem && (
-            <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
-              <SearchFilter
-                searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
-                placeholder="Search segments by manhole, zone, road, or line..."
-                className="w-full"
-              />
-            </div>
+            <Card className="bg-gradient-to-br from-muted/30 to-muted/10 border border-border/50">
+              <CardHeader className="pb-3">
+                <CardTitle className={`text-sm font-semibold text-foreground flex items-center gap-2 ${isRTL ? 'text-right flex-row-reverse' : 'text-left'}`}>
+                  <Filter className="w-4 h-4 text-primary" />
+                  {t('progressSummary.filters', 'Filter Segments')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* General Search */}
+                <div className="space-y-2">
+                  <Label htmlFor="general-search" className="text-xs font-medium">
+                    {t('progressSummary.generalSearch', 'General Search')}
+                  </Label>
+                  <Input
+                    id="general-search"
+                    placeholder={t('progressSummary.generalSearchPlaceholder', 'Search across all fields...')}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="h-9"
+                  />
+                </div>
+
+                {/* Specific Filters */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="manhole-from" className="text-xs font-medium">
+                      {t('progressSummary.manholeFrom', 'Manhole From')}
+                    </Label>
+                    <Input
+                      id="manhole-from"
+                      placeholder={t('progressSummary.manholeFromPlaceholder', 'Filter by manhole from...')}
+                      value={manholeFromFilter}
+                      onChange={(e) => setManholeFromFilter(e.target.value)}
+                      className="h-9"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="manhole-to" className="text-xs font-medium">
+                      {t('progressSummary.manholeTo', 'Manhole To')}
+                    </Label>
+                    <Input
+                      id="manhole-to"
+                      placeholder={t('progressSummary.manholeToPlaceholder', 'Filter by manhole to...')}
+                      value={manholeToFilter}
+                      onChange={(e) => setManholeToFilter(e.target.value)}
+                      className="h-9"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="zone" className="text-xs font-medium">
+                      {t('progressSummary.zone', 'Zone')}
+                    </Label>
+                    <Input
+                      id="zone"
+                      placeholder={t('progressSummary.zonePlaceholder', 'Filter by zone...')}
+                      value={zoneFilter}
+                      onChange={(e) => setZoneFilter(e.target.value)}
+                      className="h-9"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="road" className="text-xs font-medium">
+                      {t('progressSummary.road', 'Road')}
+                    </Label>
+                    <Input
+                      id="road"
+                      placeholder={t('progressSummary.roadPlaceholder', 'Filter by road...')}
+                      value={roadFilter}
+                      onChange={(e) => setRoadFilter(e.target.value)}
+                      className="h-9"
+                    />
+                  </div>
+                </div>
+
+                {/* Clear Filters */}
+                {(searchTerm || manholeFromFilter || manholeToFilter || zoneFilter || roadFilter) && (
+                  <div className="flex justify-end pt-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setSearchTerm('');
+                        setManholeFromFilter('');
+                        setManholeToFilter('');
+                        setZoneFilter('');
+                        setRoadFilter('');
+                      }}
+                      className="text-xs"
+                    >
+                      {t('progressSummary.clearFilters', 'Clear All Filters')}
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           )}
         </CardContent>
       </Card>
