@@ -195,6 +195,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active_role: Database["public"]["Enums"]["app_role"] | null
           created_at: string | null
           department: string | null
           full_name: string | null
@@ -205,6 +206,7 @@ export type Database = {
           username: string | null
         }
         Insert: {
+          active_role?: Database["public"]["Enums"]["app_role"] | null
           created_at?: string | null
           department?: string | null
           full_name?: string | null
@@ -215,6 +217,7 @@ export type Database = {
           username?: string | null
         }
         Update: {
+          active_role?: Database["public"]["Enums"]["app_role"] | null
           created_at?: string | null
           department?: string | null
           full_name?: string | null
@@ -223,6 +226,33 @@ export type Database = {
           role?: string | null
           updated_at?: string | null
           username?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          id: string
+          is_active: boolean | null
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
         }
         Relationships: []
       }
@@ -359,8 +389,28 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_current_user_roles: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["app_role"][]
+      }
+      get_user_roles: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"][]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      switch_user_role: {
+        Args: { _role: Database["public"]["Enums"]["app_role"] }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "admin" | "editor" | "viewer" | "data_entry"
       wir_result: "A" | "B" | "C"
       wir_status: "submitted" | "completed"
     }
@@ -490,6 +540,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "editor", "viewer", "data_entry"],
       wir_result: ["A", "B", "C"],
       wir_status: ["submitted", "completed"],
     },
