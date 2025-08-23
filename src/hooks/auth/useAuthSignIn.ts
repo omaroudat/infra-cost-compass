@@ -7,18 +7,39 @@ import { supabase } from '@/integrations/supabase/client';
 export const useAuthSignIn = () => {
   const signIn = async (username: string, password: string) => {
     try {
-      // Simple hardcoded admin check for demo purposes
+      // Check admin credentials and fetch from database
       if (username === 'Admin' && password === 'Admin123') {
+        // Fetch the admin profile from database
+        const { data: adminData, error: adminError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('username', 'Admin')
+          .eq('password', 'Admin123')
+          .single();
+
+        if (adminError || !adminData) {
+          throw new Error('Admin user not found in database');
+        }
+
+        // Fetch user roles for admin
+        const { data: rolesData, error: rolesError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', adminData.id)
+          .eq('is_active', true);
+
+        const userRoles = rolesData?.map(r => r.role) || ['admin'];
+
         const adminProfile: Profile = {
-          id: 'admin-id',
-          username: 'Admin',
-          full_name: 'Administrator',
-          role: 'admin',
-          active_role: 'admin',
-          user_roles: ['admin'],
-          department: 'Management',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          id: adminData.id,
+          username: adminData.username || 'Admin',
+          full_name: adminData.full_name || 'Administrator',
+          role: adminData.role || 'admin',
+          active_role: adminData.active_role || 'admin',
+          user_roles: userRoles,
+          department: adminData.department || 'Management',
+          created_at: adminData.created_at || new Date().toISOString(),
+          updated_at: adminData.updated_at || new Date().toISOString()
         };
 
         toast.success('Signed in successfully!');
