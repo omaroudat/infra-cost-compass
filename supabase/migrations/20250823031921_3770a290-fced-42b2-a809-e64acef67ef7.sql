@@ -1,0 +1,8 @@
+-- Check and enable RLS on all tables that need it
+ALTER TABLE public.boq_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.breakdown_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.wirs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.engineers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.contractors ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
