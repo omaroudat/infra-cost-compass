@@ -16,6 +16,7 @@ import Breakdown from './pages/Breakdown';
 import Adjustments from './pages/Adjustments';
 import WIRs from './pages/WIRs';
 import ProgressTracking from './pages/ProgressTracking';
+import ProgressSummary from './pages/ProgressSummary';
 import Reports from './pages/Reports';
 import Invoices from './pages/Invoices';
 import StaffManagement from './pages/StaffManagement';
@@ -119,6 +120,16 @@ function App() {
                         <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer']}>
                           <Layout>
                             <ProgressTracking />
+                          </Layout>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/progress-summary"
+                      element={
+                        <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer']}>
+                          <Layout>
+                            <ProgressSummary />
                           </Layout>
                         </ProtectedRoute>
                       }
