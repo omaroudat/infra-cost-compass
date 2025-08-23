@@ -162,4 +162,5 @@ const RoleManager: React.FC<RoleManagerProps> = ({ userId, currentRoles, onRoles
   );
 };
 
+// Export as default to fix module caching issue
 export default RoleManager;
