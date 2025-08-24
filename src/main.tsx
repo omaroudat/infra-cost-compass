@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AccessibilityProvider } from './components/accessibility/AccessibilityProvider';
+import { ThemeProvider } from './components/theme/ThemeProvider';
 import App from './App.tsx';
 import './index.css';
 
@@ -12,9 +13,11 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
-        <AccessibilityProvider>
-          <App />
-        </AccessibilityProvider>
+        <ThemeProvider>
+          <AccessibilityProvider>
+            <App />
+          </AccessibilityProvider>
+        </ThemeProvider>
       </QueryClientProvider>
     </BrowserRouter>
   </StrictMode>

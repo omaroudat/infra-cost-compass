@@ -47,6 +47,7 @@ import {
 import { LanguageSelector } from './LanguageSelector';
 import { AccessibilityToolbar } from './accessibility/AccessibilityToolbar';
 import { SkipLink, Landmark } from './accessibility/FocusManager';
+import { ThemeToggle } from './theme/ThemeToggle';
 
 const AppSidebar = ({ side }: { side?: "left" | "right" }) => {
   const { profile, signOut, hasRole } = useAuth();
@@ -239,7 +240,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 className="-ml-1 hover:bg-blue-50 transition-colors" 
                 aria-label="Toggle navigation sidebar"
               />
-              <div className={`flex items-center ${isRTL ? 'mr-auto space-x-reverse space-x-4' : 'ml-auto space-x-4'}`}>
+              <div className={`flex items-center ${isRTL ? 'mr-auto space-x-reverse space-x-3' : 'ml-auto space-x-3'}`}>
+                <ThemeToggle />
                 <UserProfileCard />
                 <LanguageSelector />
                 <AccessibilityToolbar />

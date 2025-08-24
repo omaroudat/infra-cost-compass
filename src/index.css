@@ -102,77 +102,77 @@
 
   .dark {
     /* Core Colors - Dark Mode */
-    --background: 215 28% 6%;
-    --foreground: 213 31% 91%;
-    --card: 215 28% 9%;
-    --card-foreground: 213 31% 91%;
-    --popover: 215 28% 9%;
-    --popover-foreground: 213 31% 91%;
+    --background: 222 84% 4%;
+    --foreground: 210 40% 98%;
+    --card: 222 84% 6%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 84% 6%;
+    --popover-foreground: 210 40% 98%;
     
     /* Primary Brand - Bright in Dark */
-    --primary: 215 84% 58%;
-    --primary-foreground: 215 28% 6%;
-    --primary-light: 215 84% 68%;
-    --primary-dark: 215 84% 48%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 84% 4%;
+    --primary-light: 217 91% 70%;
+    --primary-dark: 217 91% 50%;
     
     /* Secondary - Dark Sophisticated */
-    --secondary: 215 28% 15%;
-    --secondary-foreground: 213 31% 91%;
+    --secondary: 217 32% 17%;
+    --secondary-foreground: 210 40% 98%;
     
     /* Muted - Dark Backgrounds */
-    --muted: 215 28% 15%;
+    --muted: 217 32% 17%;
     --muted-foreground: 215 20% 65%;
     
     /* Accent - Warm Professional Dark */
-    --accent: 25 95% 58%;
-    --accent-foreground: 215 28% 6%;
-    --accent-light: 25 95% 68%;
-    --accent-dark: 25 95% 48%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 222 84% 4%;
+    --accent-light: 38 92% 60%;
+    --accent-dark: 38 92% 40%;
     
-    /* Status Colors - Dark Mode */
-    --success: 142 76% 46%;
-    --success-foreground: 215 28% 6%;
-    --warning: 38 92% 60%;
-    --warning-foreground: 215 28% 6%;
-    --destructive: 0 84% 70%;
-    --destructive-foreground: 215 28% 6%;
+    /* Status Colors - Dark Mode Enhanced Contrast */
+    --success: 142 71% 45%;
+    --success-foreground: 210 40% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 222 84% 4%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 210 40% 98%;
     
-    /* UI Elements */
-    --border: 215 28% 18%;
-    --input: 215 28% 18%;
-    --ring: 215 84% 58%;
+    /* UI Elements - Enhanced Contrast */
+    --border: 217 32% 17%;
+    --input: 217 32% 17%;
+    --ring: 217 91% 60%;
     
     /* Elevation System - Dark Mode Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(215 25% 0% / 0.3);
-    --shadow: 0 1px 3px 0 hsl(215 25% 0% / 0.4), 0 1px 2px -1px hsl(215 25% 0% / 0.4);
-    --shadow-md: 0 4px 6px -1px hsl(215 25% 0% / 0.4), 0 2px 4px -2px hsl(215 25% 0% / 0.4);
-    --shadow-lg: 0 10px 15px -3px hsl(215 25% 0% / 0.4), 0 4px 6px -4px hsl(215 25% 0% / 0.4);
-    --shadow-xl: 0 20px 25px -5px hsl(215 25% 0% / 0.4), 0 8px 10px -6px hsl(215 25% 0% / 0.4);
-    --shadow-2xl: 0 25px 50px -12px hsl(215 25% 0% / 0.6);
+    --shadow-sm: 0 1px 2px 0 hsl(222 84% 0% / 0.3);
+    --shadow: 0 1px 3px 0 hsl(222 84% 0% / 0.4), 0 1px 2px -1px hsl(222 84% 0% / 0.4);
+    --shadow-md: 0 4px 6px -1px hsl(222 84% 0% / 0.4), 0 2px 4px -2px hsl(222 84% 0% / 0.4);
+    --shadow-lg: 0 10px 15px -3px hsl(222 84% 0% / 0.4), 0 4px 6px -4px hsl(222 84% 0% / 0.4);
+    --shadow-xl: 0 20px 25px -5px hsl(222 84% 0% / 0.4), 0 8px 10px -6px hsl(222 84% 0% / 0.4);
+    --shadow-2xl: 0 25px 50px -12px hsl(222 84% 0% / 0.6);
     
     /* Gradient System - Dark Mode */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
-    --gradient-secondary: linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--muted)));
-    --gradient-accent: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent-light)));
-    --gradient-subtle: linear-gradient(180deg, hsl(215 28% 9% / 0.8), hsl(215 28% 15% / 0.4));
-    --gradient-backdrop: linear-gradient(135deg, hsl(215 84% 58% / 0.05), hsl(25 95% 58% / 0.05));
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 70%));
+    --gradient-secondary: linear-gradient(135deg, hsl(217 32% 17%), hsl(217 32% 20%));
+    --gradient-accent: linear-gradient(135deg, hsl(38 92% 50%), hsl(38 92% 60%));
+    --gradient-subtle: linear-gradient(180deg, hsl(222 84% 6% / 0.8), hsl(217 32% 17% / 0.4));
+    --gradient-backdrop: linear-gradient(135deg, hsl(217 91% 60% / 0.05), hsl(38 92% 50% / 0.05));
     
     /* Sidebar System - Dark */
-    --sidebar-background: 215 28% 9%;
-    --sidebar-foreground: 213 31% 91%;
-    --sidebar-primary: 215 84% 58%;
-    --sidebar-primary-foreground: 215 28% 6%;
-    --sidebar-accent: 215 28% 15%;
-    --sidebar-accent-foreground: 213 31% 91%;
-    --sidebar-border: 215 28% 18%;
-    --sidebar-ring: 215 84% 58%;
+    --sidebar-background: 222 84% 6%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 222 84% 4%;
+    --sidebar-accent: 217 32% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 32% 17%;
+    --sidebar-ring: 217 91% 60%;
     
-    /* Chart Colors - Dark Mode */
-    --chart-1: 215 84% 58%;
-    --chart-2: 142 76% 46%;
-    --chart-3: 25 95% 58%;
+    /* Chart Colors - Dark Mode Enhanced */
+    --chart-1: 217 91% 60%;
+    --chart-2: 142 71% 45%;
+    --chart-3: 38 92% 50%;
     --chart-4: 262 83% 68%;
-    --chart-5: 0 84% 70%;
+    --chart-5: 0 62% 50%;
   }
 }
 
@@ -532,7 +532,7 @@
   
   /* Enhanced Interactive Elements */
   .interactive-hover {
-    transition: all var(--transition-base);
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .interactive-hover:hover {
@@ -547,7 +547,7 @@
     align-items: center;
     justify-content: center;
     font-weight: 500;
-    transition: all var(--transition-base);
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: var(--radius);
     overflow: hidden;
   }
@@ -560,7 +560,7 @@
     width: 100%;
     height: 100%;
     background: linear-gradient(90deg, transparent, hsl(var(--primary-foreground) / 0.1), transparent);
-    transition: left var(--transition-slow);
+    transition: left 250ms cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .btn-base:hover::before {
@@ -573,7 +573,7 @@
     border: 1px solid hsl(var(--border));
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-elegant);
-    transition: all var(--transition-base);
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .card-refined:hover {
@@ -584,7 +584,7 @@
   /* Professional Navigation */
   .nav-item {
     position: relative;
-    transition: all var(--transition-base);
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .nav-item::after {
@@ -595,12 +595,73 @@
     width: 0;
     height: 2px;
     background: var(--gradient-primary);
-    transition: width var(--transition-base);
+    transition: width 200ms cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .nav-item:hover::after,
   .nav-item.active::after {
     width: 100%;
+  }
+
+  /* Modal and Menu Animations */
+  .modal-enter {
+    animation: modal-fade-in 200ms cubic-bezier(0.4, 0, 0.2, 1), modal-scale-in 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .modal-exit {
+    animation: modal-fade-out 150ms cubic-bezier(0.4, 0, 0.2, 1), modal-scale-out 100ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .menu-enter {
+    animation: menu-slide-in 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .menu-exit {
+    animation: menu-slide-out 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Enhanced Badge Styles for Better Contrast */
+  .badge-enhanced {
+    font-weight: 600;
+    letter-spacing: 0.025em;
+    border-width: 1px;
+    border-style: solid;
+  }
+
+  .badge-success {
+    background: hsl(142 71% 45% / 0.15);
+    color: hsl(142 71% 35%);
+    border-color: hsl(142 71% 45% / 0.3);
+  }
+
+  .dark .badge-success {
+    background: hsl(142 71% 45% / 0.2);
+    color: hsl(142 71% 55%);
+    border-color: hsl(142 71% 45% / 0.4);
+  }
+
+  .badge-warning {
+    background: hsl(38 92% 50% / 0.15);
+    color: hsl(38 92% 30%);
+    border-color: hsl(38 92% 50% / 0.3);
+  }
+
+  .dark .badge-warning {
+    background: hsl(38 92% 50% / 0.2);
+    color: hsl(38 92% 60%);
+    border-color: hsl(38 92% 50% / 0.4);
+  }
+
+  .badge-destructive {
+    background: hsl(0 62% 50% / 0.15);
+    color: hsl(0 62% 35%);
+    border-color: hsl(0 62% 50% / 0.3);
+  }
+
+  .dark .badge-destructive {
+    background: hsl(0 62% 50% / 0.2);
+    color: hsl(0 62% 60%);
+    border-color: hsl(0 62% 50% / 0.4);
   }
 }
 
