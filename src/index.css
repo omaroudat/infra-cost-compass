@@ -375,7 +375,6 @@
     z-index: 1000;
     max-width: 400px;
   }
-}
 
   /* RTL Support */
   html[dir="rtl"] {
