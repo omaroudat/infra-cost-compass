@@ -45,6 +45,8 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { LanguageSelector } from './LanguageSelector';
+import { AccessibilityToolbar } from './accessibility/AccessibilityToolbar';
+import { SkipLink, Landmark } from './accessibility/FocusManager';
 
 const AppSidebar = ({ side }: { side?: "left" | "right" }) => {
   const { profile, signOut, hasRole } = useAuth();
@@ -220,18 +222,41 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-gray-50 to-gray-100">
-        <AppSidebar side={isRTL ? "right" : "left"} />
+        {/* Skip Navigation Links */}
+        <SkipLink href="#main-content">Skip to main content</SkipLink>
+        <SkipLink href="#navigation">Skip to navigation</SkipLink>
+        
+        {/* Navigation Landmark */}
+        <Landmark role="navigation" ariaLabel="Main navigation">
+          <AppSidebar side={isRTL ? "right" : "left"} />
+        </Landmark>
+        
         <SidebarInset className="flex-1">
-          <header className={`flex h-16 shrink-0 items-center gap-2 border-b bg-white/80 backdrop-blur-sm px-6 shadow-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
-            <SidebarTrigger className="-ml-1 hover:bg-blue-50 transition-colors" />
-            <div className={`flex items-center ${isRTL ? 'mr-auto space-x-reverse space-x-4' : 'ml-auto space-x-4'}`}>
-              <UserProfileCard />
-              <LanguageSelector />
-            </div>
-          </header>
-          <main className={`flex-1 p-8 bg-gradient-to-br from-gray-50 to-gray-100 ${isRTL ? 'font-arabic' : ''}`}>
-            {children}
-          </main>
+          {/* Banner Landmark */}
+          <Landmark role="banner">
+            <header className={`flex h-16 shrink-0 items-center gap-2 border-b bg-white/80 backdrop-blur-sm px-6 shadow-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <SidebarTrigger 
+                className="-ml-1 hover:bg-blue-50 transition-colors" 
+                aria-label="Toggle navigation sidebar"
+              />
+              <div className={`flex items-center ${isRTL ? 'mr-auto space-x-reverse space-x-4' : 'ml-auto space-x-4'}`}>
+                <UserProfileCard />
+                <LanguageSelector />
+                <AccessibilityToolbar />
+              </div>
+            </header>
+          </Landmark>
+          
+          {/* Main Content Landmark */}
+          <Landmark role="main" ariaLabel="Main content">
+            <main 
+              id="main-content"
+              className={`flex-1 p-8 bg-gradient-to-br from-gray-50 to-gray-100 ${isRTL ? 'font-arabic' : ''}`}
+              tabIndex={-1}
+            >
+              {children}
+            </main>
+          </Landmark>
         </SidebarInset>
       </div>
     </SidebarProvider>
