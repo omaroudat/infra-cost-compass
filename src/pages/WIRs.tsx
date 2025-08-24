@@ -240,9 +240,7 @@ const WIRs = () => {
             wirs={filteredWIRs}
             flattenedBOQItems={flattenedBOQItems}
             canEdit={canEdit()}
-            canDelete={profile?.role === 'data_entry' ? false : canDelete()}
             onEdit={handleEditWIR}
-            onDelete={handleDeleteWIR}
             onSubmitResult={canEdit() ? handleSubmitResult : undefined}
             onRevisionRequest={canEdit() ? handleRevisionRequest : undefined}
           />

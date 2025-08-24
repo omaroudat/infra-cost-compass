@@ -7,7 +7,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
   Edit, 
-  Trash2, 
   FileText, 
   Send, 
   Printer, 
@@ -21,33 +20,13 @@ import {
   ChevronDown,
   ArrowUpDown
 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import WIRPrintView from './WIRPrintView';
 
 interface WIRTableProps {
   wirs: WIR[];
   flattenedBOQItems: BOQItem[];
   canEdit: boolean;
-  canDelete: boolean;
   onEdit: (wir: WIR) => void;
-  onDelete: (id: string) => void;
   onSubmitResult?: (wir: WIR) => void;
   onRevisionRequest?: (wir: WIR) => void;
 }
@@ -56,9 +35,7 @@ const WIRTable: React.FC<WIRTableProps> = ({
   wirs,
   flattenedBOQItems,
   canEdit,
-  canDelete,
   onEdit,
-  onDelete,
   onSubmitResult,
   onRevisionRequest
 }) => {
@@ -193,21 +170,21 @@ const WIRTable: React.FC<WIRTableProps> = ({
     switch (result) {
       case 'A':
         return {
-          variant: 'warning' as const,
-          icon: <AlertCircle className="h-3 w-3" />,
-          label: 'CONDITIONAL'
+          variant: 'success' as const,
+          icon: <CheckCircle className="h-3 w-3" />,
+          label: 'APPROVED (A)'
         };
       case 'B':
         return {
-          variant: 'success' as const,
-          icon: <CheckCircle className="h-3 w-3" />,
-          label: 'APPROVED'
+          variant: 'warning' as const,
+          icon: <AlertCircle className="h-3 w-3" />,
+          label: 'CONDITIONAL (B)'
         };
       case 'C':
         return {
           variant: 'destructive' as const,
           icon: <XCircle className="h-3 w-3" />,
-          label: 'REJECTED'
+          label: 'REJECTED (C)'
         };
       default:
         return {
@@ -324,59 +301,42 @@ const WIRTable: React.FC<WIRTableProps> = ({
                   <p>Print WIR</p>
                 </TooltipContent>
               </Tooltip>
-              
-              {(canEdit && onSubmitResult && wir.status === 'submitted') ||
-               (canEdit && onRevisionRequest && wir.status === 'completed') ||
-               canDelete ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 w-8 p-0">
-                      <MoreHorizontal className="h-4 w-4" />
+
+              {canEdit && onSubmitResult && wir.status === 'submitted' && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onSubmitResult(wir)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Send className="h-4 w-4" />
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {canEdit && onSubmitResult && wir.status === 'submitted' && (
-                      <DropdownMenuItem onClick={() => onSubmitResult(wir)}>
-                        <Send className="h-4 w-4 mr-2" />
-                        Submit Result
-                      </DropdownMenuItem>
-                    )}
-                    {canEdit && onRevisionRequest && wir.status === 'completed' && (
-                      <DropdownMenuItem onClick={() => onRevisionRequest(wir)}>
-                        <FileText className="h-4 w-4 mr-2" />
-                        Request Revision
-                      </DropdownMenuItem>
-                    )}
-                    {canDelete && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete the WIR.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => onDelete(wir.id)}>
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : null}
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Submit Result</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+
+              {canEdit && onRevisionRequest && wir.result === 'C' && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onRevisionRequest(wir)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <FileText className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Request Revision</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
             </TooltipProvider>
           </div>
         </CardContent>
@@ -459,98 +419,71 @@ const WIRTable: React.FC<WIRTableProps> = ({
                          </Badge>
                        </TableCell>
                        <TableCell className="py-5 px-4 align-middle">
-                         <div className="flex items-center justify-center gap-1.5">
-                          <TooltipProvider>
-                            {canEdit && (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => onEdit(wir)}
-                                    className="h-8 w-8 p-0 hover:bg-primary/10"
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Edit WIR</TooltipContent>
-                              </Tooltip>
-                            )}
-                            
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handlePrint(wir)}
-                                  className="h-8 w-8 p-0 hover:bg-primary/10"
-                                >
-                                  <Printer className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Print WIR</TooltipContent>
-                            </Tooltip>
-                            
-                            {(canEdit && onSubmitResult && wir.status === 'submitted') ||
-                             (canEdit && onRevisionRequest && wir.status === 'completed') ||
-                             canDelete ? (
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-primary/10">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-48">
-                                  {canEdit && onSubmitResult && wir.status === 'submitted' && (
-                                    <DropdownMenuItem onClick={() => onSubmitResult(wir)}>
-                                      <Send className="h-4 w-4 mr-2" />
-                                      Submit Result
-                                    </DropdownMenuItem>
-                                  )}
-                                  {canEdit && onRevisionRequest && wir.status === 'completed' && (
-                                    <DropdownMenuItem onClick={() => onRevisionRequest(wir)}>
-                                      <FileText className="h-4 w-4 mr-2" />
-                                      Request Revision
-                                    </DropdownMenuItem>
-                                  )}
-                                  {canDelete && (
-                                    <>
-                                      {(canEdit && (onSubmitResult || onRevisionRequest)) && <DropdownMenuSeparator />}
-                                      <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                          <DropdownMenuItem 
-                                            onSelect={(e) => e.preventDefault()}
-                                            className="text-destructive focus:text-destructive"
-                                          >
-                                            <Trash2 className="h-4 w-4 mr-2" />
-                                            Delete WIR
-                                          </DropdownMenuItem>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                          <AlertDialogHeader>
-                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                              This action cannot be undone. This will permanently delete the WIR.
-                                            </AlertDialogDescription>
-                                          </AlertDialogHeader>
-                                          <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction 
-                                              onClick={() => onDelete(wir.id)}
-                                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                            >
-                                              Delete
-                                            </AlertDialogAction>
-                                          </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                      </AlertDialog>
-                                    </>
-                                  )}
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            ) : null}
-                          </TooltipProvider>
-                        </div>
+                          <div className="flex items-center justify-center gap-1.5">
+                           <TooltipProvider>
+                             {canEdit && (
+                               <Tooltip>
+                                 <TooltipTrigger asChild>
+                                   <Button
+                                     variant="ghost"
+                                     size="sm"
+                                     onClick={() => onEdit(wir)}
+                                     className="h-8 w-8 p-0 hover:bg-primary/10"
+                                   >
+                                     <Edit className="h-4 w-4" />
+                                   </Button>
+                                 </TooltipTrigger>
+                                 <TooltipContent>Edit WIR</TooltipContent>
+                               </Tooltip>
+                             )}
+                             
+                             <Tooltip>
+                               <TooltipTrigger asChild>
+                                 <Button
+                                   variant="ghost"
+                                   size="sm"
+                                   onClick={() => handlePrint(wir)}
+                                   className="h-8 w-8 p-0 hover:bg-primary/10"
+                                 >
+                                   <Printer className="h-4 w-4" />
+                                 </Button>
+                               </TooltipTrigger>
+                               <TooltipContent>Print WIR</TooltipContent>
+                             </Tooltip>
+
+                             {canEdit && onSubmitResult && wir.status === 'submitted' && (
+                               <Tooltip>
+                                 <TooltipTrigger asChild>
+                                   <Button
+                                     variant="ghost"
+                                     size="sm"
+                                     onClick={() => onSubmitResult(wir)}
+                                     className="h-8 w-8 p-0 hover:bg-primary/10"
+                                   >
+                                     <Send className="h-4 w-4" />
+                                   </Button>
+                                 </TooltipTrigger>
+                                 <TooltipContent>Submit Result</TooltipContent>
+                               </Tooltip>
+                             )}
+
+                             {canEdit && onRevisionRequest && wir.result === 'C' && (
+                               <Tooltip>
+                                 <TooltipTrigger asChild>
+                                   <Button
+                                     variant="ghost"
+                                     size="sm"
+                                     onClick={() => onRevisionRequest(wir)}
+                                     className="h-8 w-8 p-0 hover:bg-primary/10"
+                                   >
+                                     <FileText className="h-4 w-4" />
+                                   </Button>
+                                 </TooltipTrigger>
+                                 <TooltipContent>Request Revision</TooltipContent>
+                               </Tooltip>
+                             )}
+                           </TooltipProvider>
+                         </div>
                       </TableCell>
                     </TableRow>
                   );
