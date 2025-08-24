@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
 import { ManualAuthProvider } from './context/ManualAuthContext';
@@ -59,124 +59,122 @@ function App() {
           <AppProvider>
             <LanguageProvider>
               <RealtimeProvider>
-                <Router>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/unauthorized" element={<Unauthorized />} />
-                    <Route
-                      path="/dashboard"
-                      element={
-                        <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer']}>
-                          <Layout>
-                            <Dashboard />
-                          </Layout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/boq"
-                      element={
-                        <ProtectedRoute requiredRoles={['admin', 'editor']}>
-                          <Layout>
-                            <BOQ />
-                          </Layout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/breakdown"
-                      element={
-                        <ProtectedRoute requiredRoles={['admin', 'editor']}>
-                          <Layout>
-                            <Breakdown />
-                          </Layout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/adjustments"
-                      element={
-                        <ProtectedRoute requiredRoles={['admin', 'editor']}>
-                          <Layout>
-                            <Adjustments />
-                          </Layout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/wirs"
-                      element={
-                        <ProtectedRoute requiredRoles={['admin', 'editor', 'data_entry']}>
-                          <Layout>
-                            <WIRs />
-                          </Layout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/progress"
-                      element={
-                        <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer']}>
-                          <Layout>
-                            <ProgressTracking />
-                          </Layout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/progress-summary"
-                      element={
-                        <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer']}>
-                          <Layout>
-                            <ProgressSummary />
-                          </Layout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/reports"
-                      element={
-                        <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer']}>
-                          <Layout>
-                            <Reports />
-                          </Layout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/invoices"
-                      element={
-                        <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer']}>
-                          <Layout>
-                            <Invoices />
-                          </Layout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/staff"
-                      element={
-                        <ProtectedRoute requiredRoles={['admin']}>
-                          <Layout>
-                            <StaffManagement />
-                          </Layout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/users"
-                      element={
-                        <ProtectedRoute requiredRoles={['admin']}>
-                          <Layout>
-                            <UserManagement />
-                          </Layout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Router>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/unauthorized" element={<Unauthorized />} />
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer']}>
+                        <Layout>
+                          <Dashboard />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/boq"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'editor']}>
+                        <Layout>
+                          <BOQ />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/breakdown"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'editor']}>
+                        <Layout>
+                          <Breakdown />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/adjustments"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'editor']}>
+                        <Layout>
+                          <Adjustments />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/wirs"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'editor', 'data_entry']}>
+                        <Layout>
+                          <WIRs />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/progress"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer']}>
+                        <Layout>
+                          <ProgressTracking />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/progress-summary"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer']}>
+                        <Layout>
+                          <ProgressSummary />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/reports"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer']}>
+                        <Layout>
+                          <Reports />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/invoices"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer']}>
+                        <Layout>
+                          <Invoices />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/staff"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin']}>
+                        <Layout>
+                          <StaffManagement />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/users"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin']}>
+                        <Layout>
+                          <UserManagement />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
               </RealtimeProvider>
               <Toaster 
                 position="top-right"
