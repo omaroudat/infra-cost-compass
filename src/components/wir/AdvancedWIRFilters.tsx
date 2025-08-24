@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, Search, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { ChevronDown, Search, X, Filter, SlidersHorizontal } from 'lucide-react';
 
 export interface AdvancedWIRFilterValues {
   searchTerm?: string;
@@ -57,48 +58,90 @@ const AdvancedWIRFilters: React.FC<AdvancedWIRFiltersProps> = ({
     return value !== undefined && value !== '' && value !== null;
   });
 
+  const getActiveFilters = () => {
+    return Object.keys(filters).filter(key => {
+      const value = filters[key as keyof AdvancedWIRFilterValues];
+      return value !== undefined && value !== '' && value !== null;
+    });
+  };
+
+  const removeFilter = (key: keyof AdvancedWIRFilterValues) => {
+    const newFilters = { ...filters };
+    delete newFilters[key];
+    setFilters(newFilters);
+    onFiltersChange(newFilters);
+  };
+
   return (
-    <Card>
+    <Card className="shadow-sm border border-border">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer hover:bg-gray-50">
+          <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors duration-200 pb-4">
             <CardTitle className="flex items-center justify-between text-lg">
-              <div className="flex items-center gap-2">
-                <Search className="h-5 w-5" />
-                Advanced Search & Filters
-                {hasActiveFilters && (
-                  <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                    {Object.keys(filters).filter(key => {
-                      const value = filters[key as keyof AdvancedWIRFilterValues];
-                      return value !== undefined && value !== '' && value !== null;
-                    }).length} active
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <SlidersHorizontal className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-semibold">Advanced Filters</span>
+                  <span className="text-sm text-muted-foreground font-normal">
+                    Search and filter WIRs by multiple criteria
                   </span>
+                </div>
+                {hasActiveFilters && (
+                  <Badge variant="secondary" className="ml-2">
+                    {getActiveFilters().length} active
+                  </Badge>
                 )}
               </div>
-              <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
             </CardTitle>
           </CardHeader>
         </CollapsibleTrigger>
         
         <CollapsibleContent>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6 pt-0">
+            {/* Active Filters */}
+            {hasActiveFilters && (
+              <div className="flex flex-wrap gap-2 p-4 bg-muted/30 rounded-lg">
+                <span className="text-sm font-medium text-muted-foreground mr-2">Active filters:</span>
+                {getActiveFilters().map((key) => (
+                  <Badge 
+                    key={key} 
+                    variant="secondary" 
+                    className="gap-1 cursor-pointer hover:bg-secondary/80"
+                    onClick={() => removeFilter(key as keyof AdvancedWIRFilterValues)}
+                  >
+                    {key}: {String(filters[key as keyof AdvancedWIRFilterValues])}
+                    <X className="h-3 w-3" />
+                  </Badge>
+                ))}
+              </div>
+            )}
             {/* Search Term */}
             <div className="space-y-2">
-              <Label htmlFor="searchTerm">Search Term</Label>
-              <Input
-                id="searchTerm"
-                placeholder="Search in descriptions, WIR numbers, line numbers..."
-                value={filters.searchTerm || ''}
-                onChange={(e) => updateFilter('searchTerm', e.target.value)}
-              />
+              <Label htmlFor="searchTerm" className="text-sm font-medium">Global Search</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  id="searchTerm"
+                  placeholder="Search in descriptions, WIR numbers, line numbers..."
+                  value={filters.searchTerm || ''}
+                  onChange={(e) => updateFilter('searchTerm', e.target.value)}
+                  className="pl-10 h-10"
+                />
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Status Filter */}
               <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="status" className="text-sm font-medium flex items-center gap-2">
+                  <Filter className="h-4 w-4" />
+                  Status
+                </Label>
                 <Select value={filters.status || 'all'} onValueChange={(value) => updateFilter('status', value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-10">
                     <SelectValue placeholder="All statuses" />
                   </SelectTrigger>
                   <SelectContent>
@@ -111,25 +154,25 @@ const AdvancedWIRFilters: React.FC<AdvancedWIRFiltersProps> = ({
 
               {/* Result Filter */}
               <div className="space-y-2">
-                <Label htmlFor="result">Result</Label>
+                <Label htmlFor="result" className="text-sm font-medium">Result</Label>
                 <Select value={filters.result || 'all'} onValueChange={(value) => updateFilter('result', value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-10">
                     <SelectValue placeholder="All results" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All results</SelectItem>
-                    <SelectItem value="A">A</SelectItem>
-                    <SelectItem value="B">B</SelectItem>
-                    <SelectItem value="C">C</SelectItem>
+                    <SelectItem value="A">A - Approved</SelectItem>
+                    <SelectItem value="B">B - Conditional</SelectItem>
+                    <SelectItem value="C">C - Rejected</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {/* Engineer Filter */}
               <div className="space-y-2">
-                <Label htmlFor="engineer">Engineer</Label>
+                <Label htmlFor="engineer" className="text-sm font-medium">Engineer</Label>
                 <Select value={filters.engineer || 'all'} onValueChange={(value) => updateFilter('engineer', value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-10">
                     <SelectValue placeholder="All engineers" />
                   </SelectTrigger>
                   <SelectContent>
@@ -143,9 +186,9 @@ const AdvancedWIRFilters: React.FC<AdvancedWIRFiltersProps> = ({
 
               {/* Contractor Filter */}
               <div className="space-y-2">
-                <Label htmlFor="contractor">Contractor</Label>
+                <Label htmlFor="contractor" className="text-sm font-medium">Contractor</Label>
                 <Select value={filters.contractor || 'all'} onValueChange={(value) => updateFilter('contractor', value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-10">
                     <SelectValue placeholder="All contractors" />
                   </SelectTrigger>
                   <SelectContent>
@@ -159,9 +202,9 @@ const AdvancedWIRFilters: React.FC<AdvancedWIRFiltersProps> = ({
 
               {/* Region Filter */}
               <div className="space-y-2">
-                <Label htmlFor="region">Region</Label>
+                <Label htmlFor="region" className="text-sm font-medium">Region</Label>
                 <Select value={filters.region || 'all'} onValueChange={(value) => updateFilter('region', value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-10">
                     <SelectValue placeholder="All regions" />
                   </SelectTrigger>
                   <SelectContent>
@@ -175,85 +218,97 @@ const AdvancedWIRFilters: React.FC<AdvancedWIRFiltersProps> = ({
 
               {/* Line Number */}
               <div className="space-y-2">
-                <Label htmlFor="lineNo">Line Number</Label>
+                <Label htmlFor="lineNo" className="text-sm font-medium">Line Number</Label>
                 <Input
                   id="lineNo"
                   placeholder="Filter by line number"
                   value={filters.lineNo || ''}
                   onChange={(e) => updateFilter('lineNo', e.target.value)}
+                  className="h-10"
                 />
               </div>
             </div>
 
             {/* Date Range */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="fromDate">From Date</Label>
-                <Input
-                  id="fromDate"
-                  type="date"
-                  lang="en-GB"
-                  value={filters.fromDate || ''}
-                  onChange={(e) => updateFilter('fromDate', e.target.value)}
-                  style={{ colorScheme: 'light' }}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="toDate">To Date</Label>
-                <Input
-                  id="toDate"
-                  type="date"
-                  lang="en-GB"
-                  value={filters.toDate || ''}
-                  onChange={(e) => updateFilter('toDate', e.target.value)}
-                  style={{ colorScheme: 'light' }}
-                />
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Date Range</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="fromDate" className="text-xs text-muted-foreground">From Date</Label>
+                  <Input
+                    id="fromDate"
+                    type="date"
+                    lang="en-GB"
+                    value={filters.fromDate || ''}
+                    onChange={(e) => updateFilter('fromDate', e.target.value)}
+                    style={{ colorScheme: 'light' }}
+                    className="h-10"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="toDate" className="text-xs text-muted-foreground">To Date</Label>
+                  <Input
+                    id="toDate"
+                    type="date"
+                    lang="en-GB"
+                    value={filters.toDate || ''}
+                    onChange={(e) => updateFilter('toDate', e.target.value)}
+                    style={{ colorScheme: 'light' }}
+                    className="h-10"
+                  />
+                </div>
               </div>
             </div>
 
             {/* Value Range */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="minValue">Min Value</Label>
-                <Input
-                  id="minValue"
-                  type="number"
-                  placeholder="Minimum value"
-                  value={filters.minValue || ''}
-                  onChange={(e) => updateFilter('minValue', e.target.value ? parseFloat(e.target.value) : undefined)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="maxValue">Max Value</Label>
-                <Input
-                  id="maxValue"
-                  type="number"
-                  placeholder="Maximum value"
-                  value={filters.maxValue || ''}
-                  onChange={(e) => updateFilter('maxValue', e.target.value ? parseFloat(e.target.value) : undefined)}
-                />
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Value Range (SAR)</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="minValue" className="text-xs text-muted-foreground">Minimum Value</Label>
+                  <Input
+                    id="minValue"
+                    type="number"
+                    placeholder="0.00"
+                    value={filters.minValue || ''}
+                    onChange={(e) => updateFilter('minValue', e.target.value ? parseFloat(e.target.value) : undefined)}
+                    className="h-10"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="maxValue" className="text-xs text-muted-foreground">Maximum Value</Label>
+                  <Input
+                    id="maxValue"
+                    type="number"
+                    placeholder="999,999.00"
+                    value={filters.maxValue || ''}
+                    onChange={(e) => updateFilter('maxValue', e.target.value ? parseFloat(e.target.value) : undefined)}
+                    className="h-10"
+                  />
+                </div>
               </div>
             </div>
 
             {/* BOQ Item Code */}
             <div className="space-y-2">
-              <Label htmlFor="boqItemCode">BOQ Item Code</Label>
+              <Label htmlFor="boqItemCode" className="text-sm font-medium">BOQ Item Code</Label>
               <Input
                 id="boqItemCode"
                 placeholder="Filter by BOQ item code"
                 value={filters.boqItemCode || ''}
                 onChange={(e) => updateFilter('boqItemCode', e.target.value)}
+                className="h-10"
               />
             </div>
 
             {/* Clear Filters Button */}
             {hasActiveFilters && (
-              <div className="flex justify-end">
+              <div className="flex justify-end pt-4 border-t border-border">
                 <Button 
                   variant="outline" 
                   size="sm" 
                   onClick={clearFilters}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
                 >
                   <X className="h-4 w-4" />
                   Clear All Filters
