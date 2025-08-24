@@ -132,103 +132,120 @@ const Dashboard = () => {
         </div>
 
         {/* Key Performance Indicators */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-green-700 text-sm font-medium mb-1">Total Approved Value</p>
-                  <p className="text-2xl font-bold text-green-900">{formatter.format(totalProjectValue)}</p>
-                  <div className="text-green-600 text-sm mt-2 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="flex items-center">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+          <Card className="bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200 shadow-elegant hover:shadow-premium transition-all duration-300">
+            <CardContent className="p-4 lg:p-6">
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <p className="text-emerald-700 text-xs sm:text-sm font-medium mb-2 truncate">Total Approved Value</p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-emerald-900 mb-3 ltr-numbers">
+                    {formatter.format(totalProjectValue)}
+                  </p>
+                  <div className="text-emerald-600 text-xs space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="flex items-center flex-shrink-0">
                         <CheckCircle className="w-3 h-3 mr-1" />
-                        Approved:
+                        <span className="truncate">Approved</span>
                       </span>
-                      <span className="font-medium">{formatter.format(totalApprovedAmount)}</span>
+                      <span className="font-medium text-right ltr-numbers text-xs">
+                        {formatter.format(totalApprovedAmount)}
+                      </span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="flex items-center">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="flex items-center flex-shrink-0">
                         <Clock className="w-3 h-3 mr-1" />
-                        Conditional:
+                        <span className="truncate">Conditional</span>
                       </span>
-                      <span className="font-medium">{formatter.format(totalConditionalAmount)}</span>
+                      <span className="font-medium text-right ltr-numbers text-xs">
+                        {formatter.format(totalConditionalAmount)}
+                      </span>
                     </div>
                   </div>
                 </div>
-                <div className="p-3 bg-green-100 rounded-full">
-                  <TrendingUp className="w-6 h-6 text-green-600" />
+                <div className="p-2 lg:p-3 bg-emerald-100 rounded-full flex-shrink-0 ml-3">
+                  <TrendingUp className="w-4 h-4 lg:w-6 lg:h-6 text-emerald-600" />
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-red-50 to-pink-50 border-red-200 shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-red-700 text-sm font-medium mb-1">Rejected WIRs</p>
-                  <p className="text-2xl font-bold text-red-900">{filteredWirs.filter(w => w.result === 'C').length}</p>
-                  <p className="text-red-600 text-sm mt-1 flex items-center">
-                    <XCircle className="w-3 h-3 mr-1" />
-                    Needs review
+          <Card className="bg-gradient-to-br from-red-50 to-rose-50 border-red-200 shadow-elegant hover:shadow-premium transition-all duration-300">
+            <CardContent className="p-4 lg:p-6">
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <p className="text-red-700 text-xs sm:text-sm font-medium mb-2 truncate">Rejected WIRs</p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-red-900 mb-1 ltr-numbers">
+                    {filteredWirs.filter(w => w.result === 'C').length}
+                  </p>
+                  <p className="text-red-600 text-xs flex items-center truncate">
+                    <XCircle className="w-3 h-3 mr-1 flex-shrink-0" />
+                    <span className="truncate">Needs review</span>
                   </p>
                 </div>
-                <div className="p-3 bg-red-100 rounded-full">
-                  <XCircle className="w-6 h-6 text-red-600" />
+                <div className="p-2 lg:p-3 bg-red-100 rounded-full flex-shrink-0 ml-3">
+                  <XCircle className="w-4 h-4 lg:w-6 lg:h-6 text-red-600" />
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-blue-700 text-sm font-medium mb-1">Project Completion</p>
-                  <p className="text-2xl font-bold text-blue-900">{completionRate.toFixed(1)}%</p>
-                  <p className="text-blue-600 text-sm mt-1 flex items-center">
-                    <BarChart3 className="w-3 h-3 mr-1" />
-                    of BOQ value
+          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 shadow-elegant hover:shadow-premium transition-all duration-300">
+            <CardContent className="p-4 lg:p-6">
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <p className="text-blue-700 text-xs sm:text-sm font-medium mb-2 truncate">Project Completion</p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-900 mb-1 ltr-numbers">
+                    {completionRate.toFixed(1)}%
+                  </p>
+                  <p className="text-blue-600 text-xs flex items-center truncate">
+                    <BarChart3 className="w-3 h-3 mr-1 flex-shrink-0" />
+                    <span className="truncate">of BOQ value</span>
                   </p>
                 </div>
-                <div className="p-3 bg-blue-100 rounded-full">
-                  <Activity className="w-6 h-6 text-blue-600" />
+                <div className="p-2 lg:p-3 bg-blue-100 rounded-full flex-shrink-0 ml-3">
+                  <Activity className="w-4 h-4 lg:w-6 lg:h-6 text-blue-600" />
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200 shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-purple-700 text-sm font-medium mb-1">Total WIRs</p>
-                  <p className="text-2xl font-bold text-purple-900">{filteredWirs.length}</p>
-                  <p className="text-purple-600 text-sm mt-1 flex items-center">
-                    <FileText className="w-3 h-3 mr-1" />
-                    {approvalRate.toFixed(1)}% approved
+          <Card className="bg-gradient-to-br from-violet-50 to-purple-50 border-violet-200 shadow-elegant hover:shadow-premium transition-all duration-300">
+            <CardContent className="p-4 lg:p-6">
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <p className="text-violet-700 text-xs sm:text-sm font-medium mb-2 truncate">Total WIRs</p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-violet-900 mb-1 ltr-numbers">
+                    {filteredWirs.length}
+                  </p>
+                  <p className="text-violet-600 text-xs flex items-center truncate">
+                    <FileText className="w-3 h-3 mr-1 flex-shrink-0" />
+                    <span className="truncate ltr-numbers">{approvalRate.toFixed(1)}% approved</span>
                   </p>
                 </div>
-                <div className="p-3 bg-purple-100 rounded-full">
-                  <FileText className="w-6 h-6 text-purple-600" />
+                <div className="p-2 lg:p-3 bg-violet-100 rounded-full flex-shrink-0 ml-3">
+                  <FileText className="w-4 h-4 lg:w-6 lg:h-6 text-violet-600" />
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Filter Section */}
-        <Card className="bg-white shadow-sm border border-slate-200">
+        {/* Enhanced Filter Section */}
+        <Card className="bg-white shadow-elegant border border-slate-200">
           <CardContent className="p-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <h3 className="text-lg font-semibold text-slate-900 flex items-center">
-                <Users className="w-5 h-5 mr-2" />
-                Filter Dashboard:
-              </h3>
-              <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-slate-100 rounded-lg">
+                  <Users className="w-5 h-5 text-slate-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-900">Dashboard Filters</h3>
+                  <p className="text-sm text-slate-600">Customize your dashboard view</p>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 min-w-0 flex-1 lg:flex-initial lg:justify-end">
                 <Select value={filterCriteria} onValueChange={(value: FilterCriteria) => handleFilterChange(value)}>
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-full sm:w-[180px] h-11">
                     <SelectValue placeholder="Filter by..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -240,13 +257,13 @@ const Dashboard = () => {
                 
                 {filterCriteria === 'contractor' && (
                   <Select value={selectedValue} onValueChange={setSelectedValue}>
-                    <SelectTrigger className="w-[200px]">
+                    <SelectTrigger className="w-full sm:w-[220px] h-11">
                       <SelectValue placeholder="Select Contractor" />
                     </SelectTrigger>
                     <SelectContent>
                       {contractors.map((contractor) => (
                         <SelectItem key={contractor} value={contractor}>
-                          {contractor}
+                          <span className="truncate">{contractor}</span>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -255,13 +272,13 @@ const Dashboard = () => {
                 
                 {filterCriteria === 'engineer' && (
                   <Select value={selectedValue} onValueChange={setSelectedValue}>
-                    <SelectTrigger className="w-[200px]">
+                    <SelectTrigger className="w-full sm:w-[220px] h-11">
                       <SelectValue placeholder="Select Engineer" />
                     </SelectTrigger>
                     <SelectContent>
                       {engineers.map((engineer) => (
                         <SelectItem key={engineer} value={engineer}>
-                          {engineer}
+                          <span className="truncate">{engineer}</span>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -273,10 +290,31 @@ const Dashboard = () => {
         </Card>
         
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-slate-100 p-1 rounded-lg">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Project Overview</TabsTrigger>
-            <TabsTrigger value="contractors" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Contractor Performance</TabsTrigger>
-            <TabsTrigger value="engineers" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Engineer Performance</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 bg-slate-100 p-1 rounded-lg gap-1">
+            <TabsTrigger 
+              value="overview" 
+              className="data-[state=active]:bg-white data-[state=active]:shadow-sm text-sm px-4 py-2.5 h-auto whitespace-nowrap"
+            >
+              <span className="hidden sm:inline">Project</span>
+              <span className="sm:hidden">Project</span>
+              <span className="ml-1">Overview</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="contractors" 
+              className="data-[state=active]:bg-white data-[state=active]:shadow-sm text-sm px-4 py-2.5 h-auto whitespace-nowrap"
+            >
+              <span className="hidden sm:inline">Contractor</span>
+              <span className="sm:hidden">Contract</span>
+              <span className="ml-1">Performance</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="engineers" 
+              className="data-[state=active]:bg-white data-[state=active]:shadow-sm text-sm px-4 py-2.5 h-auto whitespace-nowrap"
+            >
+              <span className="hidden sm:inline">Engineer</span>
+              <span className="sm:hidden">Engineer</span>
+              <span className="ml-1">Performance</span>
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="overview" className="mt-6">
