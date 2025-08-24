@@ -150,8 +150,161 @@ const Reports = () => {
   });
   
   // Function to export report
-  const handleExport = () => {
-    alert('Export functionality would be implemented here in a real application.');
+  const handleExport = async () => {
+    try {
+      // Dynamic import of xlsx
+      const XLSX = await import('xlsx');
+      
+      // Create a new workbook
+      const workbook = XLSX.utils.book_new();
+
+      // Summary Sheet
+      const summaryData = [
+        ['Report Type', reportType],
+        ['Generated Date', new Date().toLocaleDateString()],
+        ['Filter', filterEntity === 'all' ? 'All WIRs' : `${filterEntity}: ${selectedEntity}`],
+        [''],
+        ['KEY PERFORMANCE INDICATORS'],
+        ['Metric', 'Value'],
+        ['Total Approved Value', formatter.format(totalProjectValue)],
+        ['Approved Amount', formatter.format(totalApprovedAmount)],
+        ['Conditional Amount', formatter.format(totalConditionalAmount)],
+        ['Rejected WIRs', totalRejectedCount],
+        ['Pending WIRs', totalPendingCount],
+        ['Project Completion', `${completionRate.toFixed(1)}%`],
+        ['Success Rate', `${approvalRate.toFixed(1)}%`],
+      ];
+      
+      const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+      XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
+
+      // WIR Details Sheet
+      const wirHeaders = [
+        'WIR Number', 'Description', 'Contractor', 'Engineer', 
+        'Region', 'Value (SAR)', 'Result', 'Status', 'Submittal Date'
+      ];
+      
+      const wirData = [
+        wirHeaders,
+        ...filteredWirs.map(wir => [
+          wir.wirNumber,
+          wir.description,
+          wir.contractor || '',
+          wir.engineer || '',
+          wir.region || '',
+          wir.calculatedAmount || wir.value || 0,
+          wir.result === 'A' ? 'Approved' : wir.result === 'B' ? 'Conditional' : wir.result === 'C' ? 'Rejected' : 'Pending',
+          wir.status,
+          wir.submittalDate ? formatDate(wir.submittalDate) : ''
+        ])
+      ];
+      
+      const wirSheet = XLSX.utils.aoa_to_sheet(wirData);
+      XLSX.utils.book_append_sheet(workbook, wirSheet, 'WIR Details');
+
+      // BOQ Variance Sheet
+      const boqHeaders = ['BOQ Item', 'BOQ Amount (SAR)', 'WIR Amount (SAR)', 'Variance (SAR)', 'Variance %'];
+      const boqData = [
+        boqHeaders,
+        ...boqCategoryData.map(item => [
+          item.name,
+          item.boqAmount,
+          item.wirAmount,
+          item.variance,
+          item.boqAmount > 0 ? ((item.variance / item.boqAmount) * 100).toFixed(1) + '%' : '0%'
+        ])
+      ];
+      
+      const boqSheet = XLSX.utils.aoa_to_sheet(boqData);
+      XLSX.utils.book_append_sheet(workbook, boqSheet, 'BOQ Variance');
+
+      // Contractor Performance Sheet
+      if (contractorComparisonData.length > 0) {
+        const contractorHeaders = [
+          'Contractor', 'Approved WIRs', 'Conditional WIRs', 'Rejected WIRs', 
+          'Total Amount (SAR)', 'Success Rate (%)'
+        ];
+        
+        const contractorData = [
+          contractorHeaders,
+          ...contractorComparisonData.map(contractor => [
+            contractor.name,
+            contractor.approved,
+            contractor.conditional,
+            contractor.rejected,
+            contractor.totalAmount,
+            contractor.successRate.toFixed(1)
+          ])
+        ];
+        
+        const contractorSheet = XLSX.utils.aoa_to_sheet(contractorData);
+        XLSX.utils.book_append_sheet(workbook, contractorSheet, 'Contractor Performance');
+      }
+
+      // Engineer Performance Sheet
+      if (engineerComparisonData.length > 0) {
+        const engineerHeaders = [
+          'Engineer', 'Approved WIRs', 'Conditional WIRs', 'Rejected WIRs', 
+          'Total Amount (SAR)', 'Success Rate (%)'
+        ];
+        
+        const engineerData = [
+          engineerHeaders,
+          ...engineerComparisonData.map(engineer => [
+            engineer.name,
+            engineer.approved,
+            engineer.conditional,
+            engineer.rejected,
+            engineer.totalAmount,
+            engineer.successRate.toFixed(1)
+          ])
+        ];
+        
+        const engineerSheet = XLSX.utils.aoa_to_sheet(engineerData);
+        XLSX.utils.book_append_sheet(workbook, engineerSheet, 'Engineer Performance');
+      }
+
+      // Pending WIRs Sheet (if any)
+      if (pendingWirs.length > 0) {
+        const pendingHeaders = [
+          'WIR Number', 'Description', 'Contractor', 'Engineer', 
+          'Region', 'Value (SAR)', 'Days Pending', 'Submittal Date'
+        ];
+        
+        const pendingData = [
+          pendingHeaders,
+          ...pendingWirs.map(wir => {
+            const submittedDate = new Date(wir.submittalDate || '');
+            const daysPending = Math.floor((new Date().getTime() - submittedDate.getTime()) / (1000 * 60 * 60 * 24));
+            
+            return [
+              wir.wirNumber,
+              wir.description,
+              wir.contractor || '',
+              wir.engineer || '',
+              wir.region || '',
+              wir.calculatedAmount || wir.value || 0,
+              daysPending,
+              wir.submittalDate ? formatDate(wir.submittalDate) : ''
+            ];
+          })
+        ];
+        
+        const pendingSheet = XLSX.utils.aoa_to_sheet(pendingData);
+        XLSX.utils.book_append_sheet(workbook, pendingSheet, 'Pending WIRs');
+      }
+
+      // Generate filename with timestamp
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `Khuzam_Project_Report_${reportType}_${timestamp}.xlsx`;
+
+      // Write and download the file
+      XLSX.writeFile(workbook, filename);
+
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Failed to export report. Please try again.');
+    }
   };
   
   const handleFilterChange = (value: FilterEntity) => {
