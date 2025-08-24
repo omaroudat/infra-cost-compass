@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { TrendingUp, TrendingDown, Activity, Users, FileText, CheckCircle, Clock, XCircle, BarChart3 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Activity, Users, FileText, CheckCircle, Clock, XCircle, BarChart3, AlertCircle } from 'lucide-react';
 
 type FilterCriteria = 'all' | 'contractor' | 'engineer';
 
@@ -133,97 +133,121 @@ const Dashboard = () => {
 
         {/* Key Performance Indicators */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-          <Card className="bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200 shadow-elegant hover:shadow-premium transition-all duration-300">
-            <CardContent className="p-4 lg:p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1 min-w-0">
-                  <p className="text-emerald-700 text-xs sm:text-sm font-medium mb-2 truncate">Total Approved Value</p>
-                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-emerald-900 mb-3 ltr-numbers">
-                    {formatter.format(totalProjectValue)}
-                  </p>
-                  <div className="text-emerald-600 text-xs space-y-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="flex items-center flex-shrink-0">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        <span className="truncate">Approved</span>
-                      </span>
-                      <span className="font-medium text-right ltr-numbers text-xs">
-                        {formatter.format(totalApprovedAmount)}
-                      </span>
+          <Card className="bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200 shadow-elegant hover:shadow-premium transition-all duration-300 animate-fade-in interactive-hover">
+            <CardContent className="p-6">
+              <div className="flex flex-col space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                      <p className="text-emerald-700 text-sm font-semibold">Total Approved Value</p>
                     </div>
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="flex items-center flex-shrink-0">
-                        <Clock className="w-3 h-3 mr-1" />
-                        <span className="truncate">Conditional</span>
-                      </span>
-                      <span className="font-medium text-right ltr-numbers text-xs">
-                        {formatter.format(totalConditionalAmount)}
-                      </span>
-                    </div>
+                    <p className="text-2xl font-bold text-emerald-900 ltr-numbers mb-1">
+                      {formatter.format(totalProjectValue)}
+                    </p>
+                    <p className="text-xs text-emerald-600">Combined approved & conditional</p>
+                  </div>
+                  <div className="p-3 bg-emerald-100 rounded-full flex-shrink-0">
+                    <TrendingUp className="w-6 h-6 text-emerald-600" />
                   </div>
                 </div>
-                <div className="p-2 lg:p-3 bg-emerald-100 rounded-full flex-shrink-0 ml-3">
-                  <TrendingUp className="w-4 h-4 lg:w-6 lg:h-6 text-emerald-600" />
+                <div className="grid grid-cols-2 gap-3 pt-3 border-t border-emerald-200">
+                  <div className="text-center">
+                    <p className="text-xs text-emerald-600 mb-1">Approved</p>
+                    <p className="text-sm font-bold text-emerald-800 ltr-numbers">
+                      {formatter.format(totalApprovedAmount)}
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-emerald-600 mb-1">Conditional</p>
+                    <p className="text-sm font-bold text-emerald-800 ltr-numbers">
+                      {formatter.format(totalConditionalAmount)}
+                    </p>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-red-50 to-rose-50 border-red-200 shadow-elegant hover:shadow-premium transition-all duration-300">
-            <CardContent className="p-4 lg:p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1 min-w-0">
-                  <p className="text-red-700 text-xs sm:text-sm font-medium mb-2 truncate">Rejected WIRs</p>
-                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-red-900 mb-1 ltr-numbers">
-                    {filteredWirs.filter(w => w.result === 'C').length}
-                  </p>
-                  <p className="text-red-600 text-xs flex items-center truncate">
-                    <XCircle className="w-3 h-3 mr-1 flex-shrink-0" />
-                    <span className="truncate">Needs review</span>
-                  </p>
+          <Card className="bg-gradient-to-br from-red-50 to-rose-50 border-red-200 shadow-elegant hover:shadow-premium transition-all duration-300 animate-fade-in interactive-hover">
+            <CardContent className="p-6">
+              <div className="flex flex-col space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <XCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+                      <p className="text-red-700 text-sm font-semibold">Rejected WIRs</p>
+                    </div>
+                    <p className="text-2xl font-bold text-red-900 ltr-numbers mb-1">
+                      {filteredWirs.filter(w => w.result === 'C').length}
+                    </p>
+                    <p className="text-xs text-red-600">Require immediate attention</p>
+                  </div>
+                  <div className="p-3 bg-red-100 rounded-full flex-shrink-0">
+                    <AlertCircle className="w-6 h-6 text-red-600" />
+                  </div>
                 </div>
-                <div className="p-2 lg:p-3 bg-red-100 rounded-full flex-shrink-0 ml-3">
-                  <XCircle className="w-4 h-4 lg:w-6 lg:h-6 text-red-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 shadow-elegant hover:shadow-premium transition-all duration-300">
-            <CardContent className="p-4 lg:p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1 min-w-0">
-                  <p className="text-blue-700 text-xs sm:text-sm font-medium mb-2 truncate">Project Completion</p>
-                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-900 mb-1 ltr-numbers">
-                    {completionRate.toFixed(1)}%
-                  </p>
-                  <p className="text-blue-600 text-xs flex items-center truncate">
-                    <BarChart3 className="w-3 h-3 mr-1 flex-shrink-0" />
-                    <span className="truncate">of BOQ value</span>
-                  </p>
-                </div>
-                <div className="p-2 lg:p-3 bg-blue-100 rounded-full flex-shrink-0 ml-3">
-                  <Activity className="w-4 h-4 lg:w-6 lg:h-6 text-blue-600" />
+                <div className="pt-3 border-t border-red-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-red-600">Status</span>
+                    <span className="text-xs font-medium text-red-800">Needs Review</span>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-violet-50 to-purple-50 border-violet-200 shadow-elegant hover:shadow-premium transition-all duration-300">
-            <CardContent className="p-4 lg:p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1 min-w-0">
-                  <p className="text-violet-700 text-xs sm:text-sm font-medium mb-2 truncate">Total WIRs</p>
-                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-violet-900 mb-1 ltr-numbers">
-                    {filteredWirs.length}
-                  </p>
-                  <p className="text-violet-600 text-xs flex items-center truncate">
-                    <FileText className="w-3 h-3 mr-1 flex-shrink-0" />
-                    <span className="truncate ltr-numbers">{approvalRate.toFixed(1)}% approved</span>
-                  </p>
+          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 shadow-elegant hover:shadow-premium transition-all duration-300 animate-fade-in interactive-hover">
+            <CardContent className="p-6">
+              <div className="flex flex-col space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <BarChart3 className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                      <p className="text-blue-700 text-sm font-semibold">Project Completion</p>
+                    </div>
+                    <p className="text-2xl font-bold text-blue-900 ltr-numbers mb-1">
+                      {completionRate.toFixed(1)}%
+                    </p>
+                    <p className="text-xs text-blue-600">Based on BOQ value completion</p>
+                  </div>
+                  <div className="p-3 bg-blue-100 rounded-full flex-shrink-0">
+                    <Activity className="w-6 h-6 text-blue-600" />
+                  </div>
                 </div>
-                <div className="p-2 lg:p-3 bg-violet-100 rounded-full flex-shrink-0 ml-3">
-                  <FileText className="w-4 h-4 lg:w-6 lg:h-6 text-violet-600" />
+                <div className="pt-3 border-t border-blue-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-blue-600">BOQ Value</span>
+                    <span className="text-xs font-medium text-blue-800">Total Progress</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-violet-50 to-purple-50 border-violet-200 shadow-elegant hover:shadow-premium transition-all duration-300 animate-fade-in interactive-hover">
+            <CardContent className="p-6">
+              <div className="flex flex-col space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <FileText className="w-4 h-4 text-violet-600 flex-shrink-0" />
+                      <p className="text-violet-700 text-sm font-semibold">Total WIRs</p>
+                    </div>
+                    <p className="text-2xl font-bold text-violet-900 ltr-numbers mb-1">
+                      {filteredWirs.length}
+                    </p>
+                    <p className="text-xs text-violet-600">Work Inspection Requests</p>
+                  </div>
+                  <div className="p-3 bg-violet-100 rounded-full flex-shrink-0">
+                    <CheckCircle className="w-6 h-6 text-violet-600" />
+                  </div>
+                </div>
+                <div className="pt-3 border-t border-violet-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-violet-600">Approval Rate</span>
+                    <span className="text-xs font-medium text-violet-800 ltr-numbers">{approvalRate.toFixed(1)}%</span>
+                  </div>
                 </div>
               </div>
             </CardContent>
