@@ -268,7 +268,7 @@ const WIRTable: React.FC<WIRTableProps> = ({
           
           <div className="flex gap-2 mt-4 pt-3 border-t border-border">
             <TooltipProvider>
-              {canEdit && (
+              {canEdit && !wir.result && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -421,7 +421,7 @@ const WIRTable: React.FC<WIRTableProps> = ({
                        <TableCell className="py-5 px-4 align-middle">
                           <div className="flex items-center justify-center gap-1.5">
                            <TooltipProvider>
-                             {canEdit && (
+                             {canEdit && !wir.result && (
                                <Tooltip>
                                  <TooltipTrigger asChild>
                                    <Button
