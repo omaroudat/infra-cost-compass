@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { WIR, BOQItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -16,7 +16,10 @@ import {
   Clock, 
   AlertCircle, 
   XCircle,
-  Eye
+  Eye,
+  ChevronUp,
+  ChevronDown,
+  ArrowUpDown
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -60,6 +63,87 @@ const WIRTable: React.FC<WIRTableProps> = ({
   onRevisionRequest
 }) => {
   const [printingWIR, setPrintingWIR] = useState<WIR | null>(null);
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof WIR | null;
+    direction: 'asc' | 'desc';
+  }>({ key: null, direction: 'asc' });
+
+  // Sorting functionality
+  const sortedWIRs = useMemo(() => {
+    if (!sortConfig.key) return wirs;
+
+    return [...wirs].sort((a, b) => {
+      const aValue = a[sortConfig.key!];
+      const bValue = b[sortConfig.key!];
+
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return sortConfig.direction === 'asc' ? 1 : -1;
+      if (bValue == null) return sortConfig.direction === 'asc' ? -1 : 1;
+
+      if (sortConfig.key === 'submittalDate') {
+        const aDate = new Date(aValue as string);
+        const bDate = new Date(bValue as string);
+        return sortConfig.direction === 'asc' 
+          ? aDate.getTime() - bDate.getTime()
+          : bDate.getTime() - aDate.getTime();
+      }
+
+      if (sortConfig.key === 'value') {
+        const aNum = Number(aValue);
+        const bNum = Number(bValue);
+        return sortConfig.direction === 'asc' ? aNum - bNum : bNum - aNum;
+      }
+
+      const aStr = String(aValue).toLowerCase();
+      const bStr = String(bValue).toLowerCase();
+      
+      if (aStr < bStr) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aStr > bStr) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [wirs, sortConfig]);
+
+  const handleSort = (key: keyof WIR) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const getSortIcon = (key: keyof WIR) => {
+    if (sortConfig.key !== key) {
+      return <ArrowUpDown className="h-3 w-3 text-muted-foreground/60" />;
+    }
+    return sortConfig.direction === 'asc' 
+      ? <ChevronUp className="h-3 w-3 text-primary" />
+      : <ChevronDown className="h-3 w-3 text-primary" />;
+  };
+
+  const SortableHeader = ({ 
+    children, 
+    sortKey, 
+    className = "", 
+    align = "left" 
+  }: { 
+    children: React.ReactNode; 
+    sortKey: keyof WIR; 
+    className?: string;
+    align?: "left" | "right" | "center";
+  }) => (
+    <TableHead 
+      className={`font-semibold text-foreground h-14 cursor-pointer select-none transition-colors hover:bg-muted/80 ${className} ${
+        align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : ''
+      }`}
+      onClick={() => handleSort(sortKey)}
+    >
+      <div className={`flex items-center gap-2 ${
+        align === 'right' ? 'justify-end' : align === 'center' ? 'justify-center' : ''
+      }`}>
+        {children}
+        {getSortIcon(sortKey)}
+      </div>
+    </TableHead>
+  );
 
   const getBOQItemDescription = (boqItemId: string) => {
     const item = flattenedBOQItems.find(item => item.id === boqItemId);
@@ -109,15 +193,15 @@ const WIRTable: React.FC<WIRTableProps> = ({
     switch (result) {
       case 'A':
         return {
-          variant: 'success' as const,
-          icon: <CheckCircle className="h-3 w-3" />,
-          label: 'APPROVED'
-        };
-      case 'B':
-        return {
           variant: 'warning' as const,
           icon: <AlertCircle className="h-3 w-3" />,
           label: 'CONDITIONAL'
+        };
+      case 'B':
+        return {
+          variant: 'success' as const,
+          icon: <CheckCircle className="h-3 w-3" />,
+          label: 'APPROVED'
         };
       case 'C':
         return {
@@ -307,71 +391,75 @@ const WIRTable: React.FC<WIRTableProps> = ({
         <div className="hidden lg:block">
           <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
             <Table>
-              <TableHeader className="bg-muted/50 sticky top-0 z-10">
+              <TableHeader className="bg-muted/30 sticky top-0 z-10 border-b-2 border-primary/20">
                 <TableRow className="border-b border-border hover:bg-transparent">
-                  <TableHead className="font-semibold text-foreground h-12">WIR Number</TableHead>
-                  <TableHead className="font-semibold text-foreground h-12 min-w-[200px]">BOQ Item</TableHead>
-                  <TableHead className="font-semibold text-foreground h-12 min-w-[180px]">Description</TableHead>
-                  <TableHead className="font-semibold text-foreground h-12">Contractor</TableHead>
-                  <TableHead className="font-semibold text-foreground h-12">Engineer</TableHead>
-                  <TableHead className="font-semibold text-foreground h-12">Region</TableHead>
-                  <TableHead className="font-semibold text-foreground h-12">Line No</TableHead>
-                  <TableHead className="font-semibold text-foreground h-12 text-right">Value</TableHead>
-                  <TableHead className="font-semibold text-foreground h-12">Date</TableHead>
-                  <TableHead className="font-semibold text-foreground h-12">Status</TableHead>
-                  <TableHead className="font-semibold text-foreground h-12">Result</TableHead>
-                  <TableHead className="font-semibold text-foreground h-12 text-center">Actions</TableHead>
+                  <SortableHeader sortKey="wirNumber" className="min-w-[120px]">WIR Number</SortableHeader>
+                  <TableHead className="font-semibold text-foreground h-14 min-w-[240px]">BOQ Item</TableHead>
+                  <TableHead className="font-semibold text-foreground h-14 min-w-[200px]">Description</TableHead>
+                  <SortableHeader sortKey="contractor" className="min-w-[140px]">Contractor</SortableHeader>
+                  <SortableHeader sortKey="engineer" className="min-w-[130px]">Engineer</SortableHeader>
+                  <SortableHeader sortKey="region" className="min-w-[120px]">Region</SortableHeader>
+                  <SortableHeader sortKey="lineNo" className="min-w-[90px]">Line No</SortableHeader>
+                  <SortableHeader sortKey="value" className="min-w-[130px]" align="right">Value</SortableHeader>
+                  <SortableHeader sortKey="submittalDate" className="min-w-[110px]">Date</SortableHeader>
+                  <SortableHeader sortKey="status" className="min-w-[110px]">Status</SortableHeader>
+                  <SortableHeader sortKey="result" className="min-w-[110px]">Result</SortableHeader>
+                  <TableHead className="font-semibold text-foreground h-14 text-center min-w-[120px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {wirs.map((wir, index) => {
+                {sortedWIRs.map((wir, index) => {
                   const statusBadge = getStatusBadge(wir.status);
                   const resultBadge = getResultBadge(wir.result || '');
                   
                   return (
-                    <TableRow 
-                      key={wir.id} 
-                      className={`
-                        border-b border-border transition-colors duration-150
-                        hover:bg-muted/30 
-                        ${index % 2 === 0 ? 'bg-background' : 'bg-muted/10'}
-                      `}
-                    >
-                      <TableCell className="font-medium py-4">
-                        {wir.wirNumber || wir.id}
-                      </TableCell>
-                      <TableCell className="py-4 max-w-[200px]">
-                        <div className="truncate" title={getBOQItemDescription(wir.boqItemId)}>
-                          {getBOQItemDescription(wir.boqItemId)}
-                        </div>
-                      </TableCell>
-                      <TableCell className="py-4 max-w-[180px]">
-                        <div className="truncate" title={wir.description}>
-                          {wir.description}
-                        </div>
-                      </TableCell>
-                      <TableCell className="py-4">{wir.contractor}</TableCell>
-                      <TableCell className="py-4">{wir.engineer}</TableCell>
-                      <TableCell className="py-4">{wir.region}</TableCell>
-                      <TableCell className="py-4 font-medium">{wir.lineNo}</TableCell>
-                      <TableCell className="py-4 text-right font-semibold">
-                        {formatCurrency(wir.value)}
-                      </TableCell>
-                      <TableCell className="py-4">{formatDate(wir.submittalDate)}</TableCell>
-                      <TableCell className="py-4">
-                        <Badge variant={statusBadge.variant} className="gap-1 text-xs">
-                          {statusBadge.icon}
-                          {statusBadge.label}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="py-4">
-                        <Badge variant={resultBadge.variant} className="gap-1 text-xs">
-                          {resultBadge.icon}
-                          {resultBadge.label}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="py-4">
-                        <div className="flex items-center justify-center gap-1">
+                     <TableRow 
+                       key={wir.id} 
+                       className={`
+                         border-b border-border transition-colors duration-150
+                         hover:bg-muted/30 
+                         ${index % 2 === 0 ? 'bg-background' : 'bg-muted/10'}
+                       `}
+                     >
+                       <TableCell className="font-semibold py-5 px-4 align-middle">
+                         {wir.wirNumber || wir.id}
+                       </TableCell>
+                       <TableCell className="py-5 px-4 align-middle">
+                         <div className="max-w-[240px] overflow-hidden">
+                           <span className="text-sm font-medium text-foreground block" title={getBOQItemDescription(wir.boqItemId)}>
+                             {getBOQItemDescription(wir.boqItemId)}
+                           </span>
+                         </div>
+                       </TableCell>
+                       <TableCell className="py-5 px-4 align-middle">
+                         <div className="max-w-[200px] overflow-hidden">
+                           <span className="text-sm text-foreground block" title={wir.description}>
+                             {wir.description}
+                           </span>
+                         </div>
+                       </TableCell>
+                       <TableCell className="py-5 px-4 align-middle font-medium text-sm">{wir.contractor}</TableCell>
+                       <TableCell className="py-5 px-4 align-middle font-medium text-sm">{wir.engineer}</TableCell>
+                       <TableCell className="py-5 px-4 align-middle font-medium text-sm">{wir.region}</TableCell>
+                       <TableCell className="py-5 px-4 align-middle font-semibold text-sm">{wir.lineNo}</TableCell>
+                       <TableCell className="py-5 px-4 text-right align-middle font-bold text-base text-primary">
+                         {formatCurrency(wir.value)}
+                       </TableCell>
+                       <TableCell className="py-5 px-4 align-middle font-medium text-sm">{formatDate(wir.submittalDate)}</TableCell>
+                       <TableCell className="py-5 px-4 align-middle">
+                         <Badge variant={statusBadge.variant} className="gap-1.5 text-xs font-medium px-2.5 py-1">
+                           {statusBadge.icon}
+                           {statusBadge.label}
+                         </Badge>
+                       </TableCell>
+                       <TableCell className="py-5 px-4 align-middle">
+                         <Badge variant={resultBadge.variant} className="gap-1.5 text-xs font-medium px-2.5 py-1">
+                           {resultBadge.icon}
+                           {resultBadge.label}
+                         </Badge>
+                       </TableCell>
+                       <TableCell className="py-5 px-4 align-middle">
+                         <div className="flex items-center justify-center gap-1.5">
                           <TooltipProvider>
                             {canEdit && (
                               <Tooltip>
@@ -474,7 +562,7 @@ const WIRTable: React.FC<WIRTableProps> = ({
         
         {/* Mobile Card View */}
         <div className="lg:hidden space-y-4">
-          {wirs.map((wir) => (
+          {sortedWIRs.map((wir) => (
             <WIRCard key={wir.id} wir={wir} />
           ))}
         </div>
