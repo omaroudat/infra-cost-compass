@@ -62,9 +62,11 @@ export const useProgressSummaryData = (boqItemId: string, approvedOnly: boolean 
       result: wir.result 
     })));
 
-    // Get all breakdown items for this BOQ item
+    // Get breakdown sub-items for this BOQ item (exclude main item)
     const relatedBreakdownItems = breakdownItems.filter(item => 
-      item.boqItemId === boqItemId && item.isLeaf
+      item.boqItemId === boqItemId && 
+      item.isLeaf && 
+      item.parentBreakdownId // Only include items that have a parent (are actually sub-items)
     );
 
     // Group WIRs by manhole segments (manholeFrom + manholeTo combination)
