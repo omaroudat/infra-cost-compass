@@ -1,10 +1,11 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ProgressSummaryData } from '@/hooks/useProgressSummaryData';
 import { useLanguage } from '@/context/LanguageContext';
-import { Hash, MapPin, Navigation } from 'lucide-react';
+import { Hash, MapPin, Navigation, Percent } from 'lucide-react';
 
 interface ProgressSummaryTableProps {
   data: ProgressSummaryData;
@@ -55,11 +56,6 @@ export const ProgressSummaryTable: React.FC<ProgressSummaryTableProps> = ({ data
     );
   };
 
-  const truncateText = (text: string, maxLength: number = 25) => {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
-  };
-
   return (
     <div className="relative overflow-hidden rounded-lg border border-border bg-card">
       <div className="overflow-x-auto max-h-[70vh]">
@@ -100,32 +96,36 @@ export const ProgressSummaryTable: React.FC<ProgressSummaryTableProps> = ({ data
                 const displayTitle = isRTL && breakdown.descriptionAr ? breakdown.descriptionAr : breakdown.description;
                 const fallbackTitle = isRTL && breakdown.keywordAr ? breakdown.keywordAr : breakdown.keyword;
                 const finalTitle = displayTitle || fallbackTitle || '';
+                const percentage = breakdown.percentage || 0;
                 
                 return (
                   <TableHead 
                     key={breakdown.id} 
-                    className={`font-semibold text-foreground min-w-[120px] py-3 px-3 ${isRTL ? 'text-right' : 'text-left'}`}
+                    className={`font-semibold text-foreground min-w-[160px] py-3 px-3 ${isRTL ? 'text-right' : 'text-left'}`}
                   >
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="space-y-1 cursor-help">
-                            <div className="text-xs font-medium text-foreground">
-                              {truncateText(finalTitle, 20)}
-                            </div>
-                            <div className="inline-flex items-center gap-1 text-[10px] text-primary font-medium bg-primary/10 px-1.5 py-0.5 rounded">
-                              WIR Refs
-                            </div>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-xs">
-                          <p className="font-medium">{finalTitle}</p>
-                          {displayTitle && fallbackTitle && displayTitle !== fallbackTitle && (
-                            <p className="text-xs text-muted-foreground mt-1">{fallbackTitle}</p>
-                          )}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <div className="space-y-2">
+                      <div className="text-xs font-medium text-foreground leading-tight">
+                        {finalTitle}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge 
+                          variant="secondary"
+                          className="text-[10px] px-2 py-0.5 font-semibold bg-primary/10 text-primary border border-primary/20"
+                        >
+                          <Percent className="w-3 h-3 mr-1" />
+                          {percentage}%
+                        </Badge>
+                        <div className="flex-1 min-w-[40px]">
+                          <Progress 
+                            value={percentage} 
+                            className="h-1.5 bg-muted/50"
+                          />
+                        </div>
+                      </div>
+                      <div className="text-[9px] text-muted-foreground font-medium uppercase tracking-wider">
+                        WIR References
+                      </div>
+                    </div>
                   </TableHead>
                 );
               })}
