@@ -8,8 +8,12 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
-import { Download, Upload, Plus, Edit, ChevronDown, ChevronRight, Expand, Shrink } from 'lucide-react';
+import { Download, Upload, Plus, Edit, ChevronDown, ChevronRight, Expand, Shrink, FileText, Package, DollarSign, Hash, Calculator, Globe } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const BOQ = () => {
@@ -411,297 +415,547 @@ const BOQ = () => {
     setExpandedItems(new Set());
   };
 
+  // Calculate totals for summary
+  const calculateGrandTotal = (): number => {
+    return boqItems.reduce((sum, item) => sum + calculateItemTotal(item), 0);
+  };
+
+  const calculateItemsCount = (): { total: number; parents: number; items: number } => {
+    const countItems = (items: BOQItem[]): { total: number; parents: number; items: number } => {
+      let total = 0;
+      let parents = 0;
+      let leafItems = 0;
+      
+      items.forEach(item => {
+        total++;
+        if (item.children && item.children.length > 0) {
+          parents++;
+          const childCounts = countItems(item.children);
+          total += childCounts.total;
+          parents += childCounts.parents;
+          leafItems += childCounts.items;
+        } else {
+          leafItems++;
+        }
+      });
+      
+      return { total, parents, items: leafItems };
+    };
+    
+    return countItems(boqItems);
+  };
+
+  const itemStats = calculateItemsCount();
+
   const renderBOQItem = (item: BOQItem, level: number = 0) => {
     const totalValue = calculateItemTotal(item);
-    const indentLevel = level * 20;
     const isParent = item.children && item.children.length > 0;
     const isExpanded = expandedItems.has(item.id);
     
     return (
-      <>
-        <tr className={level === 0 ? 'bg-gray-50' : level === 1 ? 'bg-blue-50' : level === 2 ? 'bg-green-50' : 'bg-yellow-50'}>
-          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" style={{ paddingLeft: `${indentLevel + 24}px` }}>
-            <div className="flex items-center">
-              {isParent && (
-                <button
-                  onClick={() => toggleExpanded(item.id)}
-                  className="mr-2 p-1 hover:bg-gray-200 rounded transition-colors"
-                >
-                  {isExpanded ? (
-                    <ChevronDown className="w-4 h-4 transition-transform" />
-                  ) : (
-                    <ChevronRight className="w-4 h-4 transition-transform" />
+      <div key={item.id} className="animate-fade-in">
+        <Card 
+          className={`
+            group relative mb-3 transition-all duration-200 hover:shadow-md
+            ${level === 0 ? 'border-l-4 border-l-primary bg-gradient-to-r from-primary/5 to-transparent' : ''}
+            ${level === 1 ? 'ml-6 border-l-2 border-l-secondary bg-gradient-to-r from-secondary/5 to-transparent' : ''}
+            ${level === 2 ? 'ml-12 border-l border-l-accent bg-gradient-to-r from-accent/5 to-transparent' : ''}
+            ${level > 2 ? 'ml-16 border-l border-l-muted bg-gradient-to-r from-muted/10 to-transparent' : ''}
+          `}
+        >
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between gap-4">
+              {/* Left Section: Main Info */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3 mb-3">
+                  {isParent && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleExpanded(item.id)}
+                      className="h-8 w-8 p-0 hover:bg-primary/10 transition-colors"
+                    >
+                      {isExpanded ? (
+                        <ChevronDown className="h-4 w-4 transition-transform duration-200" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 transition-transform duration-200" />
+                      )}
+                    </Button>
                   )}
-                </button>
-              )}
-              {!isParent && <div className="w-6 mr-2" />}
-              {item.code}
-            </div>
-          </td>
-          <td className="px-6 py-4 text-sm text-gray-500">
-            <div>{language === 'en' ? item.description : (item.descriptionAr || item.description)}</div>
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {(isParent || !item.quantity || item.quantity === 0) ? '-' : item.quantity.toLocaleString('en-US')}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {(isParent || !item.unit) ? '-' : (language === 'en' ? item.unit : (item.unitAr || item.unit))}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {(isParent || !item.unitRate || item.unitRate === 0) ? '-' : formatter.format(item.unitRate)}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-            {formatter.format(totalValue)}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-            <div className="flex space-x-2 justify-end">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => handleEditItem(item)}
-              >
-                <Edit className="w-4 h-4" />
-                Edit
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => {
-                  const nextCode = generateNextCode(item.code, item.children);
-                  setNewItem({
-                    code: nextCode,
-                    description: '',
-                    descriptionAr: '',
-                    quantity: 0,
-                    unit: '',
-                    unitAr: '',
-                    unitRate: 0,
-                  });
-                  setParentId(item.id);
-                  setIsAddDialogOpen(true);
-                }}
-              >
-                <Plus className="w-4 h-4" />
-                Add Sub-item
-              </Button>
-            </div>
-          </td>
-        </tr>
-        {isParent && isExpanded && item.children && item.children.map(child => renderBOQItem(child, level + 1))}
-      </>
-    );
-  };
-  
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <h2 className="text-xl font-bold">Bill of Quantities / قائمة الكميات</h2>
-          <div className="flex gap-2">
-            <Button
-              variant={language === 'en' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setLanguage('en')}
-            >
-              EN
-            </Button>
-            <Button
-              variant={language === 'ar' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setLanguage('ar')}
-            >
-              عربي
-            </Button>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileImport}
-            accept=".xlsx,.xls"
-            style={{ display: 'none' }}
-          />
-          <Button variant="outline" size="sm" onClick={expandAll}>
-            <Expand className="w-4 h-4 mr-1" />
-            Expand All
-          </Button>
-          <Button variant="outline" size="sm" onClick={collapseAll}>
-            <Shrink className="w-4 h-4 mr-1" />
-            Collapse All
-          </Button>
-          <Button variant="outline" onClick={importFromExcel}>
-            <Upload className="w-4 h-4 mr-2" />
-            Import Excel
-          </Button>
-          <Button variant="outline" onClick={exportToExcel}>
-            <Download className="w-4 h-4 mr-2" />
-            Export Excel
-          </Button>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={resetForm}>Add New Item</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingItem ? 'Edit BOQ Item / تعديل بند كميات' : 'Add BOQ Item / إضافة بند كميات'}
-                </DialogTitle>
-                <DialogDescription>
-                  {editingItem 
-                    ? 'Edit the BOQ item details.'
-                    : parentId 
-                      ? 'Add a sub-item to the selected BOQ item.' 
-                      : 'Create a new top-level BOQ item.'
-                  }
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="code" className="text-right">
-                    {language === 'en' ? 'Item Code' : 'رقم البند'}
-                  </Label>
-                  <Input
-                    id="code"
-                    name="code"
-                    value={newItem.code}
-                    onChange={handleInputChange}
-                    className="col-span-3"
-                    required
-                  />
+                  
+                  <div className="flex items-center gap-2">
+                    {isParent ? (
+                      <Package className="h-5 w-5 text-primary" />
+                    ) : (
+                      <FileText className="h-5 w-5 text-secondary" />
+                    )}
+                    <Badge 
+                      variant={isParent ? "default" : "secondary"}
+                      className="font-mono text-xs px-2 py-1"
+                    >
+                      <Hash className="h-3 w-3 mr-1" />
+                      {item.code}
+                    </Badge>
+                    {level > 0 && (
+                      <Badge variant="outline" className="text-xs">
+                        Level {level}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="description" className="text-right">
-                    {language === 'en' ? 'Description (EN)' : 'الوصف (إنجليزي)'}
-                  </Label>
-                  <Textarea
-                    id="description"
-                    name="description"
-                    value={newItem.description}
-                    onChange={handleInputChange}
-                    className="col-span-3"
-                    required
-                  />
+
+                <div className="space-y-2">
+                  <h3 className={`font-semibold leading-tight ${
+                    level === 0 ? 'text-lg text-foreground' : 
+                    level === 1 ? 'text-base text-foreground/90' : 
+                    'text-sm text-foreground/80'
+                  }`}>
+                    {language === 'en' ? item.description : (item.descriptionAr || item.description)}
+                  </h3>
+                  
+                  {item.descriptionAr && language === 'en' && (
+                    <p className="text-sm text-muted-foreground font-arabic" dir="rtl">
+                      {item.descriptionAr}
+                    </p>
+                  )}
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="descriptionAr" className="text-right">
-                    {language === 'en' ? 'Description (AR)' : 'الوصف (عربي)'}
-                  </Label>
-                  <Textarea
-                    id="descriptionAr"
-                    name="descriptionAr"
-                    value={newItem.descriptionAr || ''}
-                    onChange={handleInputChange}
-                    className="col-span-3"
-                    dir="rtl"
-                  />
+
+                {/* Specs Row */}
+                {!isParent && (item.quantity > 0 || item.unit || item.unitRate > 0) && (
+                  <div className="flex flex-wrap items-center gap-4 mt-4 p-3 bg-muted/30 rounded-lg">
+                    {item.quantity > 0 && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Calculator className="h-4 w-4 text-primary" />
+                        <span className="font-medium">Qty:</span>
+                        <span className="font-mono">{item.quantity.toLocaleString('en-US')}</span>
+                      </div>
+                    )}
+                    
+                    {item.unit && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="font-medium">Unit:</span>
+                        <Badge variant="outline" className="text-xs">
+                          {language === 'en' ? item.unit : (item.unitAr || item.unit)}
+                        </Badge>
+                      </div>
+                    )}
+                    
+                    {item.unitRate > 0 && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <DollarSign className="h-4 w-4 text-primary" />
+                        <span className="font-medium">Rate:</span>
+                        <span className="font-mono font-semibold text-primary">
+                          {formatter.format(item.unitRate)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Right Section: Value & Actions */}
+              <div className="flex flex-col items-end gap-3 min-w-[200px]">
+                <div className="text-right">
+                  <div className="text-xs text-muted-foreground mb-1">Total Value</div>
+                  <div className={`font-bold font-mono ${
+                    totalValue > 1000000 ? 'text-xl text-primary' :
+                    totalValue > 100000 ? 'text-lg text-primary' :
+                    'text-base text-foreground'
+                  }`}>
+                    {formatter.format(totalValue)}
+                  </div>
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="quantity" className="text-right">
-                    {language === 'en' ? 'Quantity' : 'الكمية'}
-                  </Label>
-                  <Input
-                    id="quantity"
-                    name="quantity"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="e.g., 100 or 100.5 (leave empty for parent items)"
-                    value={newItem.quantity}
-                    onChange={handleInputChange}
-                    className="col-span-3"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="unit" className="text-right">
-                    {language === 'en' ? 'Unit (EN)' : 'الوحدة (إنجليزي)'}
-                  </Label>
-                  <Input
-                    id="unit"
-                    name="unit"
-                    placeholder="e.g., m, kg, pcs (leave empty for parent items)"
-                    value={newItem.unit}
-                    onChange={handleInputChange}
-                    className="col-span-3"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="unitAr" className="text-right">
-                    {language === 'en' ? 'Unit (AR)' : 'الوحدة (عربي)'}
-                  </Label>
-                  <Input
-                    id="unitAr"
-                    name="unitAr"
-                    value={newItem.unitAr || ''}
-                    onChange={handleInputChange}
-                    className="col-span-3"
-                    dir="rtl"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="unitRate" className="text-right">
-                    {language === 'en' ? 'Unit Rate' : 'السعر الافرادي'}
-                  </Label>
-                  <Input
-                    id="unitRate"
-                    name="unitRate"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="e.g., 150 or 150.55"
-                    value={newItem.unitRate}
-                    onChange={handleInputChange}
-                    className="col-span-3"
-                    required
-                  />
+
+                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleEditItem(item)}
+                    className="h-8 px-3 hover:bg-primary/10 hover:border-primary/20"
+                  >
+                    <Edit className="h-3 w-3 mr-1" />
+                    Edit
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      const nextCode = generateNextCode(item.code, item.children);
+                      setNewItem({
+                        code: nextCode,
+                        description: '',
+                        descriptionAr: '',
+                        quantity: 0,
+                        unit: '',
+                        unitAr: '',
+                        unitRate: 0,
+                      });
+                      setParentId(item.id);
+                      setIsAddDialogOpen(true);
+                    }}
+                    className="h-8 px-3 hover:bg-secondary/10 hover:border-secondary/20"
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    Add Sub
+                  </Button>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="h-8 px-3 hover:bg-destructive/10 hover:border-destructive/20 hover:text-destructive"
+                      >
+                        ×
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete BOQ Item</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete item "{item.code}" - {item.description}?
+                          {isParent && " This will also delete all sub-items."}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={() => handleDeleteItem(item.id, item.code)}
+                          className="bg-destructive hover:bg-destructive/90"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={resetForm}>
-                  Cancel
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Children */}
+        {isParent && isExpanded && item.children && (
+          <div className="space-y-2 animate-fade-in">
+            {item.children.map(child => renderBOQItem(child, level + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-8 p-6">
+      {/* Header Section */}
+      <div className="space-y-4">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <FileText className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">Bill of Quantities</h1>
+                <p className="text-sm text-muted-foreground font-arabic" dir="rtl">قائمة الكميات</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                variant={language === 'en' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setLanguage('en')}
+                className="h-8"
+              >
+                <Globe className="h-3 w-3 mr-1" />
+                EN
+              </Button>
+              <Button
+                variant={language === 'ar' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setLanguage('ar')}
+                className="h-8"
+              >
+                <Globe className="h-3 w-3 mr-1" />
+                عربي
+              </Button>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileImport}
+              accept=".xlsx,.xls"
+              style={{ display: 'none' }}
+            />
+            
+            <Button variant="outline" size="sm" onClick={expandAll} className="h-9">
+              <Expand className="h-4 w-4 mr-2" />
+              Expand All
+            </Button>
+            <Button variant="outline" size="sm" onClick={collapseAll} className="h-9">
+              <Shrink className="h-4 w-4 mr-2" />
+              Collapse All
+            </Button>
+            
+            <Separator orientation="vertical" className="h-6" />
+            
+            <Button variant="outline" onClick={importFromExcel} className="h-9">
+              <Upload className="h-4 w-4 mr-2" />
+              Import Excel
+            </Button>
+            <Button variant="outline" onClick={exportToExcel} className="h-9">
+              <Download className="h-4 w-4 mr-2" />
+              Export Excel
+            </Button>
+            
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={resetForm} className="h-9">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add New Item
                 </Button>
-                <Button type="button" onClick={handleAddItem}>
-                  {editingItem ? 'Save Changes' : 'Add Item'}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    {editingItem ? (
+                      <>
+                        <Edit className="h-5 w-5" />
+                        Edit BOQ Item
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-5 w-5" />
+                        Add BOQ Item
+                      </>
+                    )}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {editingItem 
+                      ? 'Update the BOQ item details below.'
+                      : parentId 
+                        ? 'Add a sub-item to the selected BOQ category.' 
+                        : 'Create a new top-level BOQ item or category.'
+                    }
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-6 py-4">
+                  <div className="grid gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="code" className="text-sm font-medium">
+                        Item Code
+                      </Label>
+                      <Input
+                        id="code"
+                        name="code"
+                        value={newItem.code}
+                        onChange={handleInputChange}
+                        placeholder="e.g., 1.1.1"
+                        className="font-mono"
+                        required
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="description" className="text-sm font-medium">
+                        Description (English)
+                      </Label>
+                      <Textarea
+                        id="description"
+                        name="description"
+                        value={newItem.description}
+                        onChange={handleInputChange}
+                        placeholder="Enter item description in English"
+                        className="min-h-[60px]"
+                        required
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="descriptionAr" className="text-sm font-medium">
+                        Description (Arabic)
+                      </Label>
+                      <Textarea
+                        id="descriptionAr"
+                        name="descriptionAr"
+                        value={newItem.descriptionAr || ''}
+                        onChange={handleInputChange}
+                        placeholder="أدخل وصف البند باللغة العربية"
+                        className="min-h-[60px] font-arabic"
+                        dir="rtl"
+                      />
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-medium text-muted-foreground">
+                      Quantity & Pricing (Leave empty for parent categories)
+                    </h4>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="quantity" className="text-sm font-medium">
+                          Quantity
+                        </Label>
+                        <Input
+                          id="quantity"
+                          name="quantity"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="0"
+                          value={newItem.quantity}
+                          onChange={handleInputChange}
+                          className="font-mono"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="unitRate" className="text-sm font-medium">
+                          Unit Rate (SAR)
+                        </Label>
+                        <Input
+                          id="unitRate"
+                          name="unitRate"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="0.00"
+                          value={newItem.unitRate}
+                          onChange={handleInputChange}
+                          className="font-mono"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="unit" className="text-sm font-medium">
+                          Unit (English)
+                        </Label>
+                        <Input
+                          id="unit"
+                          name="unit"
+                          placeholder="e.g., m, kg, pcs"
+                          value={newItem.unit}
+                          onChange={handleInputChange}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="unitAr" className="text-sm font-medium">
+                          Unit (Arabic)
+                        </Label>
+                        <Input
+                          id="unitAr"
+                          name="unitAr"
+                          placeholder="مثال: متر، كيلو، قطعة"
+                          value={newItem.unitAr || ''}
+                          onChange={handleInputChange}
+                          className="font-arabic"
+                          dir="rtl"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={resetForm}>
+                    Cancel
+                  </Button>
+                  <Button type="button" onClick={handleAddItem}>
+                    {editingItem ? 'Update Item' : 'Add Item'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-primary">Total Items</p>
+                  <p className="text-2xl font-bold text-primary">{itemStats.total}</p>
+                </div>
+                <Package className="h-8 w-8 text-primary/60" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-secondary/10 to-secondary/5 border-secondary/20">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-secondary">Categories</p>
+                  <p className="text-2xl font-bold text-secondary">{itemStats.parents}</p>
+                </div>
+                <FileText className="h-8 w-8 text-secondary/60" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-accent">Line Items</p>
+                  <p className="text-2xl font-bold text-accent">{itemStats.items}</p>
+                </div>
+                <Hash className="h-8 w-8 text-accent/60" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-primary/10 to-secondary/5 border-primary/20">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-primary">Grand Total</p>
+                  <p className="text-xl font-bold text-primary font-mono">
+                    {formatter.format(calculateGrandTotal())}
+                  </p>
+                </div>
+                <DollarSign className="h-8 w-8 text-primary/60" />
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
-      
-      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {language === 'en' ? 'Code' : 'رقم البند'}
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {language === 'en' ? 'Description' : 'الوصف'}
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {language === 'en' ? 'Quantity' : 'الكمية'}
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {language === 'en' ? 'Unit' : 'الوحدة'}
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {language === 'en' ? 'Unit Rate' : 'السعر الافرادي'}
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {language === 'en' ? 'Total Amount' : 'السعر الإجمالي'}
-                </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {language === 'en' ? 'Actions' : 'الإجراءات'}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {boqItems.map(item => renderBOQItem(item, 0))}
-            </tbody>
-          </table>
-        </div>
+
+      {/* BOQ Items */}
+      <div className="space-y-4">
+        <ScrollArea className="h-[calc(100vh-400px)] pr-4">
+          <div className="space-y-3">
+            {boqItems.length > 0 ? (
+              boqItems.map(item => renderBOQItem(item, 0))
+            ) : (
+              <Card className="border-dashed border-2 border-muted">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                  <h3 className="text-lg font-semibold text-muted-foreground">No BOQ Items</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Start by adding your first BOQ item or import from Excel
+                  </p>
+                  <Button onClick={() => setIsAddDialogOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add First Item
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </ScrollArea>
       </div>
     </div>
   );
