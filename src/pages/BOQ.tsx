@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
-import { Download, Upload, Plus, Edit, ChevronDown, ChevronRight, Expand, Shrink, FileText, Package, DollarSign, Hash, Calculator, Globe } from 'lucide-react';
+import { Download, Upload, Plus, Edit, ChevronDown, ChevronRight, Expand, Shrink, FileText, Package, DollarSign, Hash, Calculator, Globe, Search, X, Filter } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const BOQ = () => {
@@ -33,6 +33,9 @@ const BOQ = () => {
   const [language, setLanguage] = useState<'en' | 'ar'>('en');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [filteredItems, setFilteredItems] = useState<BOQItem[]>([]);
+  const [searchFocused, setSearchFocused] = useState<boolean>(false);
   
   // Always use English number formatting
   const formatter = new Intl.NumberFormat('en-US', {
@@ -415,6 +418,98 @@ const BOQ = () => {
     setExpandedItems(new Set());
   };
 
+  // Filter BOQ items recursively
+  const filterBOQItems = (items: BOQItem[], searchTerm: string): BOQItem[] => {
+    if (!searchTerm.trim()) return items;
+
+    const filtered: BOQItem[] = [];
+    const term = searchTerm.toLowerCase();
+
+    for (const item of items) {
+      // Check if current item matches
+      const codeMatch = item.code.toLowerCase().includes(term);
+      const descMatch = item.description.toLowerCase().includes(term);
+      const descArMatch = item.descriptionAr?.toLowerCase().includes(term) || false;
+      const itemMatches = codeMatch || descMatch || descArMatch;
+
+      // Recursively filter children
+      const filteredChildren = item.children ? filterBOQItems(item.children, searchTerm) : [];
+      
+      // Include item if it matches or has matching children
+      if (itemMatches || filteredChildren.length > 0) {
+        filtered.push({
+          ...item,
+          children: filteredChildren.length > 0 ? filteredChildren : item.children
+        });
+      }
+    }
+
+    return filtered;
+  };
+
+  // Handle search term changes
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    if (value.trim()) {
+      const filtered = filterBOQItems(boqItems, value);
+      setFilteredItems(filtered);
+      // Auto expand matching items
+      const expandItems = (items: BOQItem[]) => {
+        items.forEach(item => {
+          if (item.children && item.children.length > 0) {
+            expandedItems.add(item.id);
+            expandItems(item.children);
+          }
+        });
+      };
+      expandItems(filtered);
+      setExpandedItems(new Set(expandedItems));
+    } else {
+      setFilteredItems([]);
+    }
+  };
+
+  // Clear search
+  const clearSearch = () => {
+    setSearchTerm('');
+    setFilteredItems([]);
+    setSearchFocused(false);
+  };
+
+  // Get suggestions based on search term
+  const getSearchSuggestions = (term: string): string[] => {
+    if (!term.trim() || term.length < 2) return [];
+    
+    const suggestions = new Set<string>();
+    const lowerTerm = term.toLowerCase();
+    
+    const collectSuggestions = (items: BOQItem[]) => {
+      items.forEach(item => {
+        // Add matching codes
+        if (item.code.toLowerCase().includes(lowerTerm)) {
+          suggestions.add(item.code);
+        }
+        // Add matching descriptions
+        const words = item.description.toLowerCase().split(/\s+/);
+        words.forEach(word => {
+          if (word.includes(lowerTerm) && word.length > 2) {
+            suggestions.add(word);
+          }
+        });
+        
+        if (item.children) {
+          collectSuggestions(item.children);
+        }
+      });
+    };
+    
+    collectSuggestions(boqItems);
+    return Array.from(suggestions).slice(0, 5);
+  };
+
+  const suggestions = getSearchSuggestions(searchTerm);
+  const displayItems = searchTerm.trim() ? filteredItems : boqItems;
+
   // Calculate totals for summary
   const calculateGrandTotal = (): number => {
     return boqItems.reduce((sum, item) => sum + calculateItemTotal(item), 0);
@@ -683,6 +778,69 @@ const BOQ = () => {
             </div>
           </div>
 
+          {/* Smart Search & Filter */}
+          <div className="relative max-w-md w-full">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                type="text"
+                placeholder={language === 'en' ? "Search BOQ items by code or description..." : "البحث في بنود الكميات بالرقم أو الوصف..."}
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
+                className="pl-10 pr-10 h-10 bg-background/80 backdrop-blur-sm transition-all duration-200 focus:bg-background border-muted-foreground/20 hover:border-muted-foreground/40 focus:border-primary"
+                dir={language === 'ar' ? 'rtl' : 'ltr'}
+              />
+              {searchTerm && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearSearch}
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-muted/50"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+
+            {/* Smart Suggestions */}
+            {searchFocused && searchTerm && suggestions.length > 0 && (
+              <Card className="absolute top-full left-0 right-0 z-50 mt-1 border shadow-lg bg-popover animate-fade-in">
+                <CardContent className="p-2">
+                  <div className="space-y-1">
+                    <div className="text-xs font-medium text-muted-foreground px-2 py-1">
+                      <Filter className="h-3 w-3 inline mr-1" />
+                      Quick Suggestions
+                    </div>
+                    {suggestions.map((suggestion, index) => (
+                      <Button
+                        key={index}
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          handleSearchChange(suggestion);
+                          setSearchFocused(false);
+                        }}
+                        className="w-full justify-start h-8 text-sm font-mono hover:bg-muted/50"
+                      >
+                        <Search className="h-3 w-3 mr-2 text-muted-foreground" />
+                        {suggestion}
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Search Results Counter */}
+            {searchTerm && (
+              <div className="absolute -bottom-6 left-0 text-xs text-muted-foreground">
+                {displayItems.length} {displayItems.length === 1 ? 'item' : 'items'} found
+              </div>
+            )}
+          </div>
+
           {/* Action Buttons */}
           <div className="flex flex-wrap items-center gap-2">
             <input
@@ -937,8 +1095,22 @@ const BOQ = () => {
       <div className="space-y-4">
         <ScrollArea className="h-[calc(100vh-400px)] pr-4">
           <div className="space-y-3">
-            {boqItems.length > 0 ? (
-              boqItems.map(item => renderBOQItem(item, 0))
+            {displayItems.length > 0 ? (
+              displayItems.map(item => renderBOQItem(item, 0))
+            ) : searchTerm ? (
+              <Card className="border-dashed border-2 border-muted">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <Search className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                  <h3 className="text-lg font-semibold text-muted-foreground">No Results Found</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    No BOQ items match your search criteria. Try different keywords or clear the search.
+                  </p>
+                  <Button variant="outline" onClick={clearSearch}>
+                    <X className="h-4 w-4 mr-2" />
+                    Clear Search
+                  </Button>
+                </CardContent>
+              </Card>
             ) : (
               <Card className="border-dashed border-2 border-muted">
                 <CardContent className="flex flex-col items-center justify-center py-12">
