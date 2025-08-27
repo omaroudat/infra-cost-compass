@@ -1055,10 +1055,10 @@ const BOQ = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-secondary">Categories</p>
-                  <p className="text-2xl font-bold text-secondary">{itemStats.parents}</p>
+                  <p className="text-sm font-medium text-secondary-foreground">Categories</p>
+                  <p className="text-2xl font-bold text-secondary-foreground">{itemStats.parents}</p>
                 </div>
-                <FileText className="h-8 w-8 text-secondary/60" />
+                <FileText className="h-8 w-8 text-secondary-foreground/60" />
               </div>
             </CardContent>
           </Card>
