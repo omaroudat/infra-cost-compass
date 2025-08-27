@@ -19,6 +19,7 @@ import ProgressTracking from './pages/ProgressTracking';
 import ProgressSummary from './pages/ProgressSummary';
 import Reports from './pages/Reports';
 import Invoices from './pages/Invoices';
+import Attachments from './pages/Attachments';
 import StaffManagement from './pages/StaffManagement';
 import UserManagement from './pages/UserManagement';
 import NotFound from './pages/NotFound';
@@ -149,6 +150,16 @@ function App() {
                       <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer']}>
                         <Layout>
                           <Invoices />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/attachments"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin']}>
+                        <Layout>
+                          <Attachments />
                         </Layout>
                       </ProtectedRoute>
                     }
