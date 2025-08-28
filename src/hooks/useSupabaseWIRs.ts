@@ -15,30 +15,37 @@ export const useSupabaseWIRs = () => {
     const year = today.getFullYear();
     const datePrefix = `WIR-${day}-${month}-${year}`;
     
-    // Get all WIRs with the same date prefix to find the next sequence number
+    // Get all WIRs to find the highest sequence number globally (never resets)
     const { data, error } = await supabase
       .from('wirs')
       .select('wir_number')
-      .like('wir_number', `${datePrefix}%`)
-      .order('wir_number', { ascending: false })
-      .limit(1);
+      .like('wir_number', 'WIR-%')
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching existing WIRs:', error);
-      // Fallback to 0001 if there's an error
-      return `${datePrefix}-0001`;
+      // Fallback to 000001 if there's an error
+      return `${datePrefix}-000001`;
     }
 
     let sequenceNumber = 1;
     if (data && data.length > 0) {
-      const lastWirNumber = data[0].wir_number;
-      const lastSequence = lastWirNumber.split('-').pop();
-      if (lastSequence) {
-        sequenceNumber = parseInt(lastSequence) + 1;
+      // Find the highest sequence number across all WIRs
+      let maxSequence = 0;
+      for (const wir of data) {
+        const wirNumber = wir.wir_number;
+        const lastSequence = wirNumber.split('-').pop();
+        if (lastSequence) {
+          const sequence = parseInt(lastSequence);
+          if (!isNaN(sequence) && sequence > maxSequence) {
+            maxSequence = sequence;
+          }
+        }
       }
+      sequenceNumber = maxSequence + 1;
     }
 
-    const formattedSequence = sequenceNumber.toString().padStart(4, '0');
+    const formattedSequence = sequenceNumber.toString().padStart(6, '0');
     return `${datePrefix}-${formattedSequence}`;
   };
 
