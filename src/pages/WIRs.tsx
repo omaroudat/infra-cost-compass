@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/ManualAuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,21 @@ import { useStaffManagement } from '@/hooks/useStaffManagement';
 const WIRs = () => {
   const { canEdit, canDelete, profile } = useAuth();
   const { t } = useLanguage();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [filters, setFilters] = useState<AdvancedWIRFilterValues>({});
+
+  // Handle search parameter from URL (e.g., when navigating from Progress Summary)
+  useEffect(() => {
+    const searchTerm = searchParams.get('search');
+    if (searchTerm) {
+      setFilters(prev => ({
+        ...prev,
+        searchTerm: searchTerm
+      }));
+      // Clear the search param after setting the filter
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
   
   const {
     wirs,
@@ -71,6 +86,7 @@ const WIRs = () => {
       if (filters.searchTerm && filters.searchTerm.trim() !== '') {
         const searchTerm = filters.searchTerm.toLowerCase();
         const searchableText = [
+          wir.wirNumber,
           wir.description,
           wir.descriptionAr,
           wir.lineNo,
@@ -221,6 +237,7 @@ const WIRs = () => {
             engineers={uniqueEngineers}
             contractors={uniqueContractors}
             regions={uniqueRegions}
+            initialFilters={filters}
           />
           
           {canEdit() && (

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,16 +29,24 @@ interface AdvancedWIRFiltersProps {
   engineers: string[];
   contractors: string[];
   regions: string[];
+  initialFilters?: AdvancedWIRFilterValues;
 }
 
 const AdvancedWIRFilters: React.FC<AdvancedWIRFiltersProps> = ({
   onFiltersChange,
   engineers,
   contractors,
-  regions
+  regions,
+  initialFilters = {}
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [filters, setFilters] = useState<AdvancedWIRFilterValues>({});
+  const [filters, setFilters] = useState<AdvancedWIRFilterValues>(initialFilters);
+
+  // Update filters when initialFilters prop changes
+  useEffect(() => {
+    setFilters(initialFilters);
+    onFiltersChange(initialFilters);
+  }, [initialFilters, onFiltersChange]);
 
   const updateFilter = (key: keyof AdvancedWIRFilterValues, value: any) => {
     // Convert 'all' back to undefined for filtering logic

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -14,6 +15,12 @@ interface ProgressSummaryTableProps {
 
 export const ProgressSummaryTable: React.FC<ProgressSummaryTableProps> = ({ data, isRTL }) => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
+
+  const handleWIRClick = (wirNumber: string) => {
+    // Navigate to WIRs page with the WIR number as search parameter
+    navigate(`/wirs?search=${encodeURIComponent(wirNumber)}`);
+  };
 
   const renderWIRChips = (wirNumbers: string[]) => {
     if (wirNumbers.length === 0) return (
@@ -28,14 +35,15 @@ export const ProgressSummaryTable: React.FC<ProgressSummaryTableProps> = ({ data
               <TooltipTrigger asChild>
                 <Badge 
                   variant="secondary"
-                  className="text-[10px] px-2 py-0.5 font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 cursor-pointer transition-colors duration-200"
+                  onClick={() => handleWIRClick(wirNumber)}
+                  className="text-[10px] px-2 py-0.5 font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 cursor-pointer transition-colors duration-200 hover:scale-105 active:scale-95"
                 >
                   {wirNumber}
                 </Badge>
               </TooltipTrigger>
               <TooltipContent>
                 <p className="font-medium">{wirNumber}</p>
-                <p className="text-xs text-muted-foreground">Status: Approved</p>
+                <p className="text-xs text-muted-foreground">Click to view WIR details</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
