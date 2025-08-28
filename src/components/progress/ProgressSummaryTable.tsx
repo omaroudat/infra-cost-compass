@@ -1,11 +1,11 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ProgressSummaryData } from '@/hooks/useProgressSummaryData';
 import { useLanguage } from '@/context/LanguageContext';
+import { WIRDetailsDialog } from '@/components/wir/WIRDetailsDialog';
 import { Hash, MapPin, Navigation, Percent } from 'lucide-react';
 
 interface ProgressSummaryTableProps {
@@ -15,11 +15,17 @@ interface ProgressSummaryTableProps {
 
 export const ProgressSummaryTable: React.FC<ProgressSummaryTableProps> = ({ data, isRTL }) => {
   const { t } = useLanguage();
-  const navigate = useNavigate();
+  const [selectedWIRNumber, setSelectedWIRNumber] = useState<string | null>(null);
+  const [isWIRDialogOpen, setIsWIRDialogOpen] = useState(false);
 
   const handleWIRClick = (wirNumber: string) => {
-    // Navigate to WIRs page with the WIR number as search parameter
-    navigate(`/wirs?search=${encodeURIComponent(wirNumber)}`);
+    setSelectedWIRNumber(wirNumber);
+    setIsWIRDialogOpen(true);
+  };
+
+  const handleCloseWIRDialog = () => {
+    setIsWIRDialogOpen(false);
+    setSelectedWIRNumber(null);
   };
 
   const renderWIRChips = (wirNumbers: string[]) => {
@@ -208,6 +214,15 @@ export const ProgressSummaryTable: React.FC<ProgressSummaryTableProps> = ({ data
             </div>
           </div>
         </div>
+      )}
+
+      {/* WIR Details Dialog */}
+      {selectedWIRNumber && (
+        <WIRDetailsDialog
+          isOpen={isWIRDialogOpen}
+          onClose={handleCloseWIRDialog}
+          wirNumber={selectedWIRNumber}
+        />
       )}
     </div>
   );
