@@ -303,6 +303,7 @@ export type Database = {
       }
       wirs: {
         Row: {
+          attachments: string[] | null
           boq_item_id: string
           calculated_amount: number | null
           calculation_equation: string | null
@@ -336,6 +337,7 @@ export type Database = {
           zone: string | null
         }
         Insert: {
+          attachments?: string[] | null
           boq_item_id: string
           calculated_amount?: number | null
           calculation_equation?: string | null
@@ -369,6 +371,7 @@ export type Database = {
           zone?: string | null
         }
         Update: {
+          attachments?: string[] | null
           boq_item_id?: string
           calculated_amount?: number | null
           calculation_equation?: string | null

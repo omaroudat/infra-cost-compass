@@ -12,7 +12,8 @@ import WIRLocationDetailsForm from './WIRLocationDetailsForm';
 import WIRResultForm from './WIRResultForm';
 import WIRFormActions from './WIRFormActions';
 import WIRBreakdownSelection from './WIRBreakdownSelection';
-import { Package, MapPin, Settings, CheckCircle, Hash, Eye } from 'lucide-react';
+import WIRAttachmentSelector from './WIRAttachmentSelector';
+import { Package, MapPin, Settings, CheckCircle, Hash, Eye, Paperclip } from 'lucide-react';
 
 interface WIRFormProps {
   newWIR: Partial<WIR>;
@@ -198,6 +199,26 @@ const WIRForm: React.FC<WIRFormProps> = ({
             newWIR={newWIR}
             setNewWIR={setNewWIR}
             isResultSubmission={isResultSubmission || isCompletedWIR}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Attachments */}
+      <Card className={`border-2 shadow-sm ${isCompletedWIR ? 'border-blue-200 bg-blue-50' : 'border-teal-200'}`}>
+        <CardHeader className="pb-4">
+          <CardTitle className={`text-lg font-semibold flex items-center gap-2 ${isCompletedWIR ? 'text-blue-800' : 'text-teal-800'}`}>
+            <Paperclip className="w-5 h-5" />
+            Attachments
+          </CardTitle>
+          <CardDescription className={`text-sm ${isCompletedWIR ? 'text-blue-600' : 'text-teal-600'}`}>
+            {isCompletedWIR ? 'Attachments linked to this completed WIR' : 'Link relevant attachments (PDFs, documents) to this WIR'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <WIRAttachmentSelector
+            newWIR={newWIR}
+            setNewWIR={setNewWIR}
+            isViewOnly={isCompletedWIR}
           />
         </CardContent>
       </Card>

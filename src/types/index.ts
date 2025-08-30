@@ -74,6 +74,7 @@ export type WIR = {
   linkedBOQItems: string[]; // multiple sub items
   originalWIRId?: string; // original WIR ID for revisions
   selectedBreakdownItems?: string[]; // New field for selected breakdown sub-items
+  attachments?: string[]; // New field for linked attachments
 };
 
 export type FinancialSummary = {

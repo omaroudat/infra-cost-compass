@@ -1,6 +1,7 @@
 import React from 'react';
 import { WIR, BOQItem } from '@/types';
 import { useAppContext } from '@/context/AppContext';
+import { useAttachments } from '@/hooks/useAttachments';
 
 interface WIRPrintViewProps {
   wir: WIR;
@@ -9,6 +10,7 @@ interface WIRPrintViewProps {
 
 const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) => {
   const { breakdownItems } = useAppContext();
+  const { attachments } = useAttachments();
 
   const getBOQItemDetails = (id: string) => {
     const item = flattenedBOQItems.find(item => item.id === id);
@@ -38,6 +40,13 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
 
   const selectedBOQItem = getBOQItemDetails(wir.boqItemId);
   const selectedBreakdownItems = getSelectedBreakdownItems();
+  
+  const getLinkedAttachments = () => {
+    if (!wir.attachments || !attachments) return [];
+    return attachments.filter(att => wir.attachments?.includes(att.id));
+  };
+
+  const linkedAttachments = getLinkedAttachments();
 
   return (
     <div className="max-w-none mx-auto bg-white p-8 print:p-6 print:max-w-none print:shadow-none">
@@ -320,6 +329,43 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
           </div>
         </div>
       </div>
+
+      {/* Linked Attachments */}
+      {linkedAttachments.length > 0 && (
+        <div className="mb-8 print:mb-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300">
+            Linked Attachments
+          </h3>
+          <div className="bg-gray-50 p-6 rounded-lg print:bg-white print:border print:border-gray-300">
+            <table className="w-full text-sm border-collapse border border-gray-300">
+              <thead>
+                <tr className="bg-gray-100 print:bg-gray-50">
+                  <th className="border border-gray-300 text-left py-3 px-4 font-semibold text-gray-700">File Name</th>
+                  <th className="border border-gray-300 text-left py-3 px-4 font-semibold text-gray-700">Description</th>
+                  <th className="border border-gray-300 text-center py-3 px-4 font-semibold text-gray-700">Type</th>
+                  <th className="border border-gray-300 text-center py-3 px-4 font-semibold text-gray-700">Size</th>
+                  <th className="border border-gray-300 text-center py-3 px-4 font-semibold text-gray-700">Upload Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {linkedAttachments.map((attachment, index) => (
+                  <tr key={attachment.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}>
+                    <td className="border border-gray-300 py-3 px-4 text-gray-900 font-medium">{attachment.file_name}</td>
+                    <td className="border border-gray-300 py-3 px-4 text-gray-700">{attachment.description || 'N/A'}</td>
+                    <td className="border border-gray-300 py-3 px-4 text-center text-gray-700 uppercase">{attachment.file_type}</td>
+                    <td className="border border-gray-300 py-3 px-4 text-center text-gray-700">
+                      {(attachment.file_size / 1024 / 1024).toFixed(2)} MB
+                    </td>
+                    <td className="border border-gray-300 py-3 px-4 text-center text-gray-700">
+                      {formatDate(attachment.uploaded_at)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Signature Section */}
       <div className="mt-12 print:mt-8 print:break-inside-avoid">
