@@ -12,6 +12,7 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
   const { breakdownItems } = useAppContext();
   const { attachments, getDownloadUrl } = useAttachments();
   const [attachmentUrls, setAttachmentUrls] = useState<Record<string, string>>({});
+  const [attachmentsLoaded, setAttachmentsLoaded] = useState(false);
 
   const getBOQItemDetails = (id: string) => {
     const item = flattenedBOQItems.find(item => item.id === id);
@@ -52,6 +53,7 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
   // Load attachment URLs for display
   useEffect(() => {
     const loadAttachmentUrls = async () => {
+      setAttachmentsLoaded(false);
       const urls: Record<string, string> = {};
       for (const attachment of linkedAttachments) {
         const url = await getDownloadUrl(attachment.storage_path);
@@ -60,10 +62,13 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
         }
       }
       setAttachmentUrls(urls);
+      setAttachmentsLoaded(true);
     };
 
     if (linkedAttachments.length > 0) {
       loadAttachmentUrls();
+    } else {
+      setAttachmentsLoaded(true);
     }
   }, [linkedAttachments, getDownloadUrl]);
 

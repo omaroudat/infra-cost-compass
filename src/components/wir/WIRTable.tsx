@@ -197,11 +197,12 @@ const WIRTable: React.FC<WIRTableProps> = ({
 
   const handlePrint = (wir: WIR) => {
     setPrintingWIR(wir);
+    // Wait longer to allow attachment URLs to load
     setTimeout(() => {
       window.print();
       // Reset after printing to clean up
       setTimeout(() => setPrintingWIR(null), 1000);
-    }, 100);
+    }, 2000); // Increased delay to 2 seconds
   };
 
   const WIRCard = ({ wir }: { wir: WIR }) => {
