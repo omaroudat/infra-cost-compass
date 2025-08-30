@@ -30,6 +30,7 @@ export const useWIROperations = () => {
       diameterOfLine: wir.diameterOfLine || 0,
       lineNo: wir.lineNo || '',
       selectedBreakdownItems: wir.selectedBreakdownItems || [],
+      attachments: wir.attachments || [],
       wirNumber: wir.wirNumber || '' // Include WIR number for editing
     });
     setEditingWIR(wir.id);
@@ -60,6 +61,7 @@ export const useWIROperations = () => {
       diameterOfLine: wir.diameterOfLine || 0,
       lineNo: wir.lineNo || '',
       selectedBreakdownItems: wir.selectedBreakdownItems || [],
+      attachments: wir.attachments || [],
       wirNumber: wir.wirNumber || '' // Include WIR number for result submission
     });
     setEditingWIR(wir.id);
