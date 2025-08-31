@@ -5,7 +5,6 @@ import { Profile } from '@/hooks/auth/types';
 import { useAuthSignIn } from '@/hooks/auth/useAuthSignIn';
 import { useAuthProfileUpdate } from '@/hooks/auth/useAuthProfileUpdate';
 import { useAuthPermissions } from '@/hooks/auth/useAuthPermissions';
-import { logAuditActivity } from '@/hooks/useAuditLogger';
 import { supabase } from '@/integrations/supabase/client';
 
 // Define the role types to match our database enum
@@ -139,40 +138,21 @@ export const ManualAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         
         localStorage.setItem('currentUser', JSON.stringify(updatedProfile));
         
-        // Log successful login
-        logAuditActivity({
-          action: 'LOGIN_SUCCESS',
-          resourceType: 'AUTH',
-          details: { username, roles: roles.join(', ') }
-        }, profileWithRoles);
+        // Log successful login - moved to component level to avoid circular dependency
       } else if (result.error) {
-        // Log failed login
-        logAuditActivity({
-          action: 'LOGIN_FAILED',
-          resourceType: 'AUTH',
-          details: { username, error: result.error.message || 'Login failed' }
-        });
+        // Log failed login - moved to component level to avoid circular dependency
       }
       return result;
     } catch (error) {
       console.error('Sign in error:', error);
-      // Log failed login
-      logAuditActivity({
-        action: 'LOGIN_FAILED',
-        resourceType: 'AUTH',
-        details: { username, error: error instanceof Error ? error.message : 'Unknown error' }
-      });
+      // Log failed login - moved to component level to avoid circular dependency
       return { data: null, error };
     }
   };
 
   const signOut = async () => {
     try {
-      // Log logout before clearing profile
-      logAuditActivity({
-        action: 'LOGOUT',
-        resourceType: 'AUTH'
-      }, profile);
+      // Log logout before clearing profile - moved to component level to avoid circular dependency
       
       setProfile(null);
       setUserRoles([]);
@@ -186,14 +166,7 @@ export const ManualAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const updateProfile = async (updates: Partial<Profile>) => {
-    if (profile) {
-      logAuditActivity({
-        action: 'UPDATE',
-        resourceType: 'USER',
-        resourceId: profile.id,
-        details: { updatedFields: Object.keys(updates) }
-      }, profile);
-    }
+    // Log profile update - moved to component level to avoid circular dependency
     await authUpdateProfile(profile, updates, setProfile);
   };
 
