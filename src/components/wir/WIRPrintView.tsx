@@ -420,40 +420,76 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
                       <div className="text-center">
                         <p className="text-red-600 font-medium">Failed to load: {attachment.file_name}</p>
                         <p className="text-sm text-red-500">File type: {attachment.file_type}</p>
+                        <p className="text-xs text-red-400 mt-1">URL: {url || 'Not available'}</p>
                       </div>
                     </div>
                   );
                 }
 
                 return (
-                  <div key={attachment.id} className="attachment-content">
-                    <div className="mb-2">
-                      <p className="text-sm font-medium text-gray-700">{attachment.file_name}</p>
+                  <div key={attachment.id} className="attachment-content page-break-inside-avoid">
+                    <div className="mb-3 border-b border-gray-200 pb-2">
+                      <h4 className="text-base font-semibold text-gray-800">{attachment.file_name}</h4>
+                      <p className="text-xs text-gray-500">File Type: {attachment.file_type} • Size: {Math.round((attachment.file_size || 0) / 1024)} KB</p>
                     </div>
                     
                     {attachment.file_type.startsWith('image/') ? (
-                      <img 
-                        src={url} 
-                        alt={attachment.file_name}
-                        className="max-w-full h-auto border border-gray-300 rounded shadow-sm"
-                        style={{ maxHeight: '800px' }}
-                        onError={(e) => {
-                          console.error('Image failed to load:', attachment.file_name, url);
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
-                    ) : (attachment.file_type === 'application/pdf' || attachment.file_name.toLowerCase().endsWith('.pdf')) ? (
-                      <div className="border border-gray-300 rounded overflow-hidden">
-                        <iframe 
-                          src={url}
-                          width="100%" 
-                          height="800px"
-                          className="w-full"
-                          title={attachment.file_name}
+                      <div className="border border-gray-300 rounded bg-white p-2">
+                        <img 
+                          src={url} 
+                          alt={attachment.file_name}
+                          className="max-w-full h-auto mx-auto"
+                          style={{ maxHeight: '600px' }}
+                          onLoad={() => console.log('Image loaded successfully:', attachment.file_name)}
                           onError={(e) => {
-                            console.error('PDF iframe failed to load:', attachment.file_name, url);
+                            console.error('Image failed to load:', attachment.file_name, url);
+                            const target = e.currentTarget as HTMLImageElement;
+                            target.style.display = 'none';
+                            target.insertAdjacentHTML('afterend', 
+                              `<div class="flex items-center justify-center h-32 border border-red-300 rounded bg-red-50">
+                                <div class="text-center">
+                                  <p class="text-red-600 font-medium">Image failed to load</p>
+                                  <p class="text-sm text-red-500">${attachment.file_name}</p>
+                                </div>
+                              </div>`
+                            );
                           }}
                         />
+                      </div>
+                    ) : (attachment.file_type === 'application/pdf' || attachment.file_name.toLowerCase().endsWith('.pdf')) ? (
+                      <div className="border border-gray-300 rounded bg-white">
+                        <object 
+                          data={url + '#toolbar=0&navpanes=0&scrollbar=0'}
+                          type="application/pdf"
+                          width="100%" 
+                          height="600px"
+                          className="w-full"
+                        >
+                          <embed 
+                            src={url + '#toolbar=0&navpanes=0&scrollbar=0'}
+                            type="application/pdf"
+                            width="100%" 
+                            height="600px"
+                            className="w-full"
+                          />
+                          <div className="flex items-center justify-center h-32 bg-gray-100 p-4">
+                            <div className="text-center">
+                              <p className="text-gray-600 font-medium">PDF Document: {attachment.file_name}</p>
+                              <p className="text-sm text-gray-500 mt-2">
+                                PDF content cannot be displayed in print preview. 
+                                Document will be included when printed.
+                              </p>
+                              <a 
+                                href={url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="inline-block mt-2 px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                              >
+                                Open PDF
+                              </a>
+                            </div>
+                          </div>
+                        </object>
                       </div>
                     ) : (
                       <div className="flex items-center justify-center h-32 border border-gray-300 rounded bg-gray-100">
@@ -463,6 +499,14 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
                           <p className="text-xs text-gray-400 mt-2">
                             This file type cannot be displayed inline.
                           </p>
+                          <a 
+                            href={url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-block mt-2 px-3 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700"
+                          >
+                            Download
+                          </a>
                         </div>
                       </div>
                     )}
