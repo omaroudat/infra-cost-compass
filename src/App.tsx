@@ -24,6 +24,7 @@ import StaffManagement from './pages/StaffManagement';
 import UserManagement from './pages/UserManagement';
 import NotFound from './pages/NotFound';
 import Unauthorized from './pages/Unauthorized';
+import AuditHistory from './pages/AuditHistory';
 import Index from './pages/Index';
 import './App.css';
 
@@ -180,6 +181,16 @@ function App() {
                       <ProtectedRoute requiredRoles={['admin']}>
                         <Layout>
                           <UserManagement />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/audit"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin']}>
+                        <Layout>
+                          <AuditHistory />
                         </Layout>
                       </ProtectedRoute>
                     }

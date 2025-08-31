@@ -5,6 +5,7 @@ import { Profile } from '@/hooks/auth/types';
 import { useAuthSignIn } from '@/hooks/auth/useAuthSignIn';
 import { useAuthProfileUpdate } from '@/hooks/auth/useAuthProfileUpdate';
 import { useAuthPermissions } from '@/hooks/auth/useAuthPermissions';
+import { useAuditLogger } from '@/hooks/useAuditLogger';
 import { supabase } from '@/integrations/supabase/client';
 
 // Define the role types to match our database enum
@@ -38,6 +39,7 @@ export const ManualAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const { signIn: authSignIn } = useAuthSignIn();
   const { updateProfile: authUpdateProfile } = useAuthProfileUpdate();
   const { hasRole, canEdit, canDelete, isAdmin } = useAuthPermissions(profile);
+  const { logLogin, logLogout, logUpdate } = useAuditLogger();
 
   const fetchUserRoles = async (userId: string): Promise<AppRole[]> => {
     try {
@@ -137,16 +139,27 @@ export const ManualAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         };
         
         localStorage.setItem('currentUser', JSON.stringify(updatedProfile));
+        
+        // Log successful login
+        logLogin(true, { username, roles: roles.join(', ') });
+      } else if (result.error) {
+        // Log failed login
+        logLogin(false, { username, error: result.error.message || 'Login failed' });
       }
       return result;
     } catch (error) {
       console.error('Sign in error:', error);
+      // Log failed login
+      logLogin(false, { username, error: error instanceof Error ? error.message : 'Unknown error' });
       return { data: null, error };
     }
   };
 
   const signOut = async () => {
     try {
+      // Log logout before clearing profile
+      logLogout();
+      
       setProfile(null);
       setUserRoles([]);
       setActiveRole(null);
@@ -159,6 +172,9 @@ export const ManualAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const updateProfile = async (updates: Partial<Profile>) => {
+    if (profile) {
+      logUpdate('USER', profile.id, { updatedFields: Object.keys(updates) });
+    }
     await authUpdateProfile(profile, updates, setProfile);
   };
 

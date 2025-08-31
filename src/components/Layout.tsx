@@ -42,7 +42,8 @@ import {
   Plus,
   Building2,
   Sparkles,
-  ChevronRight
+  ChevronRight,
+  Shield
 } from 'lucide-react';
 import { LanguageSelector } from './LanguageSelector';
 import { AccessibilityToolbar } from './accessibility/AccessibilityToolbar';
@@ -64,6 +65,7 @@ const AppSidebar = ({ side }: { side?: "left" | "right" }) => {
     { name: t('nav.progressSummary', 'Progress Summary'), href: '/progress-summary', icon: Sparkles, roles: ['admin', 'editor', 'viewer'], color: 'from-emerald-500 to-emerald-600' },
     { name: 'Invoices', href: '/invoices', icon: Receipt, roles: ['admin', 'editor', 'viewer'], color: 'from-cyan-500 to-cyan-600' },
     { name: 'Attachments', href: '/attachments', icon: Plus, roles: ['admin'], color: 'from-violet-500 to-violet-600' },
+    { name: 'Audit History', href: '/audit', icon: Shield, roles: ['admin'], color: 'from-slate-500 to-slate-600' },
     { name: t('nav.users', 'Users'), href: '/users', icon: Users, roles: ['admin'], color: 'from-pink-500 to-pink-600' },
   ];
 

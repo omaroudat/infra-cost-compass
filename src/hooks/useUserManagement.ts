@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { profileService } from '@/hooks/auth/profileService';
 import { UserRole } from '@/types/auth';
+import { useAuditLogger } from '@/hooks/useAuditLogger';
 
 export interface CreateUserData {
   username: string;
@@ -14,6 +15,7 @@ export interface CreateUserData {
 export const useUserManagement = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [users, setUsers] = useState<any[]>([]);
+  const { logCreate, logUpdate, logDelete } = useAuditLogger();
 
   const createUser = async (userData: CreateUserData) => {
     setIsLoading(true);
@@ -58,6 +60,13 @@ export const useUserManagement = () => {
 
       console.log('User created successfully:', createdProfile);
       toast.success(`User ${userData.username} created successfully`);
+      
+      // Log user creation
+      logCreate('USER', createdProfile[0]?.id || 'unknown', {
+        username: userData.username,
+        role: userData.role,
+        fullName: userData.fullName
+      });
       
       // Refresh users list
       await fetchUsers();
@@ -105,6 +114,14 @@ export const useUserManagement = () => {
       }
 
       toast.success('User updated successfully');
+      
+      // Log user update
+      logUpdate('USER', id, {
+        updatedFields: Object.keys(updates),
+        username: updates.username,
+        role: updates.role
+      });
+      
       await fetchUsers();
       
       return { success: true, data };
@@ -130,6 +147,10 @@ export const useUserManagement = () => {
       }
 
       toast.success('User deleted successfully');
+      
+      // Log user deletion
+      logDelete('USER', id, { action: 'delete_user' });
+      
       await fetchUsers();
       
       return { success: true };
