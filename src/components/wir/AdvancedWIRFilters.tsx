@@ -186,7 +186,7 @@ const AdvancedWIRFilters: React.FC<AdvancedWIRFiltersProps> = ({
                 <ComboBox
                   options={[
                     { value: 'all', label: 'All engineers' },
-                    ...engineers.map(engineer => ({ value: engineer, label: engineer }))
+                    ...(engineers || []).map(engineer => ({ value: engineer, label: engineer }))
                   ]}
                   value={filters.engineer || 'all'}
                   onValueChange={(value) => updateFilter('engineer', value || 'all')}
@@ -202,7 +202,7 @@ const AdvancedWIRFilters: React.FC<AdvancedWIRFiltersProps> = ({
                 <ComboBox
                   options={[
                     { value: 'all', label: 'All contractors' },
-                    ...contractors.map(contractor => ({ value: contractor, label: contractor }))
+                    ...(contractors || []).map(contractor => ({ value: contractor, label: contractor }))
                   ]}
                   value={filters.contractor || 'all'}
                   onValueChange={(value) => updateFilter('contractor', value || 'all')}
@@ -218,7 +218,7 @@ const AdvancedWIRFilters: React.FC<AdvancedWIRFiltersProps> = ({
                 <ComboBox
                   options={[
                     { value: 'all', label: 'All regions' },
-                    ...regions.map(region => ({ value: region, label: region }))
+                    ...(regions || []).map(region => ({ value: region, label: region }))
                   ]}
                   value={filters.region || 'all'}
                   onValueChange={(value) => updateFilter('region', value || 'all')}
