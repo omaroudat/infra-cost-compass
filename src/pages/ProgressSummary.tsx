@@ -11,8 +11,9 @@ import { useProgressSummaryData } from '@/hooks/useProgressSummaryData';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Package, TrendingUp, Calculator, Check, ChevronsUpDown, Filter } from 'lucide-react';
+import { Package, TrendingUp, Calculator, Check, ChevronsUpDown, Filter, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import * as XLSX from 'xlsx';
 
 const ProgressSummary = () => {
   const { boqItems, breakdownItems } = useAppContext();
@@ -83,6 +84,187 @@ const ProgressSummary = () => {
       segments: filteredSegments
     };
   }, [summaryData, searchTerm, manholeFromFilter, manholeToFilter, zoneFilter, roadFilter]);
+
+  // Export function for progress summary data
+  const exportToExcel = () => {
+    if (!selectedBOQ || !filteredSummaryData || filteredSummaryData.segments.length === 0) {
+      return;
+    }
+
+    const formatCurrency = (amount: number) => {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'SAR',
+        minimumFractionDigits: 2,
+      }).format(amount);
+    };
+
+    // Helper function to calculate progress for a segment
+    const calculateSegmentProgress = (segment: any) => {
+      const totalWIRs = segment.wirs.length;
+      const approvedWIRs = segment.wirs.filter((wir: any) => wir.result === 'A' || wir.result === 'B').length;
+      
+      // Calculate total quantity and amount for this segment
+      const totalQuantity = segment.wirs.reduce((sum: number, wir: any) => sum + (wir.value || 0), 0);
+      const totalAmount = segment.wirs.reduce((sum: number, wir: any) => sum + (wir.calculatedAmount || wir.value * selectedBOQ.unitRate || 0), 0);
+      
+      const quantityProgress = totalWIRs > 0 ? (approvedWIRs / totalWIRs) * 100 : 0;
+      const amountProgress = totalAmount > 0 ? quantityProgress : 0; // Simplified calculation
+      
+      return {
+        totalWIRs,
+        approvedWIRs,
+        totalQuantity,
+        totalAmount,
+        quantityProgress,
+        amountProgress,
+        status: quantityProgress >= 100 ? 'Completed' : quantityProgress > 0 ? 'In Progress' : 'Not Started'
+      };
+    };
+
+    // Prepare BOQ Item Summary
+    const boqSummary = [{
+      'BOQ Code': selectedBOQ.code,
+      'Description': isRTL && selectedBOQ.descriptionAr ? selectedBOQ.descriptionAr : selectedBOQ.description,
+      'Total Quantity': selectedBOQ.quantity.toLocaleString(),
+      'Unit': isRTL && selectedBOQ.unitAr ? selectedBOQ.unitAr : selectedBOQ.unit,
+      'Unit Rate': formatCurrency(selectedBOQ.unitRate),
+      'Total Amount': formatCurrency(selectedBOQ.quantity * selectedBOQ.unitRate),
+      'Total Segments': filteredSummaryData.segments.length,
+      'Completed Segments': filteredSummaryData.segments.filter(s => {
+        const progress = calculateSegmentProgress(s);
+        return progress.quantityProgress >= 100;
+      }).length,
+      'In Progress Segments': filteredSummaryData.segments.filter(s => {
+        const progress = calculateSegmentProgress(s);
+        return progress.quantityProgress > 0 && progress.quantityProgress < 100;
+      }).length,
+      'Not Started Segments': filteredSummaryData.segments.filter(s => {
+        const progress = calculateSegmentProgress(s);
+        return progress.quantityProgress === 0;
+      }).length,
+      'Export Date': new Date().toLocaleDateString(),
+      'Applied Filters': [
+        searchTerm && `Search: ${searchTerm}`,
+        manholeFromFilter && `Manhole From: ${manholeFromFilter}`,
+        manholeToFilter && `Manhole To: ${manholeToFilter}`,
+        zoneFilter && `Zone: ${zoneFilter}`,
+        roadFilter && `Road: ${roadFilter}`
+      ].filter(Boolean).join(' | ') || 'No filters applied'
+    }];
+
+    // Prepare segments data
+    const segmentsData = filteredSummaryData.segments.map((segment, index) => {
+      const progress = calculateSegmentProgress(segment);
+      
+      return {
+        'Segment #': index + 1,
+        'Manhole From': segment.manholeFrom || '',
+        'Manhole To': segment.manholeTo || '',
+        'Zone': segment.zone || '',
+        'Road': segment.road || '',
+        'Line': segment.line || '',
+        'Total WIRs': progress.totalWIRs,
+        'Approved WIRs': progress.approvedWIRs,
+        'Total Quantity': progress.totalQuantity.toFixed(2),
+        'Total Amount': formatCurrency(progress.totalAmount),
+        'Progress %': `${progress.quantityProgress.toFixed(1)}%`,
+        'Status': progress.status,
+        'Related WIR Numbers': segment.wirs.map((wir: any) => wir.wirNumber || wir.id.slice(-8)).join(', ') || '',
+        'Breakdown Items': filteredSummaryData.breakdownItems.map(breakdown => {
+          const wirNumbers = segment.breakdownWIRs[breakdown.id] || [];
+          const displayName = isRTL && breakdown.descriptionAr ? breakdown.descriptionAr : breakdown.description;
+          return `${displayName} (${breakdown.percentage}%): ${wirNumbers.join(', ') || 'None'}`;
+        }).join(' | ')
+      };
+    });
+
+    // Calculate overall statistics
+    const totalAmount = filteredSummaryData.segments.reduce((sum, segment) => {
+      const progress = calculateSegmentProgress(segment);
+      return sum + progress.totalAmount;
+    }, 0);
+    
+    const totalQuantity = filteredSummaryData.segments.reduce((sum, segment) => {
+      const progress = calculateSegmentProgress(segment);
+      return sum + progress.totalQuantity;
+    }, 0);
+
+    const completedSegments = filteredSummaryData.segments.filter(s => {
+      const progress = calculateSegmentProgress(s);
+      return progress.quantityProgress >= 100;
+    }).length;
+
+    const overallProgress = filteredSummaryData.segments.length > 0 ? 
+      (completedSegments / filteredSummaryData.segments.length) * 100 : 0;
+
+    // Prepare summary statistics
+    const statisticsData = [
+      { 'Metric': 'Total Project Value', 'Value': formatCurrency(selectedBOQ.quantity * selectedBOQ.unitRate) },
+      { 'Metric': 'Total Amount (All Segments)', 'Value': formatCurrency(totalAmount) },
+      { 'Metric': 'Total Quantity (All Segments)', 'Value': `${totalQuantity.toFixed(2)} ${isRTL && selectedBOQ.unitAr ? selectedBOQ.unitAr : selectedBOQ.unit}` },
+      { 'Metric': 'Overall Progress', 'Value': `${overallProgress.toFixed(1)}%` },
+      { 'Metric': 'Total Segments', 'Value': filteredSummaryData.segments.length.toString() },
+      { 'Metric': 'Completed Segments', 'Value': completedSegments.toString() },
+      { 'Metric': 'In Progress Segments', 'Value': filteredSummaryData.segments.filter(s => {
+        const progress = calculateSegmentProgress(s);
+        return progress.quantityProgress > 0 && progress.quantityProgress < 100;
+      }).length.toString() },
+      { 'Metric': 'Not Started Segments', 'Value': filteredSummaryData.segments.filter(s => {
+        const progress = calculateSegmentProgress(s);
+        return progress.quantityProgress === 0;
+      }).length.toString() },
+      { 'Metric': 'Total Breakdown Items', 'Value': filteredSummaryData.breakdownItems.length.toString() }
+    ];
+
+    // Prepare breakdown items summary
+    const breakdownSummaryData = filteredSummaryData.breakdownItems.map(breakdown => {
+      const totalWIRsForBreakdown = filteredSummaryData.segments.reduce((sum, segment) => {
+        return sum + (segment.breakdownWIRs[breakdown.id]?.length || 0);
+      }, 0);
+
+      return {
+        'Breakdown Item': isRTL && breakdown.descriptionAr ? breakdown.descriptionAr : breakdown.description,
+        'Percentage': `${breakdown.percentage}%`,
+        'Total WIR References': totalWIRsForBreakdown,
+        'Segments with WIRs': filteredSummaryData.segments.filter(segment => 
+          (segment.breakdownWIRs[breakdown.id]?.length || 0) > 0
+        ).length,
+        'Coverage': filteredSummaryData.segments.length > 0 ? 
+          `${((filteredSummaryData.segments.filter(segment => 
+            (segment.breakdownWIRs[breakdown.id]?.length || 0) > 0
+          ).length / filteredSummaryData.segments.length) * 100).toFixed(1)}%` : '0%'
+      };
+    });
+
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+    
+    // Add BOQ summary sheet
+    const boqWs = XLSX.utils.json_to_sheet(boqSummary);
+    XLSX.utils.book_append_sheet(wb, boqWs, 'BOQ Summary');
+    
+    // Add statistics sheet
+    const statsWs = XLSX.utils.json_to_sheet(statisticsData);
+    XLSX.utils.book_append_sheet(wb, statsWs, 'Statistics');
+    
+    // Add segments data sheet
+    const segmentsWs = XLSX.utils.json_to_sheet(segmentsData);
+    XLSX.utils.book_append_sheet(wb, segmentsWs, 'Segment Details');
+
+    // Add breakdown items summary sheet
+    if (breakdownSummaryData.length > 0) {
+      const breakdownWs = XLSX.utils.json_to_sheet(breakdownSummaryData);
+      XLSX.utils.book_append_sheet(wb, breakdownWs, 'Breakdown Summary');
+    }
+
+    // Generate filename
+    const currentDate = new Date().toISOString().split('T')[0];
+    const filename = `Progress_Summary_${selectedBOQ.code}_${currentDate}.xlsx`;
+
+    // Save file
+    XLSX.writeFile(wb, filename);
+  };
 
   return (
     <div className="space-y-6 p-6">
@@ -318,13 +500,24 @@ const ProgressSummary = () => {
           {/* Progress Table */}
           <Card className="shadow-elegant border bg-card">
             <CardHeader className="pb-4">
-              <CardTitle className={`text-lg font-semibold text-foreground flex items-center gap-2 ${isRTL ? 'text-right flex-row-reverse' : 'text-left'}`}>
-                <TrendingUp className="w-5 h-5 text-emerald-500" />
-                {t('progressSummary.tableTitle', 'Manhole Segments & WIR Progress')}
-                <Badge variant="secondary" className="text-xs font-medium">
-                  Approved Only (A/B)
-                </Badge>
-              </CardTitle>
+              <div className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
+                <CardTitle className={`text-lg font-semibold text-foreground flex items-center gap-2 ${isRTL ? 'text-right flex-row-reverse' : 'text-left'}`}>
+                  <TrendingUp className="w-5 h-5 text-emerald-500" />
+                  {t('progressSummary.tableTitle', 'Manhole Segments & WIR Progress')}
+                  <Badge variant="secondary" className="text-xs font-medium">
+                    Approved Only (A/B)
+                  </Badge>
+                </CardTitle>
+                <Button
+                  onClick={exportToExcel}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2 hover:bg-primary hover:text-primary-foreground transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  {t('progressSummary.exportExcel', 'Export to Excel')}
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="p-0">
               <ProgressSummaryTable data={filteredSummaryData} isRTL={isRTL} />
