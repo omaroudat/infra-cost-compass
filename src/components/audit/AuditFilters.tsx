@@ -41,7 +41,7 @@ export const AuditFilters: React.FC<AuditFiltersProps> = ({
   const handleFilterChange = (key: keyof AuditLogFilters, value: string) => {
     onFiltersChange({
       ...filters,
-      [key]: value || undefined
+      [key]: value === 'all' ? undefined : value || undefined
     });
   };
 
@@ -76,14 +76,14 @@ export const AuditFilters: React.FC<AuditFiltersProps> = ({
             <div>
               <label className="text-sm font-medium mb-2 block">Action</label>
               <Select 
-                value={filters.action || ''} 
+                value={filters.action || 'all'} 
                 onValueChange={(value) => handleFilterChange('action', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select action" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Actions</SelectItem>
+                  <SelectItem value="all">All Actions</SelectItem>
                   {ACTIONS.map(action => (
                     <SelectItem key={action} value={action}>
                       {action.replace('_', ' ')}
@@ -96,14 +96,14 @@ export const AuditFilters: React.FC<AuditFiltersProps> = ({
             <div>
               <label className="text-sm font-medium mb-2 block">Resource Type</label>
               <Select 
-                value={filters.resourceType || ''} 
+                value={filters.resourceType || 'all'} 
                 onValueChange={(value) => handleFilterChange('resourceType', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select resource" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Resources</SelectItem>
+                  <SelectItem value="all">All Resources</SelectItem>
                   {RESOURCE_TYPES.map(type => (
                     <SelectItem key={type} value={type}>
                       {type.replace('_', ' ')}
