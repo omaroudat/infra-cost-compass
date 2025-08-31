@@ -81,8 +81,13 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
               .createSignedUrl(attachment.storage_path, 3600);
 
             if (!urlError && urlData?.signedUrl) {
-              urls[attachment.id] = urlData.signedUrl;
-              console.log('Got URL for attachment:', attachment.file_name);
+              // Construct full URL if signedUrl is relative
+              let fullUrl = urlData.signedUrl;
+              if (fullUrl.startsWith('/')) {
+                fullUrl = `https://xlxqgasvhfohmmyftskf.supabase.co/storage/v1${fullUrl}`;
+              }
+              urls[attachment.id] = fullUrl;
+              console.log('Got URL for attachment:', attachment.file_name, fullUrl);
             } else {
               console.error('Failed to get URL for attachment:', attachment.id, urlError);
             }
