@@ -421,15 +421,39 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
                         className="max-w-full h-auto border border-gray-300 rounded shadow-sm"
                         style={{ maxHeight: '800px' }}
                       />
-                    ) : attachment.file_type === 'application/pdf' ? (
-                      <div className="border border-gray-300 rounded">
-                        <embed 
-                          src={url} 
-                          type="application/pdf" 
-                          width="100%" 
-                          height="600px"
-                          className="rounded"
-                        />
+                    ) : (attachment.file_type === 'application/pdf' || attachment.file_name.toLowerCase().endsWith('.pdf')) ? (
+                      <div className="space-y-4">
+                        <div className="border border-gray-300 rounded bg-gray-50 p-2">
+                          <iframe 
+                            src={`${url}#toolbar=0&navpanes=0&scrollbar=0`}
+                            width="100%" 
+                            height="800px"
+                            className="rounded border-0"
+                            title={`PDF Content: ${attachment.file_name}`}
+                            style={{ minHeight: '800px' }}
+                          />
+                        </div>
+                        {/* Fallback embed for better compatibility */}
+                        <div className="print:hidden">
+                          <p className="text-sm text-gray-600 mb-2">
+                            If the PDF doesn't display above, it will be included in the printed version.
+                          </p>
+                          <object 
+                            data={url} 
+                            type="application/pdf" 
+                            width="100%" 
+                            height="600px"
+                            className="border border-gray-300 rounded hidden print:block"
+                          >
+                            <embed 
+                              src={url} 
+                              type="application/pdf" 
+                              width="100%" 
+                              height="600px"
+                              className="rounded"
+                            />
+                          </object>
+                        </div>
                       </div>
                     ) : (
                       <div className="flex items-center justify-center h-32 border border-gray-300 rounded bg-gray-100">
