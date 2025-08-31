@@ -82,7 +82,7 @@ export const ComboBox = React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Trigger>,
   ComboboxProps
 >(({
-  options,
+  options = [], // Default to empty array to prevent iteration errors
   value,
   defaultValue,
   onValueChange,
@@ -113,13 +113,16 @@ export const ComboBox = React.forwardRef<
   const searchRef = React.useRef<HTMLInputElement>(null)
 
   const currentValue = value ?? internalValue
-  const selectedOption = options.find(option => option.value === currentValue)
+  const selectedOption = (options || []).find(option => option.value === currentValue)
 
   // Filter and group options
   const filteredOptions = React.useMemo(() => {
+    // Ensure options is always an array to prevent iteration errors
+    const safeOptions = options || []
+    
     let filtered = searchable && search 
-      ? options.filter(option => filter(option, search))
-      : options
+      ? safeOptions.filter(option => filter(option, search))
+      : safeOptions
 
     // Group options if they have groups
     const groups = new Map<string, ComboboxOption[]>()
