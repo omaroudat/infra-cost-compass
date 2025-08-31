@@ -100,7 +100,8 @@ export const useSupabaseWIRs = () => {
         revisionNumber: item.revision_number || 0,
         linkedBOQItems: item.linked_boq_items || [item.boq_item_id],
         originalWIRId: item.original_wir_id,
-        selectedBreakdownItems: item.selected_breakdown_items || []
+        selectedBreakdownItems: item.selected_breakdown_items || [],
+        attachments: item.attachments || []
       }));
 
       console.log('Transformed WIR data:', transformedData);
@@ -166,6 +167,7 @@ export const useSupabaseWIRs = () => {
         original_wir_id: wir.originalWIRId,
         linked_boq_items: wir.linkedBOQItems,
         selected_breakdown_items: wir.selectedBreakdownItems,
+        attachments: wir.attachments || [],
         ...(wir.manholeFrom && { manhole_from: wir.manholeFrom }),
         ...(wir.manholeTo && { manhole_to: wir.manholeTo }),
         ...(wir.zone && { zone: wir.zone }),
@@ -214,6 +216,7 @@ export const useSupabaseWIRs = () => {
         if (updates.value !== undefined) updateData.value = updates.value;
         if (updates.linkedBOQItems !== undefined) updateData.linked_boq_items = updates.linkedBOQItems;
         if (updates.selectedBreakdownItems !== undefined) updateData.selected_breakdown_items = updates.selectedBreakdownItems;
+        if (updates.attachments !== undefined) updateData.attachments = updates.attachments;
         
         // Add new fields only if they exist in the updates
         if (updates.manholeFrom !== undefined) updateData.manhole_from = updates.manholeFrom;
