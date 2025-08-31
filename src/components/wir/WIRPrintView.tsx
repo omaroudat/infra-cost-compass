@@ -354,98 +354,45 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
         </div>
       </div>
 
-      {/* Linked Attachments */}
-      {linkedAttachments.length > 0 && (
-        <div className="mb-8 print:mb-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300">
-            Linked Attachments
-          </h3>
-          <div className="bg-gray-50 p-6 rounded-lg print:bg-white print:border print:border-gray-300">
-            <table className="w-full text-sm border-collapse border border-gray-300">
-              <thead>
-                <tr className="bg-gray-100 print:bg-gray-50">
-                  <th className="border border-gray-300 text-left py-3 px-4 font-semibold text-gray-700">File Name</th>
-                  <th className="border border-gray-300 text-left py-3 px-4 font-semibold text-gray-700">Description</th>
-                  <th className="border border-gray-300 text-center py-3 px-4 font-semibold text-gray-700">Type</th>
-                  <th className="border border-gray-300 text-center py-3 px-4 font-semibold text-gray-700">Size</th>
-                  <th className="border border-gray-300 text-center py-3 px-4 font-semibold text-gray-700">Upload Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {linkedAttachments.map((attachment, index) => (
-                  <tr key={attachment.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}>
-                    <td className="border border-gray-300 py-3 px-4 text-gray-900 font-medium">{attachment.file_name}</td>
-                    <td className="border border-gray-300 py-3 px-4 text-gray-700">{attachment.description || 'N/A'}</td>
-                    <td className="border border-gray-300 py-3 px-4 text-center text-gray-700 uppercase">{attachment.file_type}</td>
-                    <td className="border border-gray-300 py-3 px-4 text-center text-gray-700">
-                      {(attachment.file_size / 1024 / 1024).toFixed(2)} MB
-                    </td>
-                    <td className="border border-gray-300 py-3 px-4 text-center text-gray-700">
-                      {formatDate(attachment.uploaded_at)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
       {/* Attachment Content */}
       {linkedAttachments.length > 0 && (
         <div className="mb-8 print:mb-6">
           <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300">
-            Attachment Content
+            Attachments
           </h3>
-          <div className="space-y-8">
-            {linkedAttachments.map((attachment, index) => {
+          <div className="space-y-6">
+            {linkedAttachments.map((attachment) => {
               const url = attachmentUrls[attachment.id];
               if (!url) return null;
 
               return (
-                <div key={attachment.id} className="bg-gray-50 p-6 rounded-lg print:bg-white print:border print:border-gray-300">
-                  <div className="mb-4 pb-2 border-b border-gray-200">
-                    <h4 className="font-semibold text-gray-900 text-base">
-                      Attachment {index + 1}: {attachment.file_name}
-                    </h4>
-                    {attachment.description && (
-                      <p className="text-sm text-gray-600 mt-1">{attachment.description}</p>
-                    )}
-                  </div>
-                  
-                  <div className="attachment-content">
-                    {attachment.file_type.startsWith('image/') ? (
-                      <img 
-                        src={url} 
-                        alt={attachment.file_name}
-                        className="max-w-full h-auto border border-gray-300 rounded shadow-sm"
-                        style={{ maxHeight: '800px' }}
-                      />
-                    ) : (attachment.file_type === 'application/pdf' || attachment.file_name.toLowerCase().endsWith('.pdf')) ? (
-                      <div className="border border-gray-300 rounded bg-white p-4">
-                        <embed 
-                          src={url} 
-                          type="application/pdf" 
-                          width="100%" 
-                          height="800px"
-                          className="rounded"
-                        />
-                        <p className="text-sm text-gray-600 mt-2">
-                          PDF: {attachment.file_name}
+                <div key={attachment.id} className="attachment-content">
+                  {attachment.file_type.startsWith('image/') ? (
+                    <img 
+                      src={url} 
+                      alt={attachment.file_name}
+                      className="max-w-full h-auto border border-gray-300 rounded shadow-sm"
+                      style={{ maxHeight: '800px' }}
+                    />
+                  ) : (attachment.file_type === 'application/pdf' || attachment.file_name.toLowerCase().endsWith('.pdf')) ? (
+                    <embed 
+                      src={url} 
+                      type="application/pdf" 
+                      width="100%" 
+                      height="800px"
+                      className="border border-gray-300 rounded"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-32 border border-gray-300 rounded bg-gray-100">
+                      <div className="text-center">
+                        <p className="text-gray-600 font-medium">{attachment.file_name}</p>
+                        <p className="text-sm text-gray-500">File type: {attachment.file_type}</p>
+                        <p className="text-xs text-gray-400 mt-2">
+                          This file type cannot be displayed inline.
                         </p>
                       </div>
-                    ) : (
-                      <div className="flex items-center justify-center h-32 border border-gray-300 rounded bg-gray-100">
-                        <div className="text-center">
-                          <p className="text-gray-600 font-medium">{attachment.file_name}</p>
-                          <p className="text-sm text-gray-500">File type: {attachment.file_type}</p>
-                          <p className="text-xs text-gray-400 mt-2">
-                            This file type cannot be displayed inline. Please access the original file for viewing.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
