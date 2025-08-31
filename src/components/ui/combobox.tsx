@@ -119,6 +119,7 @@ export const ComboBox = React.forwardRef<
   const filteredOptions = React.useMemo(() => {
     // Ensure options is always an array to prevent iteration errors
     const safeOptions = options || []
+    console.log('ComboBox filteredOptions calculation:', { safeOptions, search, searchable })
     
     let filtered = searchable && search 
       ? safeOptions.filter(option => filter(option, search))
@@ -155,6 +156,7 @@ export const ComboBox = React.forwardRef<
       result.push(...ungrouped)
     }
 
+    console.log('ComboBox filteredOptions result:', result)
     return result
   }, [options, search, searchable, filter])
 
@@ -265,14 +267,14 @@ export const ComboBox = React.forwardRef<
             <AlertCircle className="mr-2 h-4 w-4" />
             {error}
           </div>
-        ) : filteredOptions.length === 0 ? (
+        ) : filteredOptions && filteredOptions.length === 0 ? (
           <div className="py-6 text-center text-sm text-muted-foreground">
             {emptyMessage}
           </div>
         ) : (
           <CommandPrimitive className="w-full">
             <div className="space-y-1 max-h-60 overflow-y-auto">
-              {filteredOptions.map((option) => (
+              {(filteredOptions || []).map((option) => (
                 option.value.startsWith("__separator__") ? (
                   <div key={option.value} className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
                     {option.label}
