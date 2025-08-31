@@ -36,6 +36,7 @@ export const useWIRFormState = () => {
     lengthOfLine: 0,
     diameterOfLine: 0,
     lineNo: '',
+    attachments: [],
     wirNumber: generateDefaultWIRNumber()
   });
 
@@ -69,6 +70,7 @@ export const useWIRFormState = () => {
       lengthOfLine: 0,
       diameterOfLine: 0,
       lineNo: '',
+      attachments: [],
       wirNumber: generateDefaultWIRNumber()
     });
     setEditingWIR(null);
