@@ -55,14 +55,27 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
     const loadAttachmentUrls = async () => {
       setAttachmentsLoaded(false);
       const urls: Record<string, string> = {};
+      
+      console.log('Loading attachment URLs for:', linkedAttachments.length, 'attachments');
+      
       for (const attachment of linkedAttachments) {
-        const url = await getDownloadUrl(attachment.storage_path);
-        if (url) {
-          urls[attachment.id] = url;
+        try {
+          console.log('Getting URL for attachment:', attachment.id, 'storage_path:', attachment.storage_path);
+          const url = await getDownloadUrl(attachment.storage_path);
+          if (url) {
+            urls[attachment.id] = url;
+            console.log('Successfully got URL for attachment:', attachment.id);
+          } else {
+            console.warn('Failed to get URL for attachment:', attachment.id);
+          }
+        } catch (error) {
+          console.error('Error getting URL for attachment:', attachment.id, error);
         }
       }
+      
       setAttachmentUrls(urls);
       setAttachmentsLoaded(true);
+      console.log('Finished loading attachment URLs:', Object.keys(urls).length, 'successful');
     };
 
     if (linkedAttachments.length > 0) {
@@ -360,43 +373,78 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
           <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300">
             Attachments
           </h3>
-          <div className="space-y-6">
-            {linkedAttachments.map((attachment) => {
-              const url = attachmentUrls[attachment.id];
-              if (!url) return null;
-
-              return (
-                <div key={attachment.id} className="attachment-content">
-                  {attachment.file_type.startsWith('image/') ? (
-                    <img 
-                      src={url} 
-                      alt={attachment.file_name}
-                      className="max-w-full h-auto border border-gray-300 rounded shadow-sm"
-                      style={{ maxHeight: '800px' }}
-                    />
-                  ) : (attachment.file_type === 'application/pdf' || attachment.file_name.toLowerCase().endsWith('.pdf')) ? (
-                    <embed 
-                      src={url} 
-                      type="application/pdf" 
-                      width="100%" 
-                      height="800px"
-                      className="border border-gray-300 rounded"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-32 border border-gray-300 rounded bg-gray-100">
+          
+          {!attachmentsLoaded && (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-center">
+                <p className="text-gray-600">Loading attachments...</p>
+              </div>
+            </div>
+          )}
+          
+          {attachmentsLoaded && (
+            <div className="space-y-6">
+              {linkedAttachments.map((attachment) => {
+                const url = attachmentUrls[attachment.id];
+                
+                // Show placeholder if URL is not available
+                if (!url) {
+                  return (
+                    <div key={attachment.id} className="flex items-center justify-center h-32 border border-red-300 rounded bg-red-50">
                       <div className="text-center">
-                        <p className="text-gray-600 font-medium">{attachment.file_name}</p>
-                        <p className="text-sm text-gray-500">File type: {attachment.file_type}</p>
-                        <p className="text-xs text-gray-400 mt-2">
-                          This file type cannot be displayed inline.
-                        </p>
+                        <p className="text-red-600 font-medium">Failed to load: {attachment.file_name}</p>
+                        <p className="text-sm text-red-500">File type: {attachment.file_type}</p>
                       </div>
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                  );
+                }
+
+                return (
+                  <div key={attachment.id} className="attachment-content">
+                    <div className="mb-2">
+                      <p className="text-sm font-medium text-gray-700">{attachment.file_name}</p>
+                    </div>
+                    
+                    {attachment.file_type.startsWith('image/') ? (
+                      <img 
+                        src={url} 
+                        alt={attachment.file_name}
+                        className="max-w-full h-auto border border-gray-300 rounded shadow-sm"
+                        style={{ maxHeight: '800px' }}
+                        onError={(e) => {
+                          console.error('Image failed to load:', attachment.file_name, url);
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : (attachment.file_type === 'application/pdf' || attachment.file_name.toLowerCase().endsWith('.pdf')) ? (
+                      <div className="border border-gray-300 rounded overflow-hidden">
+                        <iframe 
+                          src={url}
+                          width="100%" 
+                          height="800px"
+                          className="w-full"
+                          title={attachment.file_name}
+                          onError={(e) => {
+                            console.error('PDF iframe failed to load:', attachment.file_name, url);
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center h-32 border border-gray-300 rounded bg-gray-100">
+                        <div className="text-center">
+                          <p className="text-gray-600 font-medium">{attachment.file_name}</p>
+                          <p className="text-sm text-gray-500">File type: {attachment.file_type}</p>
+                          <p className="text-xs text-gray-400 mt-2">
+                            This file type cannot be displayed inline.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
