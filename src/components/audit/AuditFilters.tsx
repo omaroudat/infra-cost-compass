@@ -1,7 +1,7 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ComboBox } from '@/components/ui/enhanced-dropdowns';
 import { Card, CardContent } from '@/components/ui/card';
 import { Search, Filter, X } from 'lucide-react';
 import { AuditLogFilters } from '@/hooks/useAuditLogs';
@@ -75,42 +75,38 @@ export const AuditFilters: React.FC<AuditFiltersProps> = ({
 
             <div>
               <label className="text-sm font-medium mb-2 block">Action</label>
-              <Select 
-                value={filters.action || 'all'} 
-                onValueChange={(value) => handleFilterChange('action', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select action" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Actions</SelectItem>
-                  {ACTIONS.map(action => (
-                    <SelectItem key={action} value={action}>
-                      {action.replace('_', ' ')}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <ComboBox
+                options={[
+                  { value: 'all', label: 'All Actions' },
+                  ...ACTIONS.map(action => ({ 
+                    value: action, 
+                    label: action.replace('_', ' ') 
+                  }))
+                ]}
+                value={filters.action || 'all'}
+                onValueChange={(value) => handleFilterChange('action', value || 'all')}
+                placeholder="Select action"
+                searchable={false}
+                className="h-10"
+              />
             </div>
 
             <div>
               <label className="text-sm font-medium mb-2 block">Resource Type</label>
-              <Select 
-                value={filters.resourceType || 'all'} 
-                onValueChange={(value) => handleFilterChange('resourceType', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select resource" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Resources</SelectItem>
-                  {RESOURCE_TYPES.map(type => (
-                    <SelectItem key={type} value={type}>
-                      {type.replace('_', ' ')}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <ComboBox
+                options={[
+                  { value: 'all', label: 'All Resources' },
+                  ...RESOURCE_TYPES.map(type => ({ 
+                    value: type, 
+                    label: type.replace('_', ' ') 
+                  }))
+                ]}
+                value={filters.resourceType || 'all'}
+                onValueChange={(value) => handleFilterChange('resourceType', value || 'all')}
+                placeholder="Select resource"
+                searchable={false}
+                className="h-10"
+              />
             </div>
 
             <div className="flex items-end">

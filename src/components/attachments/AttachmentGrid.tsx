@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ComboBox } from '@/components/ui/enhanced-dropdowns';
 import { Search, Filter, Grid3X3, List, SortAsc, SortDesc } from 'lucide-react';
 import { AttachmentCard } from './AttachmentCard';
 import { Attachment } from '@/types/attachments';
@@ -140,57 +140,50 @@ export const AttachmentGrid: React.FC<AttachmentGridProps> = ({
 
             {/* Filters */}
             <div className="flex flex-wrap gap-2">
-              <Select value={selectedType} onValueChange={setSelectedType}>
-                <SelectTrigger className="w-[140px] bg-background/50 border-border/30">
-                  <SelectValue placeholder={language === 'ar' ? 'نوع الملف' : 'File Type'} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">
-                    {language === 'ar' ? 'جميع الأنواع' : 'All Types'}
-                  </SelectItem>
-                  {fileTypes.map(type => (
-                    <SelectItem key={type} value={type}>
-                      {getFileTypeLabel(type)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <ComboBox
+                options={[
+                  { value: 'all', label: language === 'ar' ? 'جميع الأنواع' : 'All Types' },
+                  ...fileTypes.map(type => ({ 
+                    value: type, 
+                    label: getFileTypeLabel(type) 
+                  }))
+                ]}
+                value={selectedType}
+                onValueChange={(value) => setSelectedType(value || 'all')}
+                placeholder={language === 'ar' ? 'نوع الملف' : 'File Type'}
+                searchable={false}
+                className="w-[140px] h-10"
+              />
 
               {allTags.length > 0 && (
-                <Select value={selectedTag} onValueChange={setSelectedTag}>
-                  <SelectTrigger className="w-[140px] bg-background/50 border-border/30">
-                    <SelectValue placeholder={language === 'ar' ? 'العلامة' : 'Tag'} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">
-                      {language === 'ar' ? 'جميع العلامات' : 'All Tags'}
-                    </SelectItem>
-                    {allTags.map(tag => (
-                      <SelectItem key={tag} value={tag}>{tag}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <ComboBox
+                  options={[
+                    { value: 'all', label: language === 'ar' ? 'جميع العلامات' : 'All Tags' },
+                    ...allTags.map(tag => ({ 
+                      value: tag, 
+                      label: tag 
+                    }))
+                  ]}
+                  value={selectedTag}
+                  onValueChange={(value) => setSelectedTag(value || 'all')}
+                  placeholder={language === 'ar' ? 'العلامة' : 'Tag'}
+                  searchable={true}
+                  className="w-[140px] h-10"
+                />
               )}
 
-              <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortBy)}>
-                <SelectTrigger className="w-[120px] bg-background/50 border-border/30">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="name">
-                    {language === 'ar' ? 'الاسم' : 'Name'}
-                  </SelectItem>
-                  <SelectItem value="size">
-                    {language === 'ar' ? 'الحجم' : 'Size'}
-                  </SelectItem>
-                  <SelectItem value="date">
-                    {language === 'ar' ? 'التاريخ' : 'Date'}
-                  </SelectItem>
-                  <SelectItem value="type">
-                    {language === 'ar' ? 'النوع' : 'Type'}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              <ComboBox
+                options={[
+                  { value: 'name', label: language === 'ar' ? 'الاسم' : 'Name' },
+                  { value: 'size', label: language === 'ar' ? 'الحجم' : 'Size' },
+                  { value: 'date', label: language === 'ar' ? 'التاريخ' : 'Date' },
+                  { value: 'type', label: language === 'ar' ? 'النوع' : 'Type' }
+                ]}
+                value={sortBy}
+                onValueChange={(value) => setSortBy(value as SortBy)}
+                searchable={false}
+                className="w-[120px] h-10"
+              />
 
               <Button
                 variant="outline"

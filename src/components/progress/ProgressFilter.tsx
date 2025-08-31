@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ComboBox } from '@/components/ui/enhanced-dropdowns';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Search, Filter, X, TrendingUp, AlertCircle } from 'lucide-react';
@@ -196,40 +196,19 @@ export const ProgressFilter: React.FC<ProgressFilterProps> = ({
               <label className="text-sm font-medium text-foreground/80">
                 {language === 'ar' ? 'حالة التقدم' : 'Progress Status'}
               </label>
-              <Select value={filters.progressStatus} onValueChange={(value) => updateFilter('progressStatus', value)}>
-                <SelectTrigger className="bg-background/50 border-border/30">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-background border-border">
-                  <SelectItem value="all">
-                    {language === 'ar' ? 'جميع الحالات' : 'All Status'}
-                  </SelectItem>
-                  <SelectItem value="not-started">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-gray-400" />
-                      {language === 'ar' ? 'لم يبدأ' : 'Not Started'}
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="in-progress">
-                    <div className="flex items-center gap-2">
-                      <TrendingUp className="h-4 w-4 text-blue-500" />
-                      {language === 'ar' ? 'قيد التنفيذ' : 'In Progress'}
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="completed">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-green-500" />
-                      {language === 'ar' ? 'مكتمل' : 'Completed'}
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="over-target">
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="h-4 w-4 text-orange-500" />
-                      {language === 'ar' ? 'فوق الهدف' : 'Over Target'}
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              <ComboBox
+                options={[
+                  { value: 'all', label: language === 'ar' ? 'جميع الحالات' : 'All Status' },
+                  { value: 'not-started', label: language === 'ar' ? 'لم يبدأ' : 'Not Started' },
+                  { value: 'in-progress', label: language === 'ar' ? 'قيد التنفيذ' : 'In Progress' },
+                  { value: 'completed', label: language === 'ar' ? 'مكتمل' : 'Completed' },
+                  { value: 'over-target', label: language === 'ar' ? 'فوق الهدف' : 'Over Target' }
+                ]}
+                value={filters.progressStatus}
+                onValueChange={(value) => updateFilter('progressStatus', value || 'all')}
+                searchable={false}
+                className="bg-background/50 border-border/30 h-10"
+              />
             </div>
 
             {/* Completion Range Filter */}
@@ -237,21 +216,20 @@ export const ProgressFilter: React.FC<ProgressFilterProps> = ({
               <label className="text-sm font-medium text-foreground/80">
                 {language === 'ar' ? 'نطاق الإنجاز' : 'Completion Range'}
               </label>
-              <Select value={filters.completionRange} onValueChange={(value) => updateFilter('completionRange', value)}>
-                <SelectTrigger className="bg-background/50 border-border/30">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-background border-border">
-                  <SelectItem value="all">
-                    {language === 'ar' ? 'جميع النطاقات' : 'All Ranges'}
-                  </SelectItem>
-                  <SelectItem value="0-25">0% - 25%</SelectItem>
-                  <SelectItem value="26-50">26% - 50%</SelectItem>
-                  <SelectItem value="51-75">51% - 75%</SelectItem>
-                  <SelectItem value="76-99">76% - 99%</SelectItem>
-                  <SelectItem value="100">100%+</SelectItem>
-                </SelectContent>
-              </Select>
+              <ComboBox
+                options={[
+                  { value: 'all', label: language === 'ar' ? 'جميع النطاقات' : 'All Ranges' },
+                  { value: '0-25', label: '0% - 25%' },
+                  { value: '26-50', label: '26% - 50%' },
+                  { value: '51-75', label: '51% - 75%' },
+                  { value: '76-99', label: '76% - 99%' },
+                  { value: '100', label: '100%+' }
+                ]}
+                value={filters.completionRange}
+                onValueChange={(value) => updateFilter('completionRange', value || 'all')}
+                searchable={false}
+                className="bg-background/50 border-border/30 h-10"
+              />
             </div>
           </div>
         )}
