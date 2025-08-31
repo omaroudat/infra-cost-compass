@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { WIR, BOQItem } from '@/types';
 import { useAppContext } from '@/context/AppContext';
-import { useAttachments } from '@/hooks/useAttachments';
+import { supabase } from '@/integrations/supabase/client';
+import { Attachment } from '@/types/attachments';
 
 interface WIRPrintViewProps {
   wir: WIR;
@@ -10,7 +11,7 @@ interface WIRPrintViewProps {
 
 const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) => {
   const { breakdownItems } = useAppContext();
-  const { attachments, getDownloadUrl } = useAttachments();
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [attachmentUrls, setAttachmentUrls] = useState<Record<string, string>>({});
   const [attachmentsLoaded, setAttachmentsLoaded] = useState(false);
 
@@ -42,48 +43,65 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
 
   const selectedBOQItem = getBOQItemDetails(wir.boqItemId);
   const selectedBreakdownItems = getSelectedBreakdownItems();
-  
-  const getLinkedAttachments = () => {
-    if (!wir.attachments || !attachments) return [];
-    return attachments.filter(att => wir.attachments?.includes(att.id));
-  };
 
-  const linkedAttachments = getLinkedAttachments();
-
-  // Load attachment URLs for display
+  // Fetch attachments and their URLs directly
   useEffect(() => {
-    const loadAttachmentUrls = async () => {
-      setAttachmentsLoaded(false);
-      const urls: Record<string, string> = {};
-      
-      console.log('Loading attachment URLs for:', linkedAttachments.length, 'attachments');
-      
-      for (const attachment of linkedAttachments) {
-        try {
-          console.log('Getting URL for attachment:', attachment.id, 'storage_path:', attachment.storage_path);
-          const url = await getDownloadUrl(attachment.storage_path);
-          if (url) {
-            urls[attachment.id] = url;
-            console.log('Successfully got URL for attachment:', attachment.id);
-          } else {
-            console.warn('Failed to get URL for attachment:', attachment.id);
-          }
-        } catch (error) {
-          console.error('Error getting URL for attachment:', attachment.id, error);
-        }
+    const fetchAttachmentsAndUrls = async () => {
+      if (!wir.attachments || wir.attachments.length === 0) {
+        setAttachmentsLoaded(true);
+        return;
       }
-      
-      setAttachmentUrls(urls);
-      setAttachmentsLoaded(true);
-      console.log('Finished loading attachment URLs:', Object.keys(urls).length, 'successful');
+
+      setAttachmentsLoaded(false);
+      console.log('Fetching attachments for WIR:', wir.attachments);
+
+      try {
+        // Fetch attachment records from database
+        const { data: attachmentData, error: fetchError } = await supabase
+          .from('attachments')
+          .select('*')
+          .in('id', wir.attachments)
+          .eq('is_active', true);
+
+        if (fetchError) {
+          console.error('Error fetching attachments:', fetchError);
+          setAttachmentsLoaded(true);
+          return;
+        }
+
+        console.log('Fetched attachments:', attachmentData?.length || 0);
+        setAttachments(attachmentData || []);
+
+        // Get download URLs for each attachment
+        const urls: Record<string, string> = {};
+        for (const attachment of attachmentData || []) {
+          try {
+            const { data: urlData, error: urlError } = await supabase.storage
+              .from('attachments')
+              .createSignedUrl(attachment.storage_path, 3600);
+
+            if (!urlError && urlData?.signedUrl) {
+              urls[attachment.id] = urlData.signedUrl;
+              console.log('Got URL for attachment:', attachment.file_name);
+            } else {
+              console.error('Failed to get URL for attachment:', attachment.id, urlError);
+            }
+          } catch (error) {
+            console.error('Error getting URL for attachment:', attachment.id, error);
+          }
+        }
+
+        setAttachmentUrls(urls);
+        console.log('Loaded', Object.keys(urls).length, 'attachment URLs');
+      } catch (error) {
+        console.error('Error in fetchAttachmentsAndUrls:', error);
+      } finally {
+        setAttachmentsLoaded(true);
+      }
     };
 
-    if (linkedAttachments.length > 0) {
-      loadAttachmentUrls();
-    } else {
-      setAttachmentsLoaded(true);
-    }
-  }, [linkedAttachments, getDownloadUrl]);
+    fetchAttachmentsAndUrls();
+  }, [wir.attachments]);
 
   return (
     <div className="max-w-none mx-auto bg-white p-8 print:p-6 print:max-w-none print:shadow-none">
@@ -368,7 +386,7 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
       </div>
 
       {/* Attachment Content */}
-      {linkedAttachments.length > 0 && (
+      {wir.attachments && wir.attachments.length > 0 && (
         <div className="mb-8 print:mb-6">
           <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-300">
             Attachments
@@ -382,9 +400,17 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
             </div>
           )}
           
-          {attachmentsLoaded && (
+          {attachmentsLoaded && attachments.length === 0 && (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-center">
+                <p className="text-red-600">No attachments found</p>
+              </div>
+            </div>
+          )}
+          
+          {attachmentsLoaded && attachments.length > 0 && (
             <div className="space-y-6">
-              {linkedAttachments.map((attachment) => {
+              {attachments.map((attachment) => {
                 const url = attachmentUrls[attachment.id];
                 
                 // Show placeholder if URL is not available
