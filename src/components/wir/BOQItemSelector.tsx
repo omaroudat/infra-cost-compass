@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { BOQItem } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ComboBox } from '@/components/ui/enhanced-dropdowns';
 import { Search, Package } from 'lucide-react';
 
 interface BOQItemSelectorProps {
@@ -60,33 +60,31 @@ const BOQItemSelector: React.FC<BOQItemSelectorProps> = ({
       </div>
       
       {/* BOQ Item Dropdown */}
-      <Select
+      <ComboBox
+        options={filteredItems.map(item => ({
+          value: item.id,
+          label: item.code,
+          description: item.description,
+          icon: <Package className="w-4 h-4" />
+        }))}
         value={selectedItem}
         onValueChange={handleItemSelection}
         disabled={isResultSubmission}
-      >
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder="Select a BOQ item..." />
-        </SelectTrigger>
-        <SelectContent className="max-h-80">
-          {filteredItems.map((item) => (
-            <SelectItem key={item.id} value={item.id}>
-              <div className="flex flex-col space-y-1">
-                <span className="font-mono text-blue-600 text-sm font-medium">{item.code}</span>
-                <span className="text-sm text-gray-700">{item.description}</span>
-              </div>
-            </SelectItem>
-          ))}
-          
-          {filteredItems.length === 0 && (
-            <SelectItem value="" disabled>
-              <span className="text-gray-500">
-                {searchTerm ? 'No items match your search' : 'No items available'}
-              </span>
-            </SelectItem>
-          )}
-        </SelectContent>
-      </Select>
+        placeholder="Select a BOQ item..."
+        searchPlaceholder="Search by code or description..."
+        emptyMessage={searchTerm ? 'No items match your search' : 'No items available'}
+        searchable={true}
+        className="w-full"
+        renderOption={(option, isSelected) => (
+          <div className="flex items-center gap-2 w-full">
+            <Package className="w-4 h-4 text-primary" />
+            <div className="flex flex-col space-y-1 flex-1">
+              <span className="font-mono text-primary text-sm font-medium">{option.label}</span>
+              <span className="text-sm text-muted-foreground">{option.description}</span>
+            </div>
+          </div>
+        )}
+      />
     </div>
   );
 };

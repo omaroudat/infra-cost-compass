@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ComboBox } from '@/components/ui/enhanced-dropdowns';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Filter, RotateCcw } from 'lucide-react';
@@ -64,68 +64,68 @@ const WIRFilters: React.FC<WIRFiltersProps> = ({
           {/* Status Filter */}
           <div className="space-y-2">
             <Label htmlFor="status-filter">Status</Label>
-            <Select value={filters.status || 'all'} onValueChange={(value) => handleFilterChange('status', value)}>
-              <SelectTrigger id="status-filter">
-                <SelectValue placeholder="All Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="submitted">Submitted</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
+            <ComboBox
+              options={[
+                { value: 'all', label: 'All Status' },
+                { value: 'submitted', label: 'Submitted' },
+                { value: 'completed', label: 'Completed' }
+              ]}
+              value={filters.status || 'all'}
+              onValueChange={(value) => handleFilterChange('status', value || 'all')}
+              placeholder="All Status"
+              searchable={false}
+              className="w-full"
+            />
           </div>
 
           {/* Result Filter */}
           <div className="space-y-2">
             <Label htmlFor="result-filter">Result</Label>
-            <Select value={filters.result || 'all'} onValueChange={(value) => handleFilterChange('result', value)}>
-              <SelectTrigger id="result-filter">
-                <SelectValue placeholder="All Results" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Results</SelectItem>
-                <SelectItem value="A">A - Approved</SelectItem>
-                <SelectItem value="B">B - Conditional Approved</SelectItem>
-                <SelectItem value="C">C - Rejected</SelectItem>
-              </SelectContent>
-            </Select>
+            <ComboBox
+              options={[
+                { value: 'all', label: 'All Results' },
+                { value: 'A', label: 'A - Approved' },
+                { value: 'B', label: 'B - Conditional Approved' },
+                { value: 'C', label: 'C - Rejected' }
+              ]}
+              value={filters.result || 'all'}
+              onValueChange={(value) => handleFilterChange('result', value || 'all')}
+              placeholder="All Results"
+              searchable={false}
+              className="w-full"
+            />
           </div>
 
           {/* Engineer Filter */}
           <div className="space-y-2">
             <Label htmlFor="engineer-filter">Engineer</Label>
-            <Select value={filters.engineer || 'all'} onValueChange={(value) => handleFilterChange('engineer', value)}>
-              <SelectTrigger id="engineer-filter">
-                <SelectValue placeholder="All Engineers" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Engineers</SelectItem>
-                {engineerNames.map((engineer) => (
-                  <SelectItem key={engineer} value={engineer}>
-                    {engineer}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ComboBox
+              options={[
+                { value: 'all', label: 'All Engineers' },
+                ...engineerNames.map(engineer => ({ value: engineer, label: engineer }))
+              ]}
+              value={filters.engineer || 'all'}
+              onValueChange={(value) => handleFilterChange('engineer', value || 'all')}
+              placeholder="All Engineers"
+              searchable={true}
+              className="w-full"
+            />
           </div>
 
           {/* Contractor Filter */}
           <div className="space-y-2">
             <Label htmlFor="contractor-filter">Contractor</Label>
-            <Select value={filters.contractor || 'all'} onValueChange={(value) => handleFilterChange('contractor', value)}>
-              <SelectTrigger id="contractor-filter">
-                <SelectValue placeholder="All Contractors" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Contractors</SelectItem>
-                {contractorNames.map((contractor) => (
-                  <SelectItem key={contractor} value={contractor}>
-                    {contractor}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ComboBox
+              options={[
+                { value: 'all', label: 'All Contractors' },
+                ...contractorNames.map(contractor => ({ value: contractor, label: contractor }))
+              ]}
+              value={filters.contractor || 'all'}
+              onValueChange={(value) => handleFilterChange('contractor', value || 'all')}
+              placeholder="All Contractors"
+              searchable={true}
+              className="w-full"
+            />
           </div>
 
           {/* From Date Filter */}

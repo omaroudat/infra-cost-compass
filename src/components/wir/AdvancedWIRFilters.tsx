@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ComboBox } from '@/components/ui/enhanced-dropdowns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Badge } from '@/components/ui/badge';
@@ -148,80 +148,84 @@ const AdvancedWIRFilters: React.FC<AdvancedWIRFiltersProps> = ({
                   <Filter className="h-4 w-4" />
                   Status
                 </Label>
-                <Select value={filters.status || 'all'} onValueChange={(value) => updateFilter('status', value)}>
-                  <SelectTrigger className="h-10">
-                    <SelectValue placeholder="All statuses" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All statuses</SelectItem>
-                    <SelectItem value="submitted">Submitted</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                  </SelectContent>
-                </Select>
+                <ComboBox
+                  options={[
+                    { value: 'all', label: 'All statuses' },
+                    { value: 'submitted', label: 'Submitted' },
+                    { value: 'completed', label: 'Completed' }
+                  ]}
+                  value={filters.status || 'all'}
+                  onValueChange={(value) => updateFilter('status', value || 'all')}
+                  placeholder="All statuses"
+                  searchable={false}
+                  className="h-10"
+                />
               </div>
 
               {/* Result Filter */}
               <div className="space-y-2">
                 <Label htmlFor="result" className="text-sm font-medium">Result</Label>
-                <Select value={filters.result || 'all'} onValueChange={(value) => updateFilter('result', value)}>
-                  <SelectTrigger className="h-10">
-                    <SelectValue placeholder="All results" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All results</SelectItem>
-                    <SelectItem value="A">A - Approved</SelectItem>
-                    <SelectItem value="B">B - Conditional</SelectItem>
-                    <SelectItem value="C">C - Rejected</SelectItem>
-                  </SelectContent>
-                </Select>
+                <ComboBox
+                  options={[
+                    { value: 'all', label: 'All results' },
+                    { value: 'A', label: 'A - Approved' },
+                    { value: 'B', label: 'B - Conditional' },
+                    { value: 'C', label: 'C - Rejected' }
+                  ]}
+                  value={filters.result || 'all'}
+                  onValueChange={(value) => updateFilter('result', value || 'all')}
+                  placeholder="All results"
+                  searchable={false}
+                  className="h-10"
+                />
               </div>
 
               {/* Engineer Filter */}
               <div className="space-y-2">
                 <Label htmlFor="engineer" className="text-sm font-medium">Engineer</Label>
-                <Select value={filters.engineer || 'all'} onValueChange={(value) => updateFilter('engineer', value)}>
-                  <SelectTrigger className="h-10">
-                    <SelectValue placeholder="All engineers" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All engineers</SelectItem>
-                    {engineers.map(engineer => (
-                      <SelectItem key={engineer} value={engineer}>{engineer}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <ComboBox
+                  options={[
+                    { value: 'all', label: 'All engineers' },
+                    ...engineers.map(engineer => ({ value: engineer, label: engineer }))
+                  ]}
+                  value={filters.engineer || 'all'}
+                  onValueChange={(value) => updateFilter('engineer', value || 'all')}
+                  placeholder="All engineers"
+                  searchable={true}
+                  className="h-10"
+                />
               </div>
 
               {/* Contractor Filter */}
               <div className="space-y-2">
                 <Label htmlFor="contractor" className="text-sm font-medium">Contractor</Label>
-                <Select value={filters.contractor || 'all'} onValueChange={(value) => updateFilter('contractor', value)}>
-                  <SelectTrigger className="h-10">
-                    <SelectValue placeholder="All contractors" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All contractors</SelectItem>
-                    {contractors.map(contractor => (
-                      <SelectItem key={contractor} value={contractor}>{contractor}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <ComboBox
+                  options={[
+                    { value: 'all', label: 'All contractors' },
+                    ...contractors.map(contractor => ({ value: contractor, label: contractor }))
+                  ]}
+                  value={filters.contractor || 'all'}
+                  onValueChange={(value) => updateFilter('contractor', value || 'all')}
+                  placeholder="All contractors"
+                  searchable={true}
+                  className="h-10"
+                />
               </div>
 
               {/* Region Filter */}
               <div className="space-y-2">
                 <Label htmlFor="region" className="text-sm font-medium">Region</Label>
-                <Select value={filters.region || 'all'} onValueChange={(value) => updateFilter('region', value)}>
-                  <SelectTrigger className="h-10">
-                    <SelectValue placeholder="All regions" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All regions</SelectItem>
-                    {regions.map(region => (
-                      <SelectItem key={region} value={region}>{region}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <ComboBox
+                  options={[
+                    { value: 'all', label: 'All regions' },
+                    ...regions.map(region => ({ value: region, label: region }))
+                  ]}
+                  value={filters.region || 'all'}
+                  onValueChange={(value) => updateFilter('region', value || 'all')}
+                  placeholder="All regions"
+                  searchable={true}
+                  className="h-10"
+                />
               </div>
 
               {/* Line Number */}
