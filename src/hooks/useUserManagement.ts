@@ -3,7 +3,8 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { profileService } from '@/hooks/auth/profileService';
 import { UserRole } from '@/types/auth';
-import { useAuditLogger } from '@/hooks/useAuditLogger';
+import { logAuditActivity } from '@/hooks/useAuditLogger';
+import { useAuth } from '@/context/ManualAuthContext';
 
 export interface CreateUserData {
   username: string;
@@ -15,7 +16,7 @@ export interface CreateUserData {
 export const useUserManagement = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [users, setUsers] = useState<any[]>([]);
-  const { logCreate, logUpdate, logDelete } = useAuditLogger();
+  const { profile } = useAuth();
 
   const createUser = async (userData: CreateUserData) => {
     setIsLoading(true);
@@ -62,11 +63,16 @@ export const useUserManagement = () => {
       toast.success(`User ${userData.username} created successfully`);
       
       // Log user creation
-      logCreate('USER', createdProfile[0]?.id || 'unknown', {
-        username: userData.username,
-        role: userData.role,
-        fullName: userData.fullName
-      });
+      logAuditActivity({
+        action: 'CREATE',
+        resourceType: 'USER',
+        resourceId: createdProfile[0]?.id || 'unknown',
+        details: {
+          username: userData.username,
+          role: userData.role,
+          fullName: userData.fullName
+        }
+      }, profile);
       
       // Refresh users list
       await fetchUsers();
@@ -116,11 +122,16 @@ export const useUserManagement = () => {
       toast.success('User updated successfully');
       
       // Log user update
-      logUpdate('USER', id, {
-        updatedFields: Object.keys(updates),
-        username: updates.username,
-        role: updates.role
-      });
+      logAuditActivity({
+        action: 'UPDATE',
+        resourceType: 'USER',
+        resourceId: id,
+        details: {
+          updatedFields: Object.keys(updates),
+          username: updates.username,
+          role: updates.role
+        }
+      }, profile);
       
       await fetchUsers();
       
@@ -149,7 +160,12 @@ export const useUserManagement = () => {
       toast.success('User deleted successfully');
       
       // Log user deletion
-      logDelete('USER', id, { action: 'delete_user' });
+      logAuditActivity({
+        action: 'DELETE',
+        resourceType: 'USER',
+        resourceId: id,
+        details: { action: 'delete_user' }
+      }, profile);
       
       await fetchUsers();
       
