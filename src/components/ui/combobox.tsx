@@ -1,7 +1,6 @@
 import * as React from "react"
 import * as PopoverPrimitive from "@radix-ui/react-popover"
 import { Check, ChevronDown, Search, X, Loader2, AlertCircle } from "lucide-react"
-import { Command as CommandPrimitive } from "cmdk"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
@@ -267,46 +266,43 @@ export const ComboBox = React.forwardRef<
             <AlertCircle className="mr-2 h-4 w-4" />
             {error}
           </div>
-        ) : filteredOptions && filteredOptions.length === 0 ? (
+        ) : !filteredOptions || filteredOptions.length === 0 ? (
           <div className="py-6 text-center text-sm text-muted-foreground">
             {emptyMessage}
           </div>
         ) : (
-          <CommandPrimitive className="w-full">
-            <div className="space-y-1 max-h-60 overflow-y-auto">
-              {(filteredOptions || []).map((option) => (
-                option.value.startsWith("__separator__") ? (
-                  <div key={option.value} className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
-                    {option.label}
-                  </div>
-                ) : (
-                  <CommandPrimitive.Item
-                    key={option.value}
-                    value={option.value}
-                    disabled={option.disabled}
-                    onSelect={() => handleValueChange(option.value)}
-                    className={cn(
-                      "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-                      currentValue === option.value && "bg-accent text-accent-foreground"
-                    )}
-                  >
-                    {renderOption ? renderOption(option, currentValue === option.value) : (
-                      <>
-                        <Check className={cn("mr-2 h-4 w-4", currentValue === option.value ? "opacity-100" : "opacity-0")} />
-                        {option.icon && <span className="mr-2">{option.icon}</span>}
-                        <div className="flex flex-col">
-                          <span>{option.label}</span>
-                          {option.description && (
-                            <span className="text-xs text-muted-foreground">{option.description}</span>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </CommandPrimitive.Item>
-                )
-              ))}
-            </div>
-          </CommandPrimitive>
+          <div className="space-y-1 max-h-60 overflow-y-auto">
+            {filteredOptions.map((option) => (
+              option.value.startsWith("__separator__") ? (
+                <div key={option.value} className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+                  {option.label}
+                </div>
+              ) : (
+                <button
+                  key={option.value}
+                  disabled={option.disabled}
+                  onClick={() => handleValueChange(option.value)}
+                  className={cn(
+                    "w-full relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50 text-left",
+                    currentValue === option.value && "bg-accent text-accent-foreground"
+                  )}
+                >
+                  {renderOption ? renderOption(option, currentValue === option.value) : (
+                    <>
+                      <Check className={cn("mr-2 h-4 w-4", currentValue === option.value ? "opacity-100" : "opacity-0")} />
+                      {option.icon && <span className="mr-2">{option.icon}</span>}
+                      <div className="flex flex-col">
+                        <span>{option.label}</span>
+                        {option.description && (
+                          <span className="text-xs text-muted-foreground">{option.description}</span>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </button>
+              )
+            ))}
+          </div>
         )}
       </div>
     </>
