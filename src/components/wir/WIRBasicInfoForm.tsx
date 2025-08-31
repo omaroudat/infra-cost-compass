@@ -71,7 +71,7 @@ const WIRBasicInfoForm: React.FC<WIRBasicInfoFormProps> = ({
       </div>
 
       <div>
-        <Label htmlFor="value">Value *</Label>
+        <Label htmlFor="value">Quantity *</Label>
         <Input
           id="value"
           type="number"
@@ -79,7 +79,7 @@ const WIRBasicInfoForm: React.FC<WIRBasicInfoFormProps> = ({
           min="0"
           value={newWIR.value || ''}
           onChange={(e) => setNewWIR(prev => ({ ...prev, value: parseFloat(e.target.value) || 0 }))}
-          placeholder="Enter value"
+          placeholder="Enter quantity"
           readOnly={isResultSubmission}
           className={isResultSubmission ? 'bg-gray-50 cursor-not-allowed' : ''}
         />
