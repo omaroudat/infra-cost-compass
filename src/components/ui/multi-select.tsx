@@ -1,7 +1,6 @@
 import * as React from "react"
 import * as PopoverPrimitive from "@radix-ui/react-popover"
 import { Check, ChevronDown, Search, X, Loader2, AlertCircle } from "lucide-react"
-import { Command as CommandPrimitive } from "cmdk"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
@@ -341,57 +340,54 @@ export const MultiSelect = React.forwardRef<
             {emptyMessage}
           </div>
         ) : (
-          <CommandPrimitive className="w-full">
-            <div className="space-y-1">
-              {filteredOptions.map((option) => {
-                const isSelected = currentValue.includes(option.value)
-                
-                return option.value.startsWith("__separator__") ? (
-                  <div key={option.value} className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
-                    {option.label}
-                  </div>
-                ) : (
-                  <CommandPrimitive.Item
-                    key={option.value}
-                    value={option.value}
-                    disabled={option.disabled}
-                    onSelect={() => handleOptionToggle(option.value)}
-                    className={cn(
-                      "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-                      isSelected && "bg-accent text-accent-foreground"
-                    )}
-                  >
-                    {renderOption ? renderOption(option, isSelected) : (
-                      <>
-                        {option.value === "__select_all__" ? (
-                          <Checkbox
-                            checked={filteredOptions.filter(opt => 
-                              !opt.value.startsWith("__separator__") && opt.value !== "__select_all__"
-                            ).every(opt => currentValue.includes(opt.value))}
-                            className="mr-2"
-                          />
-                        ) : (
-                          <Checkbox
-                            checked={isSelected}
-                            className="mr-2"
-                          />
+          <div className="space-y-1">
+            {filteredOptions.map((option) => {
+              const isSelected = currentValue.includes(option.value)
+              
+              return option.value.startsWith("__separator__") ? (
+                <div key={option.value} className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+                  {option.label}
+                </div>
+              ) : (
+                <button
+                  key={option.value}
+                  disabled={option.disabled}
+                  onClick={() => handleOptionToggle(option.value)}
+                  className={cn(
+                    "w-full relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50 text-left",
+                    isSelected && "bg-accent text-accent-foreground"
+                  )}
+                >
+                  {renderOption ? renderOption(option, isSelected) : (
+                    <>
+                      {option.value === "__select_all__" ? (
+                        <Checkbox
+                          checked={filteredOptions.filter(opt => 
+                            !opt.value.startsWith("__separator__") && opt.value !== "__select_all__"
+                          ).every(opt => currentValue.includes(opt.value))}
+                          className="mr-2"
+                        />
+                      ) : (
+                        <Checkbox
+                          checked={isSelected}
+                          className="mr-2"
+                        />
+                      )}
+                      {option.icon && <span className="mr-2">{option.icon}</span>}
+                      <div className="flex flex-col flex-1">
+                        <span className={cn(option.value === "__select_all__" && "font-medium")}>
+                          {option.label}
+                        </span>
+                        {option.description && (
+                          <span className="text-xs text-muted-foreground">{option.description}</span>
                         )}
-                        {option.icon && <span className="mr-2">{option.icon}</span>}
-                        <div className="flex flex-col flex-1">
-                          <span className={cn(option.value === "__select_all__" && "font-medium")}>
-                            {option.label}
-                          </span>
-                          {option.description && (
-                            <span className="text-xs text-muted-foreground">{option.description}</span>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </CommandPrimitive.Item>
-                )
-              })}
-            </div>
-          </CommandPrimitive>
+                      </div>
+                    </>
+                  )}
+                </button>
+              )
+            })}
+          </div>
         )}
       </div>
     </>
