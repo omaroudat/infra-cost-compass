@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { WIR, BOQItem } from '@/types';
 import { useAppContext } from '@/context/AppContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,13 +7,17 @@ import { Attachment } from '@/types/attachments';
 interface WIRPrintViewProps {
   wir: WIR;
   flattenedBOQItems: BOQItem[];
+  onPrintReady?: () => void;
 }
 
-const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) => {
+const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems, onPrintReady }) => {
   const { breakdownItems } = useAppContext();
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [attachmentUrls, setAttachmentUrls] = useState<Record<string, string>>({});
   const [attachmentsLoaded, setAttachmentsLoaded] = useState(false);
+  const [imagesLoaded, setImagesLoaded] = useState<Record<string, boolean>>({});
+  const [allContentReady, setAllContentReady] = useState(false);
+  const contentReadyRef = useRef(false);
 
   const getBOQItemDetails = (id: string) => {
     const item = flattenedBOQItems.find(item => item.id === id);
@@ -43,6 +47,67 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
 
   const selectedBOQItem = getBOQItemDetails(wir.boqItemId);
   const selectedBreakdownItems = getSelectedBreakdownItems();
+
+  // Check if all content is ready for printing
+  useEffect(() => {
+    const hasAttachments = wir.attachments && wir.attachments.length > 0;
+    const hasImages = attachments.some(att => att.file_type.startsWith('image/'));
+    
+    if (!hasAttachments) {
+      // No attachments, content is ready
+      setAllContentReady(true);
+      contentReadyRef.current = true;
+      return;
+    }
+
+    if (!attachmentsLoaded) {
+      // Still loading attachments
+      setAllContentReady(false);
+      contentReadyRef.current = false;
+      return;
+    }
+
+    if (hasImages) {
+      // Check if all images are loaded
+      const imageAttachments = attachments.filter(att => att.file_type.startsWith('image/'));
+      const allImagesLoaded = imageAttachments.every(att => imagesLoaded[att.id]);
+      
+      if (allImagesLoaded) {
+        setAllContentReady(true);
+        contentReadyRef.current = true;
+      } else {
+        setAllContentReady(false);
+        contentReadyRef.current = false;
+      }
+    } else {
+      // No images, just need attachments loaded
+      setAllContentReady(true);
+      contentReadyRef.current = true;
+    }
+  }, [attachmentsLoaded, imagesLoaded, attachments, wir.attachments]);
+
+  // Notify parent when content is ready and trigger print
+  useEffect(() => {
+    if (allContentReady && onPrintReady) {
+      // Add a small delay to ensure DOM is fully rendered
+      const timeoutId = setTimeout(() => {
+        onPrintReady();
+      }, 1000);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [allContentReady, onPrintReady]);
+
+  // Handle image load events
+  const handleImageLoad = (attachmentId: string) => {
+    console.log('Image loaded successfully:', attachmentId);
+    setImagesLoaded(prev => ({ ...prev, [attachmentId]: true }));
+  };
+
+  const handleImageError = (attachmentId: string) => {
+    console.error('Image failed to load:', attachmentId);
+    setImagesLoaded(prev => ({ ...prev, [attachmentId]: true })); // Mark as "loaded" to continue
+  };
 
   // Fetch attachments and their URLs directly
   useEffect(() => {
@@ -439,62 +504,44 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems }) =
                     </div>
                     
                     {attachment.file_type.startsWith('image/') ? (
-                      <div className="border border-gray-300 rounded bg-white p-2">
+                      <div className="border border-gray-300 rounded bg-white p-2 print-attachment-content">
                         <img 
                           src={url} 
                           alt={attachment.file_name}
-                          className="max-w-full h-auto mx-auto"
+                          className="max-w-full h-auto mx-auto print-attachment-image"
                           style={{ maxHeight: '600px' }}
-                          onLoad={() => console.log('Image loaded successfully:', attachment.file_name)}
-                          onError={(e) => {
-                            console.error('Image failed to load:', attachment.file_name, url);
-                            const target = e.currentTarget as HTMLImageElement;
-                            target.style.display = 'none';
-                            target.insertAdjacentHTML('afterend', 
-                              `<div class="flex items-center justify-center h-32 border border-red-300 rounded bg-red-50">
-                                <div class="text-center">
-                                  <p class="text-red-600 font-medium">Image failed to load</p>
-                                  <p class="text-sm text-red-500">${attachment.file_name}</p>
-                                </div>
-                              </div>`
-                            );
-                          }}
+                          onLoad={() => handleImageLoad(attachment.id)}
+                          onError={() => handleImageError(attachment.id)}
+                          crossOrigin="anonymous"
                         />
                       </div>
                     ) : (attachment.file_type === 'application/pdf' || attachment.file_name.toLowerCase().endsWith('.pdf')) ? (
-                      <div className="border border-gray-300 rounded bg-white">
-                        <object 
-                          data={url + '#toolbar=0&navpanes=0&scrollbar=0'}
-                          type="application/pdf"
-                          width="100%" 
-                          height="600px"
-                          className="w-full"
-                        >
-                          <embed 
-                            src={url + '#toolbar=0&navpanes=0&scrollbar=0'}
-                            type="application/pdf"
-                            width="100%" 
-                            height="600px"
-                            className="w-full"
-                          />
-                          <div className="flex items-center justify-center h-32 bg-gray-100 p-4">
-                            <div className="text-center">
-                              <p className="text-gray-600 font-medium">PDF Document: {attachment.file_name}</p>
-                              <p className="text-sm text-gray-500 mt-2">
-                                PDF content cannot be displayed in print preview. 
-                                Document will be included when printed.
-                              </p>
-                              <a 
-                                href={url} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="inline-block mt-2 px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-                              >
-                                Open PDF
-                              </a>
+                      <div className="border border-gray-300 rounded bg-white print-attachment-content">
+                        <div className="flex items-center justify-center h-32 bg-gray-100 p-4">
+                          <div className="text-center">
+                            <div className="mb-3">
+                              <svg className="w-12 h-12 mx-auto text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                              </svg>
                             </div>
+                            <p className="text-gray-900 font-semibold text-lg">PDF Document</p>
+                            <p className="text-gray-700 font-medium">{attachment.file_name}</p>
+                            <p className="text-sm text-gray-600 mt-2">
+                              Size: {Math.round((attachment.file_size || 0) / 1024)} KB
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              PDF content is included in this WIR document
+                            </p>
+                            <a 
+                              href={url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="inline-block mt-3 px-4 py-2 bg-primary text-primary-foreground text-sm rounded-md hover:bg-primary/90 print:hidden"
+                            >
+                              View PDF
+                            </a>
                           </div>
-                        </object>
+                        </div>
                       </div>
                     ) : (
                       <div className="flex items-center justify-center h-32 border border-gray-300 rounded bg-gray-100">

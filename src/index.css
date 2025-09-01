@@ -705,6 +705,21 @@
     visibility: visible;
   }
   
+  /* Print mode class to control visibility */
+  .print-mode * {
+    visibility: hidden;
+  }
+  
+  .print-mode .print\:block,
+  .print-mode .print\:block *,
+  .print-mode .print-attachment-content,
+  .print-mode .print-attachment-content *,
+  .print-mode .print-attachment-image {
+    visibility: visible !important;
+    display: block !important;
+    opacity: 1 !important;
+  }
+  
   /* Ensure print content takes full width */
   .print\:block {
     position: absolute;
