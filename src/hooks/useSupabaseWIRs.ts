@@ -3,10 +3,13 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { WIR } from '@/types';
 import { toast } from 'sonner';
+import { logAuditActivity } from '@/hooks/useAuditLogger';
+import { useAuth } from '@/context/ManualAuthContext';
 
 export const useSupabaseWIRs = () => {
   const [wirs, setWIRs] = useState<WIR[]>([]);
   const [loading, setLoading] = useState(true);
+  const { profile } = useAuth();
 
   const generateWIRNumber = async (): Promise<string> => {
     const today = new Date();
@@ -183,6 +186,21 @@ export const useSupabaseWIRs = () => {
 
       if (error) throw error;
 
+      // Log WIR creation
+      await logAuditActivity({
+        action: 'CREATE',
+        resourceType: 'WIR',
+        resourceId: data.id,
+        details: {
+          wir_number: wirNumber,
+          description: wir.description,
+          contractor: wir.contractor,
+          engineer: wir.engineer,
+          status: wir.status,
+          submittal_date: wir.submittalDate
+        }
+      }, profile);
+
       await fetchWIRs();
       toast.success('WIR added successfully');
       return data;
@@ -195,6 +213,15 @@ export const useSupabaseWIRs = () => {
 
   const updateWIR = async (id: string, updates: Partial<WIR>) => {
     try {
+        // Get the original WIR data for comparison
+        const { data: originalWIR, error: fetchError } = await supabase
+          .from('wirs')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (fetchError) throw fetchError;
+
         const updateData: any = {};
         
         if (updates.wirNumber !== undefined) updateData.wir_number = updates.wirNumber;
@@ -225,15 +252,73 @@ export const useSupabaseWIRs = () => {
         if (updates.road !== undefined) updateData.road = updates.road;
         if (updates.line !== undefined) updateData.line = updates.line;
 
-      const { error } = await supabase
-        .from('wirs')
-        .update(updateData)
-        .eq('id', id);
+        const { error } = await supabase
+          .from('wirs')
+          .update(updateData)
+          .eq('id', id);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      await fetchWIRs();
-      toast.success('WIR updated successfully');
+        // Detect result submission (status change to completed with result)
+        const isResultSubmission = 
+          originalWIR.status === 'submitted' && 
+          updates.status === 'completed' && 
+          updates.result;
+
+        // Log the appropriate audit activity
+        if (isResultSubmission) {
+          await logAuditActivity({
+            action: 'APPROVAL',
+            resourceType: 'WIR',
+            resourceId: id,
+            details: {
+              wir_number: originalWIR.wir_number,
+              result: updates.result,
+              received_date: updates.receivedDate,
+              status_change: `${originalWIR.status} → ${updates.status}`,
+              completion_date: new Date().toISOString()
+            }
+          }, profile);
+        } else {
+          // Log regular update with changed fields
+          const changedFields: Record<string, any> = {};
+          Object.keys(updates).forEach(key => {
+            const originalKey = key === 'wirNumber' ? 'wir_number' :
+                             key === 'descriptionAr' ? 'description_ar' :
+                             key === 'submittalDate' ? 'submittal_date' :
+                             key === 'receivedDate' ? 'received_date' :
+                             key === 'statusConditions' ? 'status_conditions' :
+                             key === 'calculatedAmount' ? 'calculated_amount' :
+                             key === 'calculationEquation' ? 'calculation_equation' :
+                             key === 'lengthOfLine' ? 'length_of_line' :
+                             key === 'diameterOfLine' ? 'diameter_of_line' :
+                             key === 'lineNo' ? 'line_no' :
+                             key === 'manholeFrom' ? 'manhole_from' :
+                             key === 'manholeTo' ? 'manhole_to' :
+                             key === 'linkedBOQItems' ? 'linked_boq_items' :
+                             key === 'selectedBreakdownItems' ? 'selected_breakdown_items' :
+                             key;
+            
+            const oldValue = originalWIR[originalKey];
+            const newValue = (updates as any)[key];
+            if (oldValue !== newValue) {
+              changedFields[key] = { from: oldValue, to: newValue };
+            }
+          });
+
+          await logAuditActivity({
+            action: 'UPDATE',
+            resourceType: 'WIR',
+            resourceId: id,
+            details: {
+              wir_number: originalWIR.wir_number,
+              changed_fields: changedFields
+            }
+          }, profile);
+        }
+
+        await fetchWIRs();
+        toast.success('WIR updated successfully');
     } catch (error) {
       console.error('Error updating WIR:', error);
       toast.error('Failed to update WIR');
@@ -243,12 +328,36 @@ export const useSupabaseWIRs = () => {
 
   const deleteWIR = async (id: string) => {
     try {
+      // Get the WIR data before deletion for audit logging
+      const { data: wirData, error: fetchError } = await supabase
+        .from('wirs')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
       const { error } = await supabase
         .from('wirs')
         .delete()
         .eq('id', id);
 
       if (error) throw error;
+
+      // Log WIR deletion
+      await logAuditActivity({
+        action: 'DELETE',
+        resourceType: 'WIR',
+        resourceId: id,
+        details: {
+          wir_number: wirData.wir_number,
+          description: wirData.description,
+          contractor: wirData.contractor,
+          engineer: wirData.engineer,
+          status: wirData.status,
+          deleted_date: new Date().toISOString()
+        }
+      }, profile);
 
       await fetchWIRs();
       toast.success('WIR deleted successfully');
