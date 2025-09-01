@@ -516,15 +516,34 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems, onP
                         />
                       </div>
                     ) : (attachment.file_type === 'application/pdf' || attachment.file_name.toLowerCase().endsWith('.pdf')) ? (
-                      <div className="border border-gray-300 rounded bg-white print-attachment-content">
-                        <div className="w-full">
-                          <iframe
-                            src={`${url}#toolbar=0&navpanes=0&scrollbar=0`}
-                            className="w-full border-0 print-attachment-image"
-                            style={{ height: '800px' }}
-                            title={`PDF: ${attachment.file_name}`}
-                            onLoad={() => console.log('PDF loaded:', attachment.file_name)}
-                          />
+                      <div className="border border-gray-300 rounded bg-white print-attachment-content p-4">
+                        <div className="text-center">
+                          <div className="mb-4">
+                            <svg className="w-16 h-16 mx-auto text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-900 mb-2">PDF Document Attached</h3>
+                          <p className="text-lg font-semibold text-gray-800 mb-2">{attachment.file_name}</p>
+                          <div className="bg-gray-50 p-4 rounded-lg border mb-4">
+                            <p className="text-sm text-gray-600 mb-1">
+                              <strong>File Size:</strong> {Math.round((attachment.file_size || 0) / 1024)} KB
+                            </p>
+                            <p className="text-sm text-gray-600 mb-1">
+                              <strong>File Type:</strong> PDF Document
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              <strong>URL:</strong> <span className="font-mono text-xs break-all">{url}</span>
+                            </p>
+                          </div>
+                          <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
+                            <p className="text-sm text-blue-800 font-medium">
+                              📎 This PDF document is part of this WIR record
+                            </p>
+                            <p className="text-xs text-blue-600 mt-1">
+                              For full PDF content, access the original file using the URL above
+                            </p>
+                          </div>
                         </div>
                       </div>
                     ) : (
