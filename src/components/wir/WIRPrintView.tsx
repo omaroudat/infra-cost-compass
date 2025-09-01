@@ -517,30 +517,14 @@ const WIRPrintView: React.FC<WIRPrintViewProps> = ({ wir, flattenedBOQItems, onP
                       </div>
                     ) : (attachment.file_type === 'application/pdf' || attachment.file_name.toLowerCase().endsWith('.pdf')) ? (
                       <div className="border border-gray-300 rounded bg-white print-attachment-content">
-                        <div className="flex items-center justify-center h-32 bg-gray-100 p-4">
-                          <div className="text-center">
-                            <div className="mb-3">
-                              <svg className="w-12 h-12 mx-auto text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-                              </svg>
-                            </div>
-                            <p className="text-gray-900 font-semibold text-lg">PDF Document</p>
-                            <p className="text-gray-700 font-medium">{attachment.file_name}</p>
-                            <p className="text-sm text-gray-600 mt-2">
-                              Size: {Math.round((attachment.file_size || 0) / 1024)} KB
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              PDF content is included in this WIR document
-                            </p>
-                            <a 
-                              href={url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="inline-block mt-3 px-4 py-2 bg-primary text-primary-foreground text-sm rounded-md hover:bg-primary/90 print:hidden"
-                            >
-                              View PDF
-                            </a>
-                          </div>
+                        <div className="w-full">
+                          <iframe
+                            src={`${url}#toolbar=0&navpanes=0&scrollbar=0`}
+                            className="w-full border-0 print-attachment-image"
+                            style={{ height: '800px' }}
+                            title={`PDF: ${attachment.file_name}`}
+                            onLoad={() => console.log('PDF loaded:', attachment.file_name)}
+                          />
                         </div>
                       </div>
                     ) : (
