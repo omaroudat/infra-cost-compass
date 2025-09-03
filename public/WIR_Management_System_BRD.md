@@ -757,11 +757,409 @@ VITE_ENABLE_FILE_UPLOAD=true
 
 ---
 
+## Application Pages & Business Logic
+
+### Overview
+The WIR Management System consists of 18 core pages, each serving specific business functions with defined user access controls and data processing logic.
+
+### Page Architecture
+```
+Authentication Layer
+├── Login.tsx (Authentication)
+├── Auth.tsx (Multi-role authentication)
+└── Unauthorized.tsx (Access control)
+
+Core Application Pages
+├── Dashboard.tsx (Executive overview)
+├── WIRs.tsx (Work inspection requests)
+├── BOQ.tsx (Bill of quantities)
+├── ProgressTracking.tsx (Project progress)
+├── Breakdown.tsx (Cost breakdown)
+├── Reports.tsx (Executive reporting)
+├── Invoices.tsx (Financial invoicing)
+├── AuditHistory.tsx (System auditing)
+├── StaffManagement.tsx (Personnel management)
+├── UserManagement.tsx (System users)
+├── Attachments.tsx (File management)
+├── Adjustments.tsx (Financial adjustments)
+├── ProgressSummary.tsx (Progress analytics)
+└── Index.tsx (Main entry point)
+
+Error Handling
+└── NotFound.tsx (404 error page)
+```
+
+---
+
+### 1. Dashboard.tsx - Executive Dashboard
+**Purpose:** Executive-level project monitoring and KPI visualization  
+**Business Logic:**
+- **Financial Calculations**: Real-time computation of approved/conditional/rejected WIR amounts
+- **Performance Metrics**: Project completion rates, approval rates, variance analysis
+- **Data Filtering**: Contractor/engineer-based filtering with dynamic updates
+- **Visual Analytics**: Charts and graphs for trend analysis
+- **Multi-currency Support**: SAR currency formatting with locale support
+
+**Key Features:**
+```typescript
+// Financial summary calculations
+const totalApprovedAmount = filteredWirs.reduce((sum, w) => sum + getApprovedAmount(w), 0);
+const completionRate = totalBOQValue > 0 ? (totalProjectValue / totalBOQValue) * 100 : 0;
+const approvalRate = filteredWirs.length > 0 ? (approvedCount / filteredWirs.length) * 100 : 0;
+```
+
+**Business Rules:**
+- Only display approved (A) and conditional (B) WIR amounts in totals
+- Calculate completion rate based on BOQ vs. actual progress
+- Real-time data updates with live timestamp display
+- Role-based data visibility (all users can view, filtering by permission)
+
+---
+
+### 2. WIRs.tsx - Work Inspection Request Management
+**Purpose:** Core WIR lifecycle management with comprehensive CRUD operations  
+**Business Logic:**
+- **Multi-tab Interface**: WIRs, Contractors, Engineers, Data Management
+- **Advanced Filtering**: Multi-criteria search with real-time updates
+- **Role-based Access**: Different permissions for data entry vs. full users
+- **Integrated Staff Management**: Contractor and engineer management within WIR workflow
+
+**Key Features:**
+```typescript
+// Advanced filtering logic
+const filteredWIRs = useMemo(() => {
+  return wirs.filter(wir => {
+    // Search term, status, result, engineer, contractor, region, date range filtering
+    // BOQ item code filtering with cross-reference
+    return matchesCriteria;
+  });
+}, [wirs, filters, flattenedBOQItems]);
+```
+
+**Business Rules:**
+- WIR numbers auto-generated with date-based prefixes
+- Mandatory field validation before submission
+- Status workflow: submitted → completed with result assignment
+- Revision control with parent-child relationships
+- Real-time search with URL parameter support
+
+---
+
+### 3. BOQ.tsx - Bill of Quantities Management
+**Purpose:** Hierarchical BOQ structure management with import/export capabilities  
+**Business Logic:**
+- **Hierarchical Structure**: Parent-child BOQ item relationships
+- **Bi-lingual Support**: English/Arabic descriptions and units
+- **Excel Integration**: Advanced import/export with hierarchy preservation
+- **Auto-calculation**: Total amounts based on quantity × unit rate
+- **Code Generation**: Automatic sequential code generation
+
+**Key Features:**
+```typescript
+// Hierarchical total calculation
+const calculateItemTotal = (item: BOQItem): number => {
+  if (item.children && item.children.length > 0) {
+    return item.children.reduce((sum, child) => sum + calculateItemTotal(child), 0);
+  } else {
+    return item.quantity * item.unitRate;
+  }
+};
+```
+
+**Business Rules:**
+- Parent items sum children's totals, leaf items calculate quantity × rate
+- Import validation with parent-child relationship mapping
+- Unique code enforcement with sequential generation
+- Multi-language data entry with Arabic RTL support
+- Excel export maintains hierarchy with level indicators
+
+---
+
+### 4. ProgressTracking.tsx - Project Progress Monitoring
+**Purpose:** Visual progress tracking with breakdown-level detail analysis  
+**Business Logic:**
+- **Progress Calculation**: Completion percentages based on approved WIRs
+- **Breakdown Analysis**: Sub-item level progress tracking
+- **Hierarchical Display**: Nested progress cards with parent-child relationships
+- **Export Functionality**: Progress report generation with charts
+
+**Key Features:**
+```typescript
+// Progress calculation with breakdown items
+const progressData = calculateBOQProgress();
+const renderBOQItem = (boqItem: BOQItem, level: number = 0) => {
+  const progress = progressData.find(p => p.boqItemId === boqItem.id);
+  // Recursive rendering with level-based indentation
+};
+```
+
+**Business Rules:**
+- Progress based on approved WIR amounts vs. BOQ quantities
+- Breakdown item progress calculated from selected breakdown percentages
+- Visual indicators for completion status (0%, partial, 100%)
+- Exportable progress reports with graphical representation
+
+---
+
+### 5. Reports.tsx - Executive Reporting & Analytics
+**Purpose:** Comprehensive financial and performance reporting with export capabilities  
+**Business Logic:**
+- **Multi-report Types**: Financial, status, BOQ variance, contractor/engineer analysis
+- **Advanced Filtering**: Entity-based filtering with performance metrics
+- **Excel Export**: Multi-sheet workbooks with formatted data
+- **Variance Analysis**: BOQ vs. actual spending analysis
+- **Performance Tracking**: Success rates and completion metrics
+
+**Key Features:**
+```typescript
+// Contractor performance analysis
+const contractorComparisonData = contractors.map(contractor => {
+  const contractorWirs = wirs.filter(w => w.contractor === contractor);
+  const successRate = totalCount > 0 ? ((approvedCount + conditionalCount) / totalCount) * 100 : 0;
+  return { name, approved, conditional, rejected, totalAmount, successRate };
+});
+```
+
+**Business Rules:**
+- Success rate includes both approved (A) and conditional (B) results
+- Variance analysis compares BOQ budget vs. actual WIR amounts
+- Export includes summary, details, variance, and performance sheets
+- Real-time calculations with currency formatting
+
+---
+
+### 6. Invoices.tsx - Financial Invoice Generation
+**Purpose:** Monthly and daily invoice generation based on approved WIRs  
+**Business Logic:**
+- **Dual Views**: Monthly and daily invoice generation
+- **Progressive Calculation**: Current period + cumulative totals
+- **PDF Export**: Professional invoice formatting with company branding
+- **Date-based Filtering**: Available dates based on approved WIR received dates
+
+**Key Features:**
+```typescript
+// Invoice calculation logic
+const monthlyInvoiceData = getMonthlyInvoiceData(selectedMonth);
+const progressPercentage = (currentTotal / totalBOQAmount) * 100;
+// Export with company logo and professional formatting
+```
+
+**Business Rules:**
+- Only approved (A) and conditional (B) WIRs included in invoices
+- Progressive invoicing: previous periods + current period
+- Company branding with logo integration
+- Multi-language support for Arabic/English invoices
+
+---
+
+### 7. UserManagement.tsx - System User Administration
+**Purpose:** User account management with role-based access control  
+**Business Logic:**
+- **CRUD Operations**: Create, read, update, delete user accounts
+- **Role Management**: Admin, editor, viewer, data_entry roles
+- **Multi-role Support**: Users can have multiple roles with active role switching
+- **Permission Matrix**: Role-based feature access control
+
+**Key Features:**
+```typescript
+// Role-based permission checking
+const handleSwitchRole = async (userId: string, newRole: string) => {
+  const { error } = await profileService.switchUserRole(userId, newRole);
+  // Update active role and refresh user list
+};
+```
+
+**Business Rules:**
+- Admin role required to access user management
+- Cannot delete the main admin account
+- Role changes logged for audit trail
+- Multi-role users can switch active roles
+- Password encryption and secure authentication
+
+---
+
+### 8. AuditHistory.tsx - System Activity Auditing
+**Purpose:** Comprehensive audit trail for compliance and security monitoring  
+**Business Logic:**
+- **Activity Logging**: All system activities tracked with user, timestamp, details
+- **Advanced Filtering**: Multi-criteria filtering with date ranges
+- **Export Capabilities**: Excel export with structured data
+- **Security Monitoring**: Track user actions, IP addresses, user agents
+
+**Key Features:**
+```typescript
+// Audit log filtering and export
+const handleExportExcel = async () => {
+  const data = await exportLogs(filters);
+  // Transform to Excel with auto-sized columns and professional formatting
+};
+```
+
+**Business Rules:**
+- Admin access only for audit history viewing
+- Comprehensive logging of CREATE, UPDATE, DELETE, APPROVAL actions
+- Export includes all relevant metadata for compliance
+- Date-based filtering with statistical summaries
+
+---
+
+### 9. StaffManagement.tsx - Personnel Management
+**Purpose:** Contractor and engineer profile management  
+**Business Logic:**
+- **Dual Management**: Separate contractor and engineer management
+- **Profile Data**: Contact information, specializations, company details
+- **Integration**: Staff data used in WIR assignments and filtering
+- **CRUD Operations**: Full create, read, update, delete capabilities
+
+**Key Features:**
+```typescript
+// Integrated staff management within tabs
+<Tabs defaultValue="contractors">
+  <TabsContent value="contractors">
+    <ContractorTable onEdit={handleEditContractor} />
+  </TabsContent>
+  <TabsContent value="engineers">
+    <EngineerTable onEdit={handleEditEngineer} />
+  </TabsContent>
+</Tabs>
+```
+
+**Business Rules:**
+- Role-based access: editors can create/edit, admins can delete
+- Staff profiles used for WIR assignments
+- Contact information validation and formatting
+- Integration with WIR filtering and reporting
+
+---
+
+### 10. Breakdown.tsx - Cost Breakdown Management
+**Purpose:** Hierarchical cost breakdown item management for detailed WIR calculations  
+**Business Logic:**
+- **Auto-generation**: Breakdown items automatically created from leaf BOQ items
+- **Sub-item Management**: Percentage-based sub-breakdowns for detailed analysis
+- **Hierarchical Structure**: Parent breakdown items with percentage-based children
+- **Multi-language**: English/Arabic descriptions and keywords
+
+**Key Features:**
+```typescript
+// Hierarchical breakdown organization
+const organizedBreakdownItems = filteredBreakdownItems?.map(item => {
+  if (!item.parentBreakdownId) {
+    return {
+      ...item,
+      children: filteredBreakdownItems?.filter(child => child.parentBreakdownId === item.id) || []
+    };
+  }
+}).filter(Boolean) || [];
+```
+
+**Business Rules:**
+- Breakdown items auto-created from BOQ items with quantities > 0
+- Sub-items use percentage-based calculations
+- Total percentages cannot exceed 100% for validation
+- Used in WIR amount calculations with selected breakdown percentages
+
+---
+
+### 11. ProgressSummary.tsx - Progress Analytics Dashboard
+**Purpose:** Advanced progress analytics with segment-based tracking  
+**Business Logic:**
+- **Segment Analysis**: Manhole-to-manhole progress tracking
+- **Breakdown Integration**: Progress tracking at breakdown item level
+- **Visual Indicators**: Color-coded progress status with completion percentages
+- **Export Functions**: Detailed progress reports with graphical elements
+
+**Business Rules:**
+- Progress calculated based on approved WIR segments
+- Visual indicators: red (0%), yellow (partial), green (100%)
+- Segment-based tracking for geographical project management
+- Integration with BOQ items and breakdown percentages
+
+---
+
+### 12. Authentication & Security Pages
+
+#### Login.tsx - User Authentication
+**Purpose:** Secure user login with credential validation  
+**Business Logic:**
+- Username/password authentication
+- Session management with token-based security
+- Role-based redirection after login
+- Security validation and error handling
+
+#### Auth.tsx - Multi-role Authentication System
+**Purpose:** Advanced authentication with role management  
+**Business Logic:**
+- Multi-role user support
+- Active role switching capabilities
+- Profile management integration
+- Secure session handling
+
+#### Unauthorized.tsx - Access Control
+**Purpose:** Access denied page for unauthorized users  
+**Business Logic:**
+- Role-based access control enforcement
+- User-friendly error messaging
+- Navigation assistance for proper access
+
+---
+
+### 13. Supporting Pages
+
+#### Index.tsx - Application Entry Point
+**Purpose:** Main application entry and routing configuration  
+**Business Logic:**
+- Route management and navigation
+- Authentication flow control
+- Layout rendering and theme management
+
+#### NotFound.tsx - Error Handling
+**Purpose:** 404 error page for invalid routes  
+**Business Logic:**
+- User-friendly error messaging
+- Navigation assistance back to valid pages
+- Error logging for monitoring
+
+#### Attachments.tsx - File Management
+**Purpose:** File upload and attachment management  
+**Business Logic:**
+- Multi-format file support (PDF, images, CAD files)
+- File versioning and organization
+- Security scanning and validation
+- Integration with WIR attachments
+
+#### Adjustments.tsx - Financial Adjustments
+**Purpose:** Financial adjustment and modification tracking  
+**Business Logic:**
+- Adjustment calculation and application
+- Audit trail for financial changes
+- Integration with WIR financial calculations
+
+---
+
+## Page Access Control Matrix
+
+| Page | Admin | Manager | Engineer | Contractor | Viewer |
+|------|-------|---------|----------|------------|--------|
+| Dashboard | ✓ | ✓ | ✓ | ✓ | ✓ |
+| WIRs | Full | Full | Full | Limited | Read-only |
+| BOQ | Full | Edit | View | View | View |
+| Progress | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Reports | ✓ | ✓ | Limited | ✗ | ✗ |
+| Invoices | ✓ | ✓ | Limited | ✗ | ✗ |
+| User Mgmt | ✓ | ✗ | ✗ | ✗ | ✗ |
+| Audit History | ✓ | ✓ | ✗ | ✗ | ✗ |
+| Staff Mgmt | ✓ | ✓ | ✗ | ✗ | ✗ |
+| Breakdown | ✓ | ✓ | ✗ | ✗ | ✗ |
+
+---
+
 ## Document Control
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | January 2025 | System Team | Initial BRD creation |
+| 1.1 | January 2025 | System Team | Added comprehensive page documentation |
 
 **Document Status:** Final  
 **Next Review Date:** July 2025  
