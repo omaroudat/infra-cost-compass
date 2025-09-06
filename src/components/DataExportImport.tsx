@@ -217,12 +217,14 @@ const DataExportImport: React.FC<DataExportImportProps> = ({ className }) => {
               
               // Find BOQ item by name/description if BOQ item ID is not provided
               let boqItemId = wirRow.boqItemId || '';
-              if (!boqItemId && (wirRow.boqItemName || wirRow.boqItemDescription)) {
-                const searchTerm = wirRow.boqItemName || wirRow.boqItemDescription;
+              if (!boqItemId && (wirRow.boqItemName || wirRow.boqItemDescription || wirRow.boqItem)) {
+                const searchTerm = wirRow.boqItemName || wirRow.boqItemDescription || wirRow.boqItem;
                 const matchingBOQItem = boqItems.find(item => 
                   item.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                   item.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  item.descriptionAr?.toLowerCase().includes(searchTerm.toLowerCase())
+                  item.descriptionAr?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  `${item.code} - ${item.description}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  `${item.code} - ${item.descriptionAr}`.toLowerCase().includes(searchTerm.toLowerCase())
                 );
                 if (matchingBOQItem) {
                   boqItemId = matchingBOQItem.id;
