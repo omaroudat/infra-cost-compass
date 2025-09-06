@@ -6,11 +6,11 @@ export const getFlattenedBOQItems = (boqItems: BOQItem[]): BOQItem[] => {
   
   const flattenItems = (items: BOQItem[]) => {
     items.forEach(item => {
-      // Check if this item is a leaf (no children) and has quantity > 0
+      // Check if this item is a leaf (no children)
       const hasChildren = item.children && item.children.length > 0;
-      const hasQuantity = item.quantity && item.quantity > 0;
       
-      if (!hasChildren && hasQuantity) {
+      // Include all leaf items regardless of quantity (for WIR referencing)
+      if (!hasChildren) {
         result.push(item);
       }
       
