@@ -272,7 +272,7 @@ const DataExportImport: React.FC<DataExportImportProps> = ({ className }) => {
                 revisionNumber: Number(wirRow.revisionNumber) || 0,
                 originalWIRId: wirRow.originalWIRId || undefined,
                 linkedBOQItems: Array.isArray(wirRow.linkedBOQItems) ? wirRow.linkedBOQItems : 
-                               (typeof wirRow.linkedBOQItems === 'string' && wirRow.linkedBOQItems ? JSON.parse(wirRow.linkedBOQItems) : []),
+                               (typeof wirRow.linkedBOQItems === 'string' && wirRow.linkedBOQItems ? JSON.parse(wirRow.linkedBOQItems) : [boqItemId]),
                 selectedBreakdownItems: Array.isArray(wirRow.selectedBreakdownItems) ? wirRow.selectedBreakdownItems :
                                       (typeof wirRow.selectedBreakdownItems === 'string' && wirRow.selectedBreakdownItems ? JSON.parse(wirRow.selectedBreakdownItems) : []),
                 attachments: Array.isArray(wirRow.attachments) ? wirRow.attachments :

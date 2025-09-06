@@ -123,8 +123,19 @@ const WIRTable: React.FC<WIRTableProps> = ({
   );
 
   const getBOQItemDescription = (boqItemId: string) => {
-    const item = flattenedBOQItems.find(item => item.id === boqItemId);
-    return item ? `${item.code} - ${item.description}` : 'Unknown BOQ Item';
+    // First try direct ID match
+    let item = flattenedBOQItems.find(item => item.id === boqItemId);
+    
+    // If not found by ID, try to find by code or description (fallback for import issues)
+    if (!item) {
+      item = flattenedBOQItems.find(item => 
+        item.code === boqItemId || 
+        item.description?.includes(boqItemId) ||
+        item.descriptionAr?.includes(boqItemId)
+      );
+    }
+    
+    return item ? `${item.code} - ${item.description || item.descriptionAr}` : 'Unknown BOQ Item';
   };
 
   const formatDate = (dateString: string) => {
