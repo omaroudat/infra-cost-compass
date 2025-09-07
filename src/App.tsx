@@ -11,6 +11,7 @@ import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
+import ManagementDashboard from './pages/ManagementDashboard';
 import BOQ from './pages/BOQ';
 import Breakdown from './pages/Breakdown';
 import Adjustments from './pages/Adjustments';
@@ -71,6 +72,16 @@ function App() {
                       <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer']}>
                         <Layout>
                           <Dashboard />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/management"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer']}>
+                        <Layout>
+                          <ManagementDashboard />
                         </Layout>
                       </ProtectedRoute>
                     }

@@ -43,7 +43,8 @@ import {
   Building2,
   Sparkles,
   ChevronRight,
-  Shield
+  Shield,
+  PieChart
 } from 'lucide-react';
 import { LanguageSelector } from './LanguageSelector';
 import { AccessibilityToolbar } from './accessibility/AccessibilityToolbar';
@@ -57,6 +58,7 @@ const AppSidebar = ({ side }: { side?: "left" | "right" }) => {
 
   const navigation = [
     { name: t('nav.dashboard', 'Dashboard'), href: '/dashboard', icon: Home, roles: ['admin', 'editor', 'viewer'], color: 'from-blue-500 to-blue-600' },
+    { name: 'Management Dashboard', href: '/management', icon: PieChart, roles: ['admin', 'editor', 'viewer'], color: 'from-indigo-500 to-indigo-600' },
     { name: t('nav.boq', 'BOQ Items'), href: '/boq', icon: FileSpreadsheet, roles: ['admin', 'editor'], color: 'from-green-500 to-green-600' },
     { name: t('nav.breakdown', 'Break-Down'), href: '/breakdown', icon: Calculator, roles: ['admin', 'editor'], color: 'from-purple-500 to-purple-600' },
     { name: t('nav.wirs', 'WIRs'), href: '/wirs', icon: FileCheck, roles: ['admin', 'editor', 'viewer', 'data_entry'], color: 'from-orange-500 to-orange-600' },
