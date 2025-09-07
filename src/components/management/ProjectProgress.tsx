@@ -21,17 +21,16 @@ const ProjectProgress: React.FC<ProjectProgressProps> = ({ wirs, boqItems, compl
     maximumFractionDigits: 0,
   });
 
-  // Progress by BOQ category
+  // Progress by BOQ category - only leaf items
   const boqProgress = useMemo(() => {
-    return boqItems.slice(0, 8).map(item => {
+    const leafItems = boqItems.filter(item => !item.children || item.children.length === 0);
+    
+    return leafItems.slice(0, 8).map(item => {
       const itemWirs = wirs.filter(w => w.boqItemId === item.id);
       const approvedWirs = itemWirs.filter(w => w.result === 'A');
       const conditionalWirs = itemWirs.filter(w => w.result === 'B');
       
-      const budgetAmount = item.children 
-        ? item.children.reduce((sum, child) => sum + (child.quantity * child.unitRate), 0)
-        : (item.quantity * item.unitRate);
-        
+      const budgetAmount = item.quantity * item.unitRate;
       const completedAmount = approvedWirs.reduce((sum, w) => sum + (w.calculatedAmount || w.value || 0), 0);
       const pendingAmount = conditionalWirs.reduce((sum, w) => sum + (w.calculatedAmount || w.value || 0), 0);
       
@@ -47,7 +46,7 @@ const ProjectProgress: React.FC<ProjectProgressProps> = ({ wirs, boqItems, compl
         totalWirs: itemWirs.length,
         status: progressPercentage >= 90 ? 'completed' : progressPercentage >= 50 ? 'in-progress' : 'pending'
       };
-    }).sort((a, b) => b.progress - a.progress);
+    }).filter(item => item.budget > 0).sort((a, b) => b.progress - a.progress);
   }, [boqItems, wirs]);
 
   // Timeline progress (monthly)
@@ -213,7 +212,7 @@ const ProjectProgress: React.FC<ProjectProgressProps> = ({ wirs, boqItems, compl
             Timeline
           </TabsTrigger>
           <TabsTrigger value="risks" className="data-[state=active]:bg-card data-[state=active]:shadow-sm">
-            Risk Management
+            Issues Analysis
           </TabsTrigger>
         </TabsList>
 
@@ -329,7 +328,7 @@ const ProjectProgress: React.FC<ProjectProgressProps> = ({ wirs, boqItems, compl
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-xl text-foreground">
                   <AlertTriangle className="w-5 h-5 text-warning" />
-                  Risk Assessment
+                  WIR System Analysis
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -366,30 +365,54 @@ const ProjectProgress: React.FC<ProjectProgressProps> = ({ wirs, boqItems, compl
 
             <Card className="bg-card shadow-elegant border-border/50">
               <CardHeader>
-                <CardTitle className="text-xl text-foreground">Milestone Tracking</CardTitle>
+                <CardTitle className="text-xl text-foreground">WIR Status Distribution</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {[
-                    { name: 'Project Initiation', progress: 100, status: 'completed' },
-                    { name: 'Infrastructure Setup', progress: 85, status: 'in-progress' },
-                    { name: 'Core Implementation', progress: completionPercentage, status: completionPercentage > 75 ? 'in-progress' : 'pending' },
-                    { name: 'Quality Assurance', progress: Math.max(0, completionPercentage - 20), status: completionPercentage > 80 ? 'in-progress' : 'pending' },
-                    { name: 'Project Completion', progress: Math.max(0, completionPercentage - 40), status: completionPercentage > 90 ? 'in-progress' : 'pending' }
-                  ].map((milestone, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-foreground">{milestone.name}</span>
-                        <div className="flex items-center gap-2">
-                          {getStatusBadge(milestone.status)}
-                          <span className="text-sm text-muted-foreground">
-                            {milestone.progress.toFixed(0)}%
-                          </span>
+                    { 
+                      name: 'Approved WIRs', 
+                      value: wirs.filter(w => w.result === 'A').length,
+                      total: wirs.length,
+                      color: 'success'
+                    },
+                    { 
+                      name: 'Conditional WIRs', 
+                      value: wirs.filter(w => w.result === 'B').length,
+                      total: wirs.length,
+                      color: 'warning'
+                    },
+                    { 
+                      name: 'Rejected WIRs', 
+                      value: wirs.filter(w => w.result === 'C').length,
+                      total: wirs.length,
+                      color: 'destructive'
+                    },
+                    { 
+                      name: 'Pending Review', 
+                      value: wirs.filter(w => !w.result).length,
+                      total: wirs.length,
+                      color: 'muted'
+                    }
+                  ].map((item, index) => {
+                    const percentage = item.total > 0 ? (item.value / item.total) * 100 : 0;
+                    return (
+                      <div key={index} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-foreground">{item.name}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-muted-foreground">
+                              {item.value} / {item.total}
+                            </span>
+                            <span className="text-sm font-semibold text-foreground">
+                              {percentage.toFixed(0)}%
+                            </span>
+                          </div>
                         </div>
+                        <Progress value={percentage} className="h-2" />
                       </div>
-                      <Progress value={milestone.progress} className="h-2" />
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>

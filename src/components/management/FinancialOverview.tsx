@@ -49,26 +49,32 @@ const FinancialOverview: React.FC<FinancialOverviewProps> = ({ wirs, boqItems, t
   ];
 
   const categoryBreakdown = useMemo(() => {
-    return boqItems.slice(0, 6).map(item => {
-      const itemWirs = wirs.filter(w => w.boqItemId === item.id);
-      const spentAmount = itemWirs.reduce((sum, w) => {
-        if (w.result === 'A' || w.result === 'B') {
-          return sum + (w.calculatedAmount || w.value || 0);
-        }
-        return sum;
-      }, 0);
-      
-      const budgetAmount = item.children 
-        ? item.children.reduce((sum, child) => sum + (child.quantity * child.unitRate), 0)
-        : (item.quantity * item.unitRate);
+    // Get top 6 BOQ items by allocated budget
+    const topBOQItems = boqItems
+      .filter(item => !item.children || item.children.length === 0) // Only leaf items
+      .map(item => {
+        const itemWirs = wirs.filter(w => w.boqItemId === item.id);
+        const spentAmount = itemWirs.reduce((sum, w) => {
+          if (w.result === 'A' || w.result === 'B') {
+            return sum + (w.calculatedAmount || w.value || 0);
+          }
+          return sum;
+        }, 0);
+        
+        const budgetAmount = item.quantity * item.unitRate;
 
-      return {
-        name: item.description.length > 25 ? item.description.substring(0, 25) + '...' : item.description,
-        budget: budgetAmount,
-        actual: spentAmount,
-        utilization: budgetAmount > 0 ? (spentAmount / budgetAmount) * 100 : 0
-      };
-    });
+        return {
+          name: item.description.length > 25 ? item.description.substring(0, 25) + '...' : item.description,
+          budget: budgetAmount,
+          actual: spentAmount,
+          utilization: budgetAmount > 0 ? (spentAmount / budgetAmount) * 100 : 0,
+          code: item.code
+        };
+      })
+      .sort((a, b) => b.budget - a.budget)
+      .slice(0, 6);
+
+    return topBOQItems;
   }, [boqItems, wirs]);
 
   // Cash flow trend (monthly)
