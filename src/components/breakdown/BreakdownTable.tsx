@@ -133,6 +133,11 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
             </div>
           </TableCell>
           <TableCell className="text-sm">
+            <div className={language === 'ar' ? 'text-right' : ''}>
+              {language === 'en' ? (item.description || '-') : (item.descriptionAr || item.description || '-')}
+            </div>
+          </TableCell>
+          <TableCell className="text-sm">
             {numberFormatter.format(boqDetails.unitRate)}
           </TableCell>
           <TableCell>
@@ -190,7 +195,8 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
         <TableHeader>
           <TableRow>
             <TableHead>{language === 'en' ? 'BOQ Item' : 'بند الكميات'}</TableHead>
-            <TableHead>{language === 'en' ? 'Description' : 'الوصف'}</TableHead>
+            <TableHead>{language === 'en' ? 'BOQ Description' : 'وصف الكميات'}</TableHead>
+            <TableHead>{language === 'en' ? 'Breakdown Description' : 'وصف التفصيل'}</TableHead>
             <TableHead>{language === 'en' ? 'BOQ Unit Rate' : 'السعر الافرادي'}</TableHead>
             <TableHead>{language === 'en' ? 'Percentage' : 'النسبة المئوية'}</TableHead>
             <TableHead>{language === 'en' ? 'Quantity' : 'الكمية'}</TableHead>
