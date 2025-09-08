@@ -48,12 +48,14 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
   const getBOQItemDetails = (id: string) => {
     const allItems = flattenedBOQItems(boqItems);
     const item = allItems.find(item => item.id === id);
-    if (!item) return { code: 'Unknown', unitRate: 0, quantity: 0 };
+    if (!item) return { code: 'Unknown', unitRate: 0, quantity: 0, description: 'Unknown BOQ Item', descriptionAr: 'بند غير معروف' };
     
     return {
       code: item.code,
       unitRate: item.unitRate || 0,
-      quantity: item.quantity || 0
+      quantity: item.quantity || 0,
+      description: item.description || 'No description',
+      descriptionAr: item.descriptionAr || item.description || 'لا يوجد وصف'
     };
   };
 
@@ -127,7 +129,7 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
           </TableCell>
           <TableCell className="text-sm">
             <div className={language === 'ar' ? 'text-right' : ''}>
-              {level === 0 ? '' : (language === 'en' ? item.description : (item.descriptionAr || item.description))}
+              {language === 'en' ? boqDetails.description : boqDetails.descriptionAr}
             </div>
           </TableCell>
           <TableCell className="text-sm">
