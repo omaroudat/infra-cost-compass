@@ -71,9 +71,11 @@ export const useSupabaseBOQ = () => {
   const buildHierarchy = (items: any[]): BOQItem[] => {
     console.log('Building hierarchy from items:', items);
     const itemMap = new Map();
+    const codeMap = new Map();
     const rootItems: BOQItem[] = [];
+    const itemsToUpdate: any[] = [];
 
-    // First pass: create all items
+    // First pass: create all items and map by code
     items.forEach(item => {
       const boqItem: BOQItem = {
         id: item.id,
@@ -90,24 +92,111 @@ export const useSupabaseBOQ = () => {
         children: []
       };
       itemMap.set(item.id, boqItem);
+      codeMap.set(item.code, boqItem);
     });
 
-    // Second pass: build hierarchy
+    // Second pass: establish parent-child relationships based on codes if parent_id is missing
     items.forEach(item => {
       const boqItem = itemMap.get(item.id);
-      if (item.parent_id) {
-        const parent = itemMap.get(item.parent_id);
+      let parentFound = false;
+
+      // If parent_id is not set, try to find parent based on code structure
+      if (!item.parent_id && item.code) {
+        const code = item.code;
+        // Find potential parent by looking for shorter codes that match the beginning
+        // For example: 02.06.1 should find 02.06 as parent, 02.06 should find 02 as parent
+        
+        // Split the code by dots and try to find parents at each level
+        const codeParts = code.split('.');
+        
+        for (let i = codeParts.length - 1; i > 0; i--) {
+          const parentCode = codeParts.slice(0, i).join('.');
+          const parentItem = codeMap.get(parentCode);
+          
+          if (parentItem && parentItem.id !== item.id) {
+            // Found a parent! Update the database record
+            boqItem.parentId = parentItem.id;
+            itemsToUpdate.push({
+              id: item.id,
+              parent_id: parentItem.id,
+              level: i // Set level based on depth
+            });
+            parentFound = true;
+            break;
+          }
+        }
+
+        // If still no parent found and code has dots, it might be a root item
+        if (!parentFound && codeParts.length === 1) {
+          // This is a root level item (like "01", "02", etc.)
+          boqItem.level = 0;
+        } else if (!parentFound) {
+          // Set level based on number of dots in code
+          boqItem.level = codeParts.length - 1;
+        }
+      }
+    });
+
+    // Update database with new parent relationships (async, don't wait)
+    if (itemsToUpdate.length > 0) {
+      console.log('Updating parent relationships for', itemsToUpdate.length, 'items');
+      updateParentRelationships(itemsToUpdate);
+    }
+
+    // Third pass: build final hierarchy using updated parent relationships
+    items.forEach(item => {
+      const boqItem = itemMap.get(item.id);
+      const parentId = boqItem.parentId || item.parent_id;
+      
+      if (parentId) {
+        const parent = itemMap.get(parentId);
         if (parent) {
           parent.children = parent.children || [];
           parent.children.push(boqItem);
+        } else {
+          // Parent not found in current dataset, treat as root
+          rootItems.push(boqItem);
         }
       } else {
         rootItems.push(boqItem);
       }
     });
 
+    // Sort items by code for better organization
+    rootItems.sort((a, b) => a.code.localeCompare(b.code));
+    
+    // Sort children recursively
+    const sortChildren = (items: BOQItem[]) => {
+      items.forEach(item => {
+        if (item.children && item.children.length > 0) {
+          item.children.sort((a, b) => a.code.localeCompare(b.code));
+          sortChildren(item.children);
+        }
+      });
+    };
+    sortChildren(rootItems);
+
     console.log('Built hierarchy:', rootItems);
     return rootItems;
+  };
+
+  const updateParentRelationships = async (updates: any[]) => {
+    try {
+      // Update items in batches to establish parent relationships
+      for (const update of updates) {
+        await supabase
+          .from('boq_items')
+          .update({ 
+            parent_id: update.parent_id,
+            level: update.level
+          })
+          .eq('id', update.id);
+      }
+      console.log('Successfully updated parent relationships');
+    } catch (error) {
+      console.error('Error updating parent relationships:', error);
+      // Don't throw here as this is a background operation
+    }
   };
 
   const addBOQItem = async (item: Omit<BOQItem, 'id'>, parentId?: string) => {
