@@ -134,7 +134,10 @@ const BreakdownTable: React.FC<BreakdownTableProps> = ({
           </TableCell>
           <TableCell className="text-sm">
             <div className={language === 'ar' ? 'text-right' : ''}>
-              {language === 'en' ? (item.description || '-') : (item.descriptionAr || item.description || '-')}
+              {level > 0 ? 
+                (language === 'en' ? (item.description || '-') : (item.descriptionAr || item.description || '-')) :
+                (item.children && item.children.length > 0 ? '-' : '-')
+              }
             </div>
           </TableCell>
           <TableCell className="text-sm">
