@@ -151,6 +151,7 @@ export const UserDialog = ({ isOpen, onClose, onSuccess, user }: UserDialogProps
                 <SelectItem value="admin">Administrator</SelectItem>
                 <SelectItem value="editor">Editor</SelectItem>
                 <SelectItem value="data_entry">Data Entry</SelectItem>
+                <SelectItem value="management">Management</SelectItem>
                 <SelectItem value="viewer">Viewer</SelectItem>
               </SelectContent>
             </Select>
