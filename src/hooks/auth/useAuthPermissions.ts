@@ -9,11 +9,13 @@ export const useAuthPermissions = (profile: Profile | null) => {
   const canEdit = () => hasRole(['admin', 'editor', 'data_entry']);
   const canDelete = () => hasRole(['admin', 'editor']);
   const isAdmin = () => hasRole(['admin']);
+  const isManagement = () => hasRole(['management']);
 
   return {
     hasRole,
     canEdit,
     canDelete,
-    isAdmin
+    isAdmin,
+    isManagement
   };
 };

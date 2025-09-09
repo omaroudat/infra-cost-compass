@@ -31,4 +31,5 @@ export interface AuthActions {
   canEdit: () => boolean;
   canDelete: () => boolean;
   isAdmin: () => boolean;
+  isManagement: () => boolean;
 }

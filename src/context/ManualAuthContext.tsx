@@ -8,7 +8,7 @@ import { useAuthPermissions } from '@/hooks/auth/useAuthPermissions';
 import { supabase } from '@/integrations/supabase/client';
 
 // Define the role types to match our database enum
-type AppRole = 'admin' | 'editor' | 'viewer' | 'data_entry';
+type AppRole = 'admin' | 'editor' | 'viewer' | 'data_entry' | 'management';
 
 interface ManualAuthContextType {
   profile: Profile | null;
@@ -24,6 +24,7 @@ interface ManualAuthContextType {
   canEdit: () => boolean;
   canDelete: () => boolean;
   isAdmin: () => boolean;
+  isManagement: () => boolean;
   isAuthenticated: boolean;
 }
 
@@ -37,7 +38,7 @@ export const ManualAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const { signIn: authSignIn } = useAuthSignIn();
   const { updateProfile: authUpdateProfile } = useAuthProfileUpdate();
-  const { hasRole, canEdit, canDelete, isAdmin } = useAuthPermissions(profile);
+  const { hasRole, canEdit, canDelete, isAdmin, isManagement } = useAuthPermissions(profile);
 
   const fetchUserRoles = async (userId: string): Promise<AppRole[]> => {
     try {
@@ -185,6 +186,7 @@ export const ManualAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       canEdit,
       canDelete,
       isAdmin,
+      isManagement,
       isAuthenticated: !!profile
     }}>
       {children}

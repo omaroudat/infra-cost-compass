@@ -105,6 +105,7 @@ const UserManagement = () => {
       case 'editor': return 'Editor';
       case 'data_entry': return 'Data Entry';
       case 'viewer': return 'Viewer';
+      case 'management': return 'Management';
       default: return role;
     }
   };
@@ -115,6 +116,7 @@ const UserManagement = () => {
       case 'editor': return 'default';
       case 'data_entry': return 'secondary';
       case 'viewer': return 'outline';
+      case 'management': return 'secondary';
       default: return 'outline';
     }
   };

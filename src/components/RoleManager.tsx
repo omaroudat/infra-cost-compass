@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { Crown, Shield, Eye, Users, Plus } from 'lucide-react';
 
 // Define the role types to match our database enum
-type AppRole = 'admin' | 'editor' | 'viewer' | 'data_entry';
+type AppRole = 'admin' | 'editor' | 'viewer' | 'data_entry' | 'management';
 
 interface RoleManagerProps {
   userId: string;
@@ -25,7 +25,8 @@ const RoleManager: React.FC<RoleManagerProps> = ({ userId, currentRoles, onRoles
     { value: 'admin' as AppRole, label: 'Administrator', icon: Crown, color: 'bg-red-500' },
     { value: 'editor' as AppRole, label: 'Editor', icon: Shield, color: 'bg-blue-500' },
     { value: 'viewer' as AppRole, label: 'Viewer', icon: Eye, color: 'bg-gray-500' },
-    { value: 'data_entry' as AppRole, label: 'Data Entry', icon: Users, color: 'bg-green-500' }
+    { value: 'data_entry' as AppRole, label: 'Data Entry', icon: Users, color: 'bg-green-500' },
+    { value: 'management' as AppRole, label: 'Management', icon: Shield, color: 'bg-purple-500' }
   ];
 
   const handleAddRole = async () => {

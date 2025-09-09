@@ -27,6 +27,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (requiredRoles.length > 0 && profile && !requiredRoles.includes(profile.role)) {
+    // Redirect management users to dashboard instead of unauthorized
+    if (profile.role === 'management') {
+      return <Navigate to="/dashboard" replace />;
+    }
     // Redirect data_entry users to their appropriate page instead of unauthorized
     if (profile.role === 'data_entry') {
       return <Navigate to="/wirs" replace />;
