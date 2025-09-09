@@ -13,6 +13,7 @@ import ContractorForm from '@/components/staff/ContractorForm';
 import EngineerTable from '@/components/staff/EngineerTable';
 import EngineerForm from '@/components/staff/EngineerForm';
 import DataExportImport from '@/components/DataExportImport';
+import WIRTemplateGenerator from '@/components/wir/WIRTemplateGenerator';
 import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useWIRManagement } from '@/hooks/useWIRManagement';
 import { useStaffManagement } from '@/hooks/useStaffManagement';
@@ -347,14 +348,17 @@ const WIRs = () => {
           </TabsContent>
         )}
         
-        {profile?.role !== 'data_entry' && (
-          <TabsContent value="data" className="space-y-4">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Data Management</h3>
-              <DataExportImport />
-            </div>
-          </TabsContent>
-        )}
+         {profile?.role !== 'data_entry' && (
+           <TabsContent value="data" className="space-y-4">
+             <div className="space-y-4">
+               <h3 className="text-lg font-semibold">Data Management</h3>
+               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                 <WIRTemplateGenerator />
+                 <DataExportImport />
+               </div>
+             </div>
+           </TabsContent>
+         )}
       </Tabs>
     </div>
   );

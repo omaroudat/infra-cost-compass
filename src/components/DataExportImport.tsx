@@ -58,6 +58,37 @@ interface ExcelEngineerRow {
   specialization?: string;
 }
 
+interface ExcelWIRRow {
+  wirNumber?: string;
+  description?: string;
+  descriptionAr?: string;
+  submittalDate?: string;
+  receivedDate?: string;
+  status?: string;
+  result?: string;
+  statusConditions?: string;
+  calculationEquation?: string;
+  contractor?: string;
+  engineer?: string;
+  lengthOfLine?: number;
+  diameterOfLine?: number;
+  lineNo?: string;
+  region?: string;
+  manholeFrom?: string;
+  manholeTo?: string;
+  zone?: string;
+  road?: string;
+  line?: string;
+  value?: number;
+  boqItemCode?: string;
+  boqItemDescription?: string;
+  selectedBreakdownKeywords?: string; // Comma-separated breakdown keywords
+  attachmentNames?: string; // Comma-separated attachment names
+  parentWIRId?: string;
+  revisionNumber?: number;
+  originalWIRId?: string;
+}
+
 const DataExportImport: React.FC<DataExportImportProps> = ({ className }) => {
   const [selectedTable, setSelectedTable] = useState<string>('');
   const [importing, setImporting] = useState(false);
@@ -86,14 +117,88 @@ const DataExportImport: React.FC<DataExportImportProps> = ({ className }) => {
         throw new Error('Invalid table selection');
       }
 
-      const ws = XLSX.utils.json_to_sheet(tableOption.data);
+      let exportData = tableOption.data;
+      let worksheets: { name: string; data: any[] }[] = [];
+
+      if (selectedTable === 'wirs') {
+        // Create enhanced WIR export with BOQ and breakdown information
+        const enhancedWIRData = wirs.map(wir => {
+          const boqItem = boqItems.find(item => item.id === wir.boqItemId);
+          const selectedBreakdowns = wir.selectedBreakdownItems?.map(breakdownId => 
+            breakdownItems.find(item => item.id === breakdownId)
+          ).filter(Boolean) || [];
+
+          return {
+            wirNumber: wir.wirNumber || '',
+            description: wir.description || '',
+            descriptionAr: wir.descriptionAr || '',
+            submittalDate: wir.submittalDate || '',
+            receivedDate: wir.receivedDate || '',
+            status: wir.status || '',
+            result: wir.result || '',
+            statusConditions: wir.statusConditions || '',
+            calculationEquation: wir.calculationEquation || '',
+            contractor: wir.contractor || '',
+            engineer: wir.engineer || '',
+            lengthOfLine: wir.lengthOfLine || 0,
+            diameterOfLine: wir.diameterOfLine || 0,
+            lineNo: wir.lineNo || '',
+            region: wir.region || '',
+            manholeFrom: wir.manholeFrom || '',
+            manholeTo: wir.manholeTo || '',
+            zone: wir.zone || '',
+            road: wir.road || '',
+            line: wir.line || '',
+            value: wir.value || 0,
+            boqItemCode: boqItem?.code || '',
+            boqItemDescription: boqItem?.description || '',
+            selectedBreakdownKeywords: selectedBreakdowns.map(b => b?.keyword || '').join(', '),
+            attachmentNames: wir.attachments?.join(', ') || ''
+          };
+        });
+
+        worksheets.push({ name: 'WIRs', data: enhancedWIRData });
+        
+        // Add BOQ reference sheet
+        worksheets.push({ 
+          name: 'BOQ Reference', 
+          data: boqItems.map(item => ({
+            code: item.code,
+            description: item.description,
+            descriptionAr: item.descriptionAr || '',
+            unit: item.unit,
+            unitRate: item.unitRate,
+            quantity: item.quantity
+          }))
+        });
+
+        // Add breakdown reference sheet
+        worksheets.push({ 
+          name: 'Breakdown Reference', 
+          data: breakdownItems.map(item => ({
+            id: item.id,
+            keyword: item.keyword || '',
+            keywordAr: item.keywordAr || '',
+            description: item.description || '',
+            descriptionAr: item.descriptionAr || '',
+            percentage: item.percentage || 0,
+            boqItemId: item.boqItemId
+          }))
+        });
+      } else {
+        worksheets.push({ name: tableOption.label, data: exportData });
+      }
+
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, tableOption.label);
+      worksheets.forEach(worksheet => {
+        const ws = XLSX.utils.json_to_sheet(worksheet.data);
+        XLSX.utils.book_append_sheet(wb, ws, worksheet.name);
+      });
 
       const fileName = `${selectedTable}_export_${new Date().toISOString().split('T')[0]}.xlsx`;
       XLSX.writeFile(wb, fileName);
 
-      toast.success(`${tableOption.label} exported successfully!`);
+      toast.success(`${tableOption.label} exported successfully with ${worksheets.length > 1 ? 'reference sheets' : 'data'}!`);
     } catch (error) {
       console.error('Export error:', error);
       toast.error('Failed to export data');
@@ -180,7 +285,7 @@ const DataExportImport: React.FC<DataExportImportProps> = ({ className }) => {
               });
               break;
             case 'wirs':
-              const wirRow = row as any;
+              const wirRow = row as ExcelWIRRow;
               // Skip rows with missing required fields
               if (!wirRow.description || !wirRow.submittalDate || !wirRow.contractor || !wirRow.engineer) {
                 console.warn('Skipping WIR row due to missing required fields:', wirRow);
@@ -215,22 +320,30 @@ const DataExportImport: React.FC<DataExportImportProps> = ({ className }) => {
                 return new Date().toISOString().split('T')[0];
               };
               
-              // Find BOQ item by name/description if BOQ item ID is not provided
-              let boqItemId = wirRow.boqItemId || '';
-              if (!boqItemId && (wirRow.boqItemName || wirRow.boqItemDescription || wirRow.boqItem)) {
-                const searchTerm = wirRow.boqItemName || wirRow.boqItemDescription || wirRow.boqItem;
-                const matchingBOQItem = boqItems.find(item => 
-                  item.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  item.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  item.descriptionAr?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  `${item.code} - ${item.description}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  `${item.code} - ${item.descriptionAr}`.toLowerCase().includes(searchTerm.toLowerCase())
-                );
+              // Find BOQ item by code or description
+              let boqItemId = '';
+              if (wirRow.boqItemCode || wirRow.boqItemDescription) {
+                const searchByCode = wirRow.boqItemCode;
+                const searchByDesc = wirRow.boqItemDescription;
+                
+                const matchingBOQItem = boqItems.find(item => {
+                  if (searchByCode && item.code?.toLowerCase() === searchByCode.toLowerCase()) {
+                    return true;
+                  }
+                  if (searchByDesc && (
+                    item.description?.toLowerCase().includes(searchByDesc.toLowerCase()) ||
+                    item.descriptionAr?.toLowerCase().includes(searchByDesc.toLowerCase())
+                  )) {
+                    return true;
+                  }
+                  return false;
+                });
+                
                 if (matchingBOQItem) {
                   boqItemId = matchingBOQItem.id;
-                  console.log(`Found BOQ item for "${searchTerm}": ${matchingBOQItem.code} - ${matchingBOQItem.description}`);
+                  console.log(`Found BOQ item: ${matchingBOQItem.code} - ${matchingBOQItem.description}`);
                 } else {
-                  console.warn(`No BOQ item found for "${searchTerm}"`);
+                  console.warn(`No BOQ item found for code: "${searchByCode}" or description: "${searchByDesc}"`);
                   // Use the first BOQ item as fallback if available
                   if (boqItems.length > 0) {
                     boqItemId = boqItems[0].id;
@@ -242,6 +355,24 @@ const DataExportImport: React.FC<DataExportImportProps> = ({ className }) => {
                 console.warn('Skipping WIR row due to missing BOQ item reference:', wirRow);
                 errorCount++;
                 continue;
+              }
+
+              // Find breakdown items by keywords
+              let selectedBreakdownItems: string[] = [];
+              if (wirRow.selectedBreakdownKeywords) {
+                const keywords = wirRow.selectedBreakdownKeywords.split(',').map(k => k.trim());
+                selectedBreakdownItems = breakdownItems
+                  .filter(item => 
+                    item.boqItemId === boqItemId && 
+                    keywords.some(keyword => 
+                      item.keyword?.toLowerCase().includes(keyword.toLowerCase()) ||
+                      item.keywordAr?.toLowerCase().includes(keyword.toLowerCase()) ||
+                      item.description?.toLowerCase().includes(keyword.toLowerCase()) ||
+                      item.descriptionAr?.toLowerCase().includes(keyword.toLowerCase())
+                    )
+                  )
+                  .map(item => item.id);
+                console.log(`Found ${selectedBreakdownItems.length} breakdown items for keywords: ${keywords.join(', ')}`);
               }
               
               await addWIR({
@@ -271,12 +402,9 @@ const DataExportImport: React.FC<DataExportImportProps> = ({ className }) => {
                 parentWIRId: wirRow.parentWIRId || undefined,
                 revisionNumber: Number(wirRow.revisionNumber) || 0,
                 originalWIRId: wirRow.originalWIRId || undefined,
-                linkedBOQItems: Array.isArray(wirRow.linkedBOQItems) ? wirRow.linkedBOQItems : 
-                               (typeof wirRow.linkedBOQItems === 'string' && wirRow.linkedBOQItems ? JSON.parse(wirRow.linkedBOQItems) : [boqItemId]),
-                selectedBreakdownItems: Array.isArray(wirRow.selectedBreakdownItems) ? wirRow.selectedBreakdownItems :
-                                      (typeof wirRow.selectedBreakdownItems === 'string' && wirRow.selectedBreakdownItems ? JSON.parse(wirRow.selectedBreakdownItems) : []),
-                attachments: Array.isArray(wirRow.attachments) ? wirRow.attachments :
-                           (typeof wirRow.attachments === 'string' && wirRow.attachments ? JSON.parse(wirRow.attachments) : [])
+                linkedBOQItems: [boqItemId],
+                selectedBreakdownItems: selectedBreakdownItems,
+                attachments: wirRow.attachmentNames ? wirRow.attachmentNames.split(',').map(name => name.trim()) : []
               });
               break;
           }
@@ -311,7 +439,7 @@ const DataExportImport: React.FC<DataExportImportProps> = ({ className }) => {
           Data Export/Import
         </CardTitle>
         <CardDescription>
-          Export data to Excel or import data from Excel files
+          Export data to Excel or import data from Excel files. WIR export includes BOQ and breakdown reference sheets for easy mapping.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
