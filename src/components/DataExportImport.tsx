@@ -87,6 +87,17 @@ interface ExcelWIRRow {
   parentWIRId?: string;
   revisionNumber?: number;
   originalWIRId?: string;
+  // Additional field variations commonly found in Excel files
+  'BOQ NO.'?: string;
+  boqNo?: string;
+  boqItem?: string;
+  'BREACK DOWN'?: string;
+  'BREAK DOWN'?: string;
+  breakdown?: string;
+  'Created Date '?: string;
+  'AVG. DEPTH'?: number;
+  DEPTH?: number;
+  DEPTH_1?: number;
 }
 
 const DataExportImport: React.FC<DataExportImportProps> = ({ className }) => {
@@ -320,12 +331,12 @@ const DataExportImport: React.FC<DataExportImportProps> = ({ className }) => {
                 return new Date().toISOString().split('T')[0];
               };
               
-              // Find BOQ item by code or description
+              // Find BOQ item by code or description (handle multiple field name variations)
               let boqItemId = '';
-              if (wirRow.boqItemCode || wirRow.boqItemDescription) {
-                const searchByCode = wirRow.boqItemCode;
-                const searchByDesc = wirRow.boqItemDescription;
-                
+              const searchByCode = wirRow.boqItemCode || wirRow['BOQ NO.'] || wirRow.boqNo;
+              const searchByDesc = wirRow.boqItemDescription || wirRow.boqItem || wirRow['boqItem'];
+              
+              if (searchByCode || searchByDesc) {
                 const matchingBOQItem = boqItems.find(item => {
                   if (searchByCode && item.code?.toLowerCase() === searchByCode.toLowerCase()) {
                     return true;
@@ -347,6 +358,7 @@ const DataExportImport: React.FC<DataExportImportProps> = ({ className }) => {
                   // Use the first BOQ item as fallback if available
                   if (boqItems.length > 0) {
                     boqItemId = boqItems[0].id;
+                    console.log(`Using fallback BOQ item: ${boqItems[0].code} - ${boqItems[0].description}`);
                   }
                 }
               }
@@ -357,10 +369,11 @@ const DataExportImport: React.FC<DataExportImportProps> = ({ className }) => {
                 continue;
               }
 
-              // Find breakdown items by keywords
+              // Find breakdown items by keywords (handle multiple field name variations)
               let selectedBreakdownItems: string[] = [];
-              if (wirRow.selectedBreakdownKeywords) {
-                const keywords = wirRow.selectedBreakdownKeywords.split(',').map(k => k.trim());
+              const breakdownKeywords = wirRow.selectedBreakdownKeywords || wirRow['BREACK DOWN'] || wirRow['BREAK DOWN'] || wirRow.breakdown;
+              if (breakdownKeywords) {
+                const keywords = breakdownKeywords.split(',').map(k => k.trim());
                 selectedBreakdownItems = breakdownItems
                   .filter(item => 
                     item.boqItemId === boqItemId && 
