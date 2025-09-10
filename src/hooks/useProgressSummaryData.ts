@@ -113,7 +113,6 @@ export const useProgressSummaryData = (boqItemId: string, approvedOnly: boolean 
         }
       });
 
-      // Map WIR numbers to breakdown items
       console.log(`Mapping WIR ${wir.wirNumber || wir.id}:`, {
         selectedBreakdownItems: wir.selectedBreakdownItems,
         relatedBreakdownItems: relatedBreakdownItems.map(b => ({ id: b.id, description: b.description })),
