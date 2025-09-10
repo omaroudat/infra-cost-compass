@@ -116,16 +116,28 @@ export const useProgressSummaryData = (boqItemId: string, approvedOnly: boolean 
       // Map WIR numbers to breakdown items
       console.log(`Mapping WIR ${wir.wirNumber || wir.id}:`, {
         selectedBreakdownItems: wir.selectedBreakdownItems,
-        relatedBreakdownItems: relatedBreakdownItems.map(b => ({ id: b.id, description: b.description }))
+        relatedBreakdownItems: relatedBreakdownItems.map(b => ({ id: b.id, description: b.description })),
+        segmentBreakdownWIRs: Object.keys(segment.breakdownWIRs)
       });
 
       if (wir.selectedBreakdownItems && wir.selectedBreakdownItems.length > 0) {
         wir.selectedBreakdownItems.forEach(breakdownId => {
+          console.log(`Checking breakdown ${breakdownId} - exists in relatedBreakdownItems:`, 
+            relatedBreakdownItems.some(b => b.id === breakdownId));
+          
           if (segment.breakdownWIRs[breakdownId]) {
             segment.breakdownWIRs[breakdownId].push(wir.wirNumber || wir.id);
             console.log(`Added WIR ${wir.wirNumber || wir.id} to breakdown ${breakdownId}`);
           } else {
             console.log(`Breakdown ${breakdownId} not found in segment.breakdownWIRs`);
+            // Find the actual breakdown item to see if it exists
+            const actualBreakdown = breakdownItems.find(b => b.id === breakdownId);
+            console.log(`Actual breakdown item:`, actualBreakdown ? {
+              id: actualBreakdown.id,
+              description: actualBreakdown.description,
+              boqItemId: actualBreakdown.boqItemId,
+              isLeaf: actualBreakdown.isLeaf
+            } : 'NOT FOUND');
           }
         });
       } else {
