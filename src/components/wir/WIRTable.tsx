@@ -269,7 +269,7 @@ const WIRTable: React.FC<WIRTableProps> = ({
             <div className="flex justify-between items-center pt-2 border-t border-border">
               <div>
                 <span className="text-muted-foreground">Value:</span>
-                <p className="font-bold text-lg">{formatCurrency(wir.value)}</p>
+                <p className="font-bold text-lg">{formatCurrency(wir.calculatedAmount || wir.value)}</p>
               </div>
               <div>
                 <span className="text-muted-foreground">Date:</span>
@@ -414,9 +414,9 @@ const WIRTable: React.FC<WIRTableProps> = ({
                        <TableCell className="py-5 px-4 align-middle font-medium text-sm">{wir.engineer}</TableCell>
                        <TableCell className="py-5 px-4 align-middle font-medium text-sm">{wir.region}</TableCell>
                        <TableCell className="py-5 px-4 align-middle font-semibold text-sm">{wir.lineNo}</TableCell>
-                       <TableCell className="py-5 px-4 text-right align-middle font-bold text-base text-primary">
-                         {formatCurrency(wir.value)}
-                       </TableCell>
+                        <TableCell className="py-5 px-4 text-right align-middle font-bold text-base text-primary">
+                          {formatCurrency(wir.calculatedAmount || wir.value)}
+                        </TableCell>
                        <TableCell className="py-5 px-4 align-middle font-medium text-sm">{formatDate(wir.submittalDate)}</TableCell>
                        <TableCell className="py-5 px-4 align-middle">
                          <Badge variant={statusBadge.variant} className="gap-1.5 text-xs font-medium px-2.5 py-1">
