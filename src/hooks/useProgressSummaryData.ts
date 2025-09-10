@@ -64,9 +64,7 @@ export const useProgressSummaryData = (boqItemId: string, approvedOnly: boolean 
 
     // Get breakdown sub-items for this BOQ item (exclude main item)
     const relatedBreakdownItems = breakdownItems.filter(item => 
-      item.boqItemId === boqItemId && 
-      item.isLeaf && 
-      item.parentBreakdownId // Only include items that have a parent (are actually sub-items)
+      item.boqItemId === boqItemId && item.isLeaf
     );
 
     console.log('Breakdown items filtering debug:');
