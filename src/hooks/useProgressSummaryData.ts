@@ -69,6 +69,22 @@ export const useProgressSummaryData = (boqItemId: string, approvedOnly: boolean 
       item.parentBreakdownId // Only include items that have a parent (are actually sub-items)
     );
 
+    console.log('Breakdown items filtering debug:');
+    console.log('All breakdown items:', breakdownItems.map(item => ({
+      id: item.id,
+      boqItemId: item.boqItemId,
+      description: item.description,
+      isLeaf: item.isLeaf,
+      parentBreakdownId: item.parentBreakdownId
+    })));
+    console.log('Selected BOQ Item ID:', boqItemId);
+    console.log('Related breakdown items found:', relatedBreakdownItems.map(item => ({
+      id: item.id,
+      description: item.description,
+      isLeaf: item.isLeaf,
+      parentBreakdownId: item.parentBreakdownId
+    })));
+
     // Group WIRs by manhole segments (manholeFrom + manholeTo combination)
     const segmentMap = new Map<string, ProgressSegment>();
 
@@ -100,16 +116,26 @@ export const useProgressSummaryData = (boqItemId: string, approvedOnly: boolean 
       });
 
       // Map WIR numbers to breakdown items
+      console.log(`Mapping WIR ${wir.wirNumber || wir.id}:`, {
+        selectedBreakdownItems: wir.selectedBreakdownItems,
+        relatedBreakdownItems: relatedBreakdownItems.map(b => ({ id: b.id, description: b.description }))
+      });
+
       if (wir.selectedBreakdownItems && wir.selectedBreakdownItems.length > 0) {
         wir.selectedBreakdownItems.forEach(breakdownId => {
           if (segment.breakdownWIRs[breakdownId]) {
             segment.breakdownWIRs[breakdownId].push(wir.wirNumber || wir.id);
+            console.log(`Added WIR ${wir.wirNumber || wir.id} to breakdown ${breakdownId}`);
+          } else {
+            console.log(`Breakdown ${breakdownId} not found in segment.breakdownWIRs`);
           }
         });
       } else {
         // If no specific breakdown items selected, add to all breakdown items for this BOQ
+        console.log(`No specific breakdown items selected for WIR ${wir.wirNumber || wir.id}, adding to all breakdown items`);
         relatedBreakdownItems.forEach(breakdown => {
           segment.breakdownWIRs[breakdown.id].push(wir.wirNumber || wir.id);
+          console.log(`Added WIR ${wir.wirNumber || wir.id} to breakdown ${breakdown.id} (${breakdown.description})`);
         });
       }
 
