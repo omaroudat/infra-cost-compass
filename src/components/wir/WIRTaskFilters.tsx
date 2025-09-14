@@ -144,17 +144,18 @@ export const WIRTaskFilters: React.FC<WIRTaskFiltersProps> = ({
               <FileText className="h-4 w-4" />
               Result
             </Label>
-            <Select value={filters.result || 'all'} onValueChange={(value) => handleFilterChange('result', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Results" />
-              </SelectTrigger>
-              <SelectContent position="popper" sideOffset={8} className="z-50 min-w-[var(--radix-select-trigger-width)] bg-background border shadow-lg">
-                <SelectItem value="all">All Results</SelectItem>
-                <SelectItem value="A">A - Approved</SelectItem>
-                <SelectItem value="B">B - Conditional</SelectItem>
-                <SelectItem value="C">C - Rejected</SelectItem>
-              </SelectContent>
-            </Select>
+            <ComboBox
+              options={[
+                { value: '', label: 'All Results' },
+                { value: 'A', label: 'A - Approved' },
+                { value: 'B', label: 'B - Conditional' },
+                { value: 'C', label: 'C - Rejected' }
+              ]}
+              value={filters.result || ''}
+              onValueChange={(value) => handleFilterChange('result', value ?? '')}
+              placeholder="All Results"
+              align="start"
+            />
           </div>
 
           {/* Date Range */}
