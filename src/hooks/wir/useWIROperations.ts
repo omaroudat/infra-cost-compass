@@ -31,6 +31,7 @@ export const useWIROperations = () => {
       lineNo: wir.lineNo || '',
       selectedBreakdownItems: wir.selectedBreakdownItems || [],
       attachments: wir.attachments || [],
+      startTaskOnSite: wir.startTaskOnSite || '',
       wirNumber: wir.wirNumber || '' // Include WIR number for editing
     });
     setEditingWIR(wir.id);
@@ -62,6 +63,7 @@ export const useWIROperations = () => {
       lineNo: wir.lineNo || '',
       selectedBreakdownItems: wir.selectedBreakdownItems || [],
       attachments: wir.attachments || [],
+      startTaskOnSite: wir.startTaskOnSite || '',
       wirNumber: wir.wirNumber || '' // Include WIR number for result submission
     });
     setEditingWIR(wir.id);
