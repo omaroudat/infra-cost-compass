@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Search, Filter, X, Calendar, User, FileText } from 'lucide-react';
+import { ComboBox } from '@/components/ui/enhanced-dropdowns';
 import { WIR } from '@/types';
 
 interface WIRTaskFiltersProps {
@@ -113,19 +114,13 @@ export const WIRTaskFilters: React.FC<WIRTaskFiltersProps> = ({
               <User className="h-4 w-4" />
               Contractor
             </Label>
-            <Select value={filters.contractor || 'all'} onValueChange={(value) => handleFilterChange('contractor', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Contractors" />
-              </SelectTrigger>
-              <SelectContent position="popper" sideOffset={8} className="z-50 min-w-[var(--radix-select-trigger-width)] bg-background border shadow-lg">
-                <SelectItem value="all">All Contractors</SelectItem>
-                {contractors.map((contractor) => (
-                  <SelectItem key={contractor} value={contractor}>
-                    {contractor}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ComboBox
+              options={[{ value: '', label: 'All Contractors' }, ...contractors.map(c => ({ value: c, label: c }))]}
+              value={filters.contractor || ''}
+              onValueChange={(value) => handleFilterChange('contractor', value ?? '')}
+              placeholder="All Contractors"
+              align="start"
+            />
           </div>
 
           {/* Engineer Filter */}
@@ -134,19 +129,13 @@ export const WIRTaskFilters: React.FC<WIRTaskFiltersProps> = ({
               <User className="h-4 w-4" />
               Engineer
             </Label>
-            <Select value={filters.engineer || 'all'} onValueChange={(value) => handleFilterChange('engineer', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Engineers" />
-              </SelectTrigger>
-              <SelectContent position="popper" sideOffset={8} className="z-50 min-w-[var(--radix-select-trigger-width)] bg-background border shadow-lg">
-                <SelectItem value="all">All Engineers</SelectItem>
-                {engineers.map((engineer) => (
-                  <SelectItem key={engineer} value={engineer}>
-                    {engineer}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ComboBox
+              options={[{ value: '', label: 'All Engineers' }, ...engineers.map(e => ({ value: e, label: e }))]}
+              value={filters.engineer || ''}
+              onValueChange={(value) => handleFilterChange('engineer', value ?? '')}
+              placeholder="All Engineers"
+              align="start"
+            />
           </div>
 
           {/* Result Filter */}
