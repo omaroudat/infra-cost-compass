@@ -9,13 +9,33 @@ import { WIR } from '@/types';
 const WIRTasksDashboard = () => {
   const { wirs, loading } = useAppContext();
 
-  const tasksWIRs = useMemo(() => {
-    return wirs.filter(wir => wir.startTaskOnSite);
+  const completedWIRs = useMemo(() => {
+    return wirs.filter(wir => wir.result && wir.result !== null);
   }, [wirs]);
 
-  const completedWIRs = useMemo(() => {
-    return tasksWIRs.filter(wir => wir.result && wir.result !== null);
-  }, [tasksWIRs]);
+  const averageItemsWorkDays = useMemo(() => {
+    const validWIRs = completedWIRs.filter(wir => wir.startTaskOnSite);
+    if (validWIRs.length === 0) return 0;
+    
+    const totalDays = validWIRs.reduce((sum, wir) => {
+      const days = calculateItemsWorkDays(wir);
+      return sum + (days || 0);
+    }, 0);
+    
+    return Math.round(totalDays / validWIRs.length);
+  }, [completedWIRs]);
+
+  const averageWIRApprovedDays = useMemo(() => {
+    const validWIRs = completedWIRs.filter(wir => wir.submittalDate);
+    if (validWIRs.length === 0) return 0;
+    
+    const totalDays = validWIRs.reduce((sum, wir) => {
+      const days = calculateWIRApprovedDays(wir);
+      return sum + (days || 0);
+    }, 0);
+    
+    return Math.round(totalDays / validWIRs.length);
+  }, [completedWIRs]);
 
   const calculateItemsWorkDays = (wir: WIR) => {
     if (!wir.startTaskOnSite || !wir.result) {
@@ -98,13 +118,35 @@ const WIRTasksDashboard = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total WIRs with Tasks</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Completed WIRs</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{tasksWIRs.length}</div>
+            <div className="text-2xl font-bold">{completedWIRs.length}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Avg Items Work Days</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">
+              {averageItemsWorkDays} days
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Avg WIR Approved Days</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-600">
+              {averageWIRApprovedDays} days
+            </div>
           </CardContent>
         </Card>
         
@@ -115,17 +157,6 @@ const WIRTasksDashboard = () => {
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
               {completedWIRs.filter(wir => wir.result === 'A').length}
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Conditional WIRs (B)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
-              {completedWIRs.filter(wir => wir.result === 'B').length}
             </div>
           </CardContent>
         </Card>
@@ -155,7 +186,7 @@ const WIRTasksDashboard = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {tasksWIRs.map((wir) => {
+                {completedWIRs.map((wir) => {
                   const itemsWorkDays = calculateItemsWorkDays(wir);
                   const wirApprovedDays = calculateWIRApprovedDays(wir);
                   
@@ -213,9 +244,9 @@ const WIRTasksDashboard = () => {
               </TableBody>
             </Table>
           </div>
-          {tasksWIRs.length === 0 && (
+          {completedWIRs.length === 0 && (
             <div className="text-center py-6 text-muted-foreground">
-              No WIRs with start task dates found
+              No completed WIRs found
             </div>
           )}
         </CardContent>
