@@ -71,6 +71,17 @@ const WIRBasicInfoForm: React.FC<WIRBasicInfoFormProps> = ({
       </div>
 
       <div>
+        <Label htmlFor="startTaskOnSite">Start Task on Site</Label>
+        <Input
+          id="startTaskOnSite"
+          type="date"
+          value={newWIR.startTaskOnSite || ''}
+          onChange={(e) => setNewWIR(prev => ({ ...prev, startTaskOnSite: e.target.value }))}
+          disabled={isResultSubmission}
+        />
+      </div>
+
+      <div>
         <Label htmlFor="value">Quantity *</Label>
         <Input
           id="value"

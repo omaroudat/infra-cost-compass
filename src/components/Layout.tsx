@@ -44,7 +44,8 @@ import {
   Sparkles,
   ChevronRight,
   Shield,
-  PieChart
+  PieChart,
+  ClipboardList
 } from 'lucide-react';
 import { LanguageSelector } from './LanguageSelector';
 import { AccessibilityToolbar } from './accessibility/AccessibilityToolbar';
@@ -62,6 +63,7 @@ const AppSidebar = ({ side }: { side?: "left" | "right" }) => {
     { name: t('nav.boq', 'BOQ Items'), href: '/boq', icon: FileSpreadsheet, roles: ['admin', 'editor'], color: 'from-green-500 to-green-600' },
     { name: t('nav.breakdown', 'Break-Down'), href: '/breakdown', icon: Calculator, roles: ['admin', 'editor'], color: 'from-purple-500 to-purple-600' },
     { name: t('nav.wirs', 'WIRs'), href: '/wirs', icon: FileCheck, roles: ['admin', 'editor', 'viewer', 'data_entry'], color: 'from-orange-500 to-orange-600' },
+    { name: 'WIR Tasks Dashboard', href: '/wir-tasks', icon: ClipboardList, roles: ['admin', 'management', 'editor'], color: 'from-teal-500 to-teal-600' },
     { name: t('nav.reports', 'Reports'), href: '/reports', icon: BarChart3, roles: ['admin', 'editor', 'viewer'], color: 'from-red-500 to-red-600' },
     { name: t('nav.progress', 'Progress Tracking'), href: '/progress', icon: TrendingUp, roles: ['admin', 'editor', 'viewer'], color: 'from-indigo-500 to-indigo-600' },
     { name: t('nav.progressSummary', 'Progress Summary'), href: '/progress-summary', icon: Sparkles, roles: ['admin', 'editor', 'viewer'], color: 'from-emerald-500 to-emerald-600' },

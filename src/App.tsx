@@ -12,6 +12,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import ManagementDashboard from './pages/ManagementDashboard';
+import WIRTasksDashboard from './pages/WIRTasksDashboard';
 import BOQ from './pages/BOQ';
 import Breakdown from './pages/Breakdown';
 import Adjustments from './pages/Adjustments';
@@ -82,6 +83,16 @@ function App() {
                       <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer', 'management']}>
                         <Layout>
                           <ManagementDashboard />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/wir-tasks"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin', 'management', 'editor']}>
+                        <Layout>
+                          <WIRTasksDashboard />
                         </Layout>
                       </ProtectedRoute>
                     }

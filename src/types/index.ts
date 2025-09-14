@@ -75,6 +75,7 @@ export type WIR = {
   originalWIRId?: string; // original WIR ID for revisions
   selectedBreakdownItems?: string[]; // New field for selected breakdown sub-items
   attachments?: string[]; // New field for linked attachments
+  startTaskOnSite?: string; // New field for start task on site date
 };
 
 export type FinancialSummary = {

@@ -367,6 +367,7 @@ export type Database = {
           revision_number: number | null
           road: string | null
           selected_breakdown_items: string[] | null
+          start_task_on_site: string | null
           status: Database["public"]["Enums"]["wir_status"]
           status_conditions: string | null
           submittal_date: string
@@ -401,6 +402,7 @@ export type Database = {
           revision_number?: number | null
           road?: string | null
           selected_breakdown_items?: string[] | null
+          start_task_on_site?: string | null
           status?: Database["public"]["Enums"]["wir_status"]
           status_conditions?: string | null
           submittal_date: string
@@ -435,6 +437,7 @@ export type Database = {
           revision_number?: number | null
           road?: string | null
           selected_breakdown_items?: string[] | null
+          start_task_on_site?: string | null
           status?: Database["public"]["Enums"]["wir_status"]
           status_conditions?: string | null
           submittal_date?: string
