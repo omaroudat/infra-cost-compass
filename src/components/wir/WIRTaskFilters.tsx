@@ -35,7 +35,9 @@ export const WIRTaskFilters: React.FC<WIRTaskFiltersProps> = ({
   wirs
 }) => {
   const handleFilterChange = (key: string, value: string) => {
-    onFiltersChange({ ...filters, [key]: value });
+    // Convert "all" back to empty string for filtering logic
+    const filterValue = value === 'all' ? '' : value;
+    onFiltersChange({ ...filters, [key]: filterValue });
   };
 
   const clearFilters = () => {
@@ -110,12 +112,12 @@ export const WIRTaskFilters: React.FC<WIRTaskFiltersProps> = ({
               <User className="h-4 w-4" />
               Contractor
             </Label>
-            <Select value={filters.contractor} onValueChange={(value) => handleFilterChange('contractor', value)}>
+            <Select value={filters.contractor || 'all'} onValueChange={(value) => handleFilterChange('contractor', value)}>
               <SelectTrigger>
                 <SelectValue placeholder="All Contractors" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Contractors</SelectItem>
+                <SelectItem value="all">All Contractors</SelectItem>
                 {contractors.map((contractor) => (
                   <SelectItem key={contractor} value={contractor}>
                     {contractor}
@@ -131,12 +133,12 @@ export const WIRTaskFilters: React.FC<WIRTaskFiltersProps> = ({
               <User className="h-4 w-4" />
               Engineer
             </Label>
-            <Select value={filters.engineer} onValueChange={(value) => handleFilterChange('engineer', value)}>
+            <Select value={filters.engineer || 'all'} onValueChange={(value) => handleFilterChange('engineer', value)}>
               <SelectTrigger>
                 <SelectValue placeholder="All Engineers" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Engineers</SelectItem>
+                <SelectItem value="all">All Engineers</SelectItem>
                 {engineers.map((engineer) => (
                   <SelectItem key={engineer} value={engineer}>
                     {engineer}
@@ -152,12 +154,12 @@ export const WIRTaskFilters: React.FC<WIRTaskFiltersProps> = ({
               <FileText className="h-4 w-4" />
               Result
             </Label>
-            <Select value={filters.result} onValueChange={(value) => handleFilterChange('result', value)}>
+            <Select value={filters.result || 'all'} onValueChange={(value) => handleFilterChange('result', value)}>
               <SelectTrigger>
                 <SelectValue placeholder="All Results" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Results</SelectItem>
+                <SelectItem value="all">All Results</SelectItem>
                 <SelectItem value="A">A - Approved</SelectItem>
                 <SelectItem value="B">B - Conditional</SelectItem>
                 <SelectItem value="C">C - Rejected</SelectItem>
