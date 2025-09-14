@@ -9,9 +9,13 @@ import { WIR } from '@/types';
 const WIRTasksDashboard = () => {
   const { wirs, loading } = useAppContext();
 
-  const completedWIRs = useMemo(() => {
-    return wirs.filter(wir => wir.result && wir.result !== null);
+  const tasksWIRs = useMemo(() => {
+    return wirs.filter(wir => wir.startTaskOnSite);
   }, [wirs]);
+
+  const completedWIRs = useMemo(() => {
+    return tasksWIRs.filter(wir => wir.result && wir.result !== null);
+  }, [tasksWIRs]);
 
   const calculateItemsWorkDays = (wir: WIR) => {
     if (!wir.startTaskOnSite || !wir.result) {
@@ -97,10 +101,10 @@ const WIRTasksDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Completed WIRs</CardTitle>
+            <CardTitle className="text-sm font-medium">Total WIRs with Tasks</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{completedWIRs.length}</div>
+            <div className="text-2xl font-bold">{tasksWIRs.length}</div>
           </CardContent>
         </Card>
         
@@ -151,7 +155,7 @@ const WIRTasksDashboard = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {completedWIRs.map((wir) => {
+                {tasksWIRs.map((wir) => {
                   const itemsWorkDays = calculateItemsWorkDays(wir);
                   const wirApprovedDays = calculateWIRApprovedDays(wir);
                   
@@ -209,9 +213,9 @@ const WIRTasksDashboard = () => {
               </TableBody>
             </Table>
           </div>
-          {completedWIRs.length === 0 && (
+          {tasksWIRs.length === 0 && (
             <div className="text-center py-6 text-muted-foreground">
-              No completed WIRs found
+              No WIRs with start task dates found
             </div>
           )}
         </CardContent>
