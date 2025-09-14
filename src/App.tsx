@@ -79,7 +79,7 @@ function App() {
                   <Route
                     path="/management"
                     element={
-                      <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer']}>
+                      <ProtectedRoute requiredRoles={['admin', 'editor', 'viewer', 'management']}>
                         <Layout>
                           <ManagementDashboard />
                         </Layout>
