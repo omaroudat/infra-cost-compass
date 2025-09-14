@@ -37,7 +37,7 @@ const WIRTasksDashboard = () => {
     return Math.round(totalDays / validWIRs.length);
   }, [completedWIRs]);
 
-  const calculateItemsWorkDays = (wir: WIR) => {
+  function calculateItemsWorkDays(wir: WIR) {
     if (!wir.startTaskOnSite || !wir.result) {
       return null;
     }
@@ -46,9 +46,9 @@ const WIRTasksDashboard = () => {
     const resultDate = new Date(); // Assuming result completion is now - you might want to add a result_date field
     
     return differenceInDays(resultDate, startDate);
-  };
+  }
 
-  const calculateWIRApprovedDays = (wir: WIR) => {
+  function calculateWIRApprovedDays(wir: WIR) {
     if (!wir.submittalDate || !wir.result) {
       return null;
     }
@@ -57,7 +57,7 @@ const WIRTasksDashboard = () => {
     const resultDate = new Date(); // Assuming result completion is now - you might want to add a result_date field
     
     return differenceInDays(resultDate, submittalDate);
-  };
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
