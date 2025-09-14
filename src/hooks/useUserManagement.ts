@@ -5,6 +5,7 @@ import { profileService } from '@/hooks/auth/profileService';
 import { UserRole } from '@/types/auth';
 import { logAuditActivity } from '@/hooks/useAuditLogger';
 import { useAuth } from '@/context/ManualAuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface CreateUserData {
   username: string;
@@ -44,6 +45,7 @@ export const useUserManagement = () => {
         username: userData.username,
         full_name: userData.fullName || userData.username,
         role: userData.role,
+        active_role: userData.role,
         password: userData.password, // Now this column exists
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
@@ -62,11 +64,25 @@ export const useUserManagement = () => {
       console.log('User created successfully:', createdProfile);
       toast.success(`User ${userData.username} created successfully`);
       
+      // Ensure role is assigned in user_roles and get created id
+      const createdId = (createdProfile as any)?.id || newProfile.id;
+      try {
+        const { error: roleInsertError } = await supabase
+          .from('user_roles')
+          .insert([{ user_id: createdId, role: userData.role }]);
+        if (roleInsertError) {
+          console.error('Error assigning role to user_roles:', roleInsertError);
+          toast.error('User created, but failed to assign role.');
+        }
+      } catch (e) {
+        console.error('Unexpected error assigning role:', e);
+      }
+      
       // Log user creation
       logAuditActivity({
         action: 'CREATE',
         resourceType: 'USER',
-        resourceId: createdProfile[0]?.id || 'unknown',
+        resourceId: createdId,
         details: {
           username: userData.username,
           role: userData.role,

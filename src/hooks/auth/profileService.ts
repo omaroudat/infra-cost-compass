@@ -34,7 +34,7 @@ export const profileService = {
         username: profileData.username,
         full_name: profileData.full_name,
         role: profileData.role,
-        active_role: (profileData.active_role || 'viewer') as 'admin' | 'editor' | 'viewer' | 'data_entry',
+        active_role: (profileData.active_role || profileData.role || 'viewer') as 'admin' | 'editor' | 'viewer' | 'data_entry' | 'management',
         department: profileData.department,
         password: profileData.password,
         created_at: profileData.created_at
@@ -139,7 +139,7 @@ export const profileService = {
     }
   },
 
-  async switchUserRole(userId: string, newRole: 'admin' | 'editor' | 'viewer' | 'data_entry'): Promise<ServiceResult<boolean>> {
+  async switchUserRole(userId: string, newRole: 'admin' | 'editor' | 'viewer' | 'data_entry' | 'management'): Promise<ServiceResult<boolean>> {
     try {
       const result = await supabase
         .from('profiles')

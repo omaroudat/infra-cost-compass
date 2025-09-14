@@ -90,6 +90,27 @@ export const useAuthSignIn = () => {
         updated_at: profileData.updated_at || new Date().toISOString()
       };
 
+      // Align active_role to primary role if valid app role
+      const allowedRoles = ['admin','editor','viewer','data_entry','management'] as const;
+      type AppRole = typeof allowedRoles[number];
+      if (
+        typedProfile.role &&
+        typedProfile.active_role !== typedProfile.role
+      ) {
+        const nextActive: AppRole = allowedRoles.includes(typedProfile.role as AppRole)
+          ? (typedProfile.role as AppRole)
+          : 'viewer';
+        try {
+          await supabase
+            .from('profiles')
+            .update({ active_role: nextActive })
+            .eq('id', typedProfile.id);
+          typedProfile.active_role = nextActive;
+        } catch (e) {
+          console.warn('Could not align active_role with role:', e);
+        }
+      }
+
       toast.success('Signed in successfully!');
       return { data: { profile: typedProfile }, error: null };
     } catch (error: any) {
