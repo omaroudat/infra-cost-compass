@@ -35,19 +35,12 @@ export const WIRTaskFilters: React.FC<WIRTaskFiltersProps> = ({
   wirs
 }) => {
   const handleFilterChange = (key: string, value: string) => {
-    // Prevent default behavior and stop event propagation
-    event?.preventDefault?.();
-    event?.stopPropagation?.();
-    
     // Convert "all" back to empty string for filtering logic
     const filterValue = value === 'all' ? '' : value;
     onFiltersChange({ ...filters, [key]: filterValue });
   };
 
-  const clearFilters = (e?: React.MouseEvent) => {
-    e?.preventDefault();
-    e?.stopPropagation();
-    
+  const clearFilters = () => {
     onFiltersChange({
       search: '',
       contractor: '',
@@ -124,7 +117,7 @@ export const WIRTaskFilters: React.FC<WIRTaskFiltersProps> = ({
               <SelectTrigger>
                 <SelectValue placeholder="All Contractors" />
               </SelectTrigger>
-              <SelectContent className="z-50 bg-background border shadow-lg">
+              <SelectContent position="popper" sideOffset={8} className="z-50 min-w-[var(--radix-select-trigger-width)] bg-background border shadow-lg">
                 <SelectItem value="all">All Contractors</SelectItem>
                 {contractors.map((contractor) => (
                   <SelectItem key={contractor} value={contractor}>
@@ -145,7 +138,7 @@ export const WIRTaskFilters: React.FC<WIRTaskFiltersProps> = ({
               <SelectTrigger>
                 <SelectValue placeholder="All Engineers" />
               </SelectTrigger>
-              <SelectContent className="z-50 bg-background border shadow-lg">
+              <SelectContent position="popper" sideOffset={8} className="z-50 min-w-[var(--radix-select-trigger-width)] bg-background border shadow-lg">
                 <SelectItem value="all">All Engineers</SelectItem>
                 {engineers.map((engineer) => (
                   <SelectItem key={engineer} value={engineer}>
@@ -166,7 +159,7 @@ export const WIRTaskFilters: React.FC<WIRTaskFiltersProps> = ({
               <SelectTrigger>
                 <SelectValue placeholder="All Results" />
               </SelectTrigger>
-              <SelectContent className="z-50 bg-background border shadow-lg">
+              <SelectContent position="popper" sideOffset={8} className="z-50 min-w-[var(--radix-select-trigger-width)] bg-background border shadow-lg">
                 <SelectItem value="all">All Results</SelectItem>
                 <SelectItem value="A">A - Approved</SelectItem>
                 <SelectItem value="B">B - Conditional</SelectItem>
