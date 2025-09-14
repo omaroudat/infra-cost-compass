@@ -35,12 +35,19 @@ export const WIRTaskFilters: React.FC<WIRTaskFiltersProps> = ({
   wirs
 }) => {
   const handleFilterChange = (key: string, value: string) => {
+    // Prevent default behavior and stop event propagation
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    
     // Convert "all" back to empty string for filtering logic
     const filterValue = value === 'all' ? '' : value;
     onFiltersChange({ ...filters, [key]: filterValue });
   };
 
-  const clearFilters = () => {
+  const clearFilters = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    
     onFiltersChange({
       search: '',
       contractor: '',
@@ -62,33 +69,34 @@ export const WIRTaskFilters: React.FC<WIRTaskFiltersProps> = ({
   const activeFiltersCount = getActiveFiltersCount();
 
   return (
-    <Card className="border-0 bg-gradient-to-br from-background via-background to-muted/20 shadow-lg">
-      <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <Filter className="h-4 w-4 text-primary" />
+    <div className="relative">
+      <Card className="border-0 bg-gradient-to-br from-background via-background to-muted/20 shadow-lg">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Filter className="h-4 w-4 text-primary" />
+              </div>
+              <CardTitle className="text-lg">Filters & Search</CardTitle>
+              {activeFiltersCount > 0 && (
+                <Badge variant="secondary" className="ml-2">
+                  {activeFiltersCount} active
+                </Badge>
+              )}
             </div>
-            <CardTitle className="text-lg">Filters & Search</CardTitle>
             {activeFiltersCount > 0 && (
-              <Badge variant="secondary" className="ml-2">
-                {activeFiltersCount} active
-              </Badge>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4 mr-1" />
+                Clear All
+              </Button>
             )}
           </div>
-          {activeFiltersCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearFilters}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-4 w-4 mr-1" />
-              Clear All
-            </Button>
-          )}
-        </div>
-      </CardHeader>
+        </CardHeader>
       <CardContent className="space-y-6">
         {/* Search */}
         <div className="space-y-2">
@@ -116,7 +124,7 @@ export const WIRTaskFilters: React.FC<WIRTaskFiltersProps> = ({
               <SelectTrigger>
                 <SelectValue placeholder="All Contractors" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-50 bg-background border shadow-lg">
                 <SelectItem value="all">All Contractors</SelectItem>
                 {contractors.map((contractor) => (
                   <SelectItem key={contractor} value={contractor}>
@@ -137,7 +145,7 @@ export const WIRTaskFilters: React.FC<WIRTaskFiltersProps> = ({
               <SelectTrigger>
                 <SelectValue placeholder="All Engineers" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-50 bg-background border shadow-lg">
                 <SelectItem value="all">All Engineers</SelectItem>
                 {engineers.map((engineer) => (
                   <SelectItem key={engineer} value={engineer}>
@@ -158,7 +166,7 @@ export const WIRTaskFilters: React.FC<WIRTaskFiltersProps> = ({
               <SelectTrigger>
                 <SelectValue placeholder="All Results" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-50 bg-background border shadow-lg">
                 <SelectItem value="all">All Results</SelectItem>
                 <SelectItem value="A">A - Approved</SelectItem>
                 <SelectItem value="B">B - Conditional</SelectItem>
@@ -244,7 +252,8 @@ export const WIRTaskFilters: React.FC<WIRTaskFiltersProps> = ({
             </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
