@@ -154,7 +154,7 @@ export const useSupabaseWIRs = () => {
         boq_item_id: wir.boqItemId,
         description: wir.description,
         description_ar: wir.descriptionAr,
-        submittal_date: wir.submittalDate,
+        submittal_date: wir.submittalDate || null,
         start_task_on_site: wir.startTaskOnSite || null,
         received_date: wir.receivedDate || null,
         status: wir.status,
@@ -180,11 +180,30 @@ export const useSupabaseWIRs = () => {
         ...(wir.line && { line: wir.line })
       };
 
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('wirs')
         .insert(insertData)
         .select()
         .single();
+
+      // Handle unique conflict on wir_number by regenerating and retrying once (only for auto-generated numbers)
+      const isDuplicate = (err: any) => {
+        const msg = String(err?.message || '').toLowerCase();
+        const details = String(err?.details || '').toLowerCase();
+        return err?.code === '23505' || msg.includes('duplicate') || details.includes('duplicate') || msg.includes('conflict');
+      };
+      if (error && isDuplicate(error) && (!wir.wirNumber || wir.wirNumber.trim() === '')) {
+        const newWirNumber = await generateWIRNumber();
+        insertData.wir_number = newWirNumber;
+        wirNumber = newWirNumber;
+        const retry = await supabase
+          .from('wirs')
+          .insert(insertData)
+          .select()
+          .single();
+        data = retry.data;
+        error = retry.error;
+      }
 
       if (error) throw error;
 
