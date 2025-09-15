@@ -99,14 +99,6 @@ const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({ contractors, en
     return performance;
   }, [engineers, wirs]);
 
-  // Top performers for radar chart
-  const topContractors = contractorPerformance.slice(0, 3);
-  const radarData = [
-    { metric: 'Quality', ...Object.fromEntries(topContractors.map(c => [c.name, c.qualityScore])) },
-    { metric: 'Efficiency', ...Object.fromEntries(topContractors.map(c => [c.name, c.efficiency])) },
-    { metric: 'Risk Management', ...Object.fromEntries(topContractors.map(c => [c.name, c.riskScore])) },
-    { metric: 'Volume', ...Object.fromEntries(topContractors.map(c => [c.name, Math.min(100, (c.totalWirs / Math.max(...contractorPerformance.map(cp => cp.totalWirs))) * 100)])) },
-  ];
 
   const getPerformanceBadge = (score: number) => {
     if (score >= 90) return <Badge className="bg-success text-success-foreground">Excellent</Badge>;
@@ -259,56 +251,6 @@ const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({ contractors, en
         </CardContent>
       </Card>
 
-      {/* Performance Comparison Chart */}
-      <Card className="bg-card shadow-elegant border-border/50 xl:col-span-2">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl text-foreground">Performance Comparison - Top Contractors</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart data={radarData} margin={{ top: 20, right: 80, bottom: 20, left: 80 }}>
-                <PolarGrid stroke="hsl(var(--border))" />
-                <PolarAngleAxis dataKey="metric" tick={{ fontSize: 12, fill: 'hsl(var(--foreground))' }} />
-                <PolarRadiusAxis 
-                  angle={45} 
-                  domain={[0, 100]} 
-                  tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                />
-                {topContractors.map((contractor, index) => (
-                  <Radar
-                    key={contractor.name}
-                    name={contractor.name}
-                    dataKey={contractor.name}
-                    stroke={`hsl(${210 + index * 60}, 70%, 50%)`}
-                    fill={`hsl(${210 + index * 60}, 70%, 50%)`}
-                    fillOpacity={0.1}
-                    strokeWidth={2}
-                  />
-                ))}
-                <Tooltip 
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px'
-                  }}
-                />
-              </RadarChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="flex justify-center gap-6 mt-4">
-            {topContractors.map((contractor, index) => (
-              <div key={contractor.name} className="flex items-center gap-2">
-                <div 
-                  className="w-3 h-3 rounded-full" 
-                  style={{ backgroundColor: `hsl(${210 + index * 60}, 70%, 50%)` }}
-                ></div>
-                <span className="text-sm text-foreground">{contractor.name}</span>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
