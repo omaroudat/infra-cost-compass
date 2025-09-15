@@ -35,7 +35,7 @@ const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({ contractors, en
         return sum;
       }, 0);
 
-      const approvalRate = contractorWirs.length > 0 ? (approvedWirs.length / contractorWirs.length) * 100 : 0;
+      const approvalRate = contractorWirs.length > 0 ? ((approvedWirs.length + conditionalWirs.length) / contractorWirs.length) * 100 : 0;
       const qualityScore = contractorWirs.length > 0 ? 
         ((approvedWirs.length * 100 + conditionalWirs.length * 70) / contractorWirs.length) : 0;
       
@@ -77,7 +77,7 @@ const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({ contractors, en
         return sum;
       }, 0);
 
-      const approvalRate = engineerWirs.length > 0 ? (approvedWirs.length / engineerWirs.length) * 100 : 0;
+      const approvalRate = engineerWirs.length > 0 ? ((approvedWirs.length + conditionalWirs.length) / engineerWirs.length) * 100 : 0;
       const reviewEfficiency = engineerWirs.length > 0 ? 
         ((approvedWirs.length * 100 + conditionalWirs.length * 85) / engineerWirs.length) : 0;
 

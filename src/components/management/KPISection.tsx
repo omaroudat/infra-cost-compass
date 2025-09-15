@@ -23,7 +23,7 @@ const KPISection: React.FC<KPISectionProps> = ({ metrics }) => {
     maximumFractionDigits: 0,
   });
 
-  const approvalRate = metrics.totalWIRs > 0 ? (metrics.approvedCount / metrics.totalWIRs) * 100 : 0;
+  const approvalRate = metrics.totalWIRs > 0 ? ((metrics.approvedCount + metrics.conditionalCount) / metrics.totalWIRs) * 100 : 0;
   const rejectionRate = metrics.totalWIRs > 0 ? (metrics.rejectedCount / metrics.totalWIRs) * 100 : 0;
   const totalValue = metrics.totalApprovedValue + metrics.totalConditionalValue;
 
@@ -61,7 +61,7 @@ const KPISection: React.FC<KPISectionProps> = ({ metrics }) => {
       icon: CheckCircle,
       trend: {
         direction: approvalRate >= 70 ? 'up' as const : 'down' as const,
-        value: `${metrics.approvedCount}/${metrics.totalWIRs}`,
+        value: `${metrics.approvedCount + metrics.conditionalCount}/${metrics.totalWIRs}`,
       },
       gradient: 'from-violet-500 to-purple-600',
       bgGradient: 'from-violet-50 to-purple-50',
