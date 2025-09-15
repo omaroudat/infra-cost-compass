@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { TrendingUp, TrendingDown, Activity, Users, FileText, CheckCircle, Clock, XCircle, BarChart3, AlertCircle } from 'lucide-react';
+import { roundToTwoDecimals, createCurrencyFormatter } from '../utils/numberFormatter';
 
 type FilterCriteria = 'all' | 'contractor' | 'engineer';
 
@@ -20,12 +21,7 @@ const Dashboard = () => {
   const financialSummary = generateFinancialSummary(wirs);
   
   // Always use English number formatting for executives
-  const formatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'SAR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  });
+  const formatter = createCurrencyFormatter('en-US');
   
   // Get unique contractors and engineers
   const contractors = Array.from(new Set(wirs.map(wir => wir.contractor))).filter(Boolean);
@@ -85,7 +81,7 @@ const Dashboard = () => {
       approved: contractorWirs.filter(w => w.result === 'A').length,
       conditional: contractorWirs.filter(w => w.result === 'B').length,
       rejected: contractorWirs.filter(w => w.result === 'C').length,
-      total: contractorWirs.reduce((sum, w) => sum + (getApprovedAmount(w) + getConditionalAmount(w)), 0),
+      total: roundToTwoDecimals(contractorWirs.reduce((sum, w) => sum + (getApprovedAmount(w) + getConditionalAmount(w)), 0)),
     };
   });
   
@@ -96,7 +92,7 @@ const Dashboard = () => {
       approved: engineerWirs.filter(w => w.result === 'A').length,
       conditional: engineerWirs.filter(w => w.result === 'B').length,
       rejected: engineerWirs.filter(w => w.result === 'C').length,
-      total: engineerWirs.reduce((sum, w) => sum + (getApprovedAmount(w) + getConditionalAmount(w)), 0),
+      total: roundToTwoDecimals(engineerWirs.reduce((sum, w) => sum + (getApprovedAmount(w) + getConditionalAmount(w)), 0)),
     };
   });
   

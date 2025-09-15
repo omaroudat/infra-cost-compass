@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { DollarSign, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
 import { WIR, BOQItem } from '../../types';
+import { roundToTwoDecimals, createCurrencyFormatter } from '../../utils/numberFormatter';
 
 interface FinancialOverviewProps {
   wirs: WIR[];
@@ -11,41 +12,36 @@ interface FinancialOverviewProps {
 }
 
 const FinancialOverview: React.FC<FinancialOverviewProps> = ({ wirs, boqItems, totalBOQValue }) => {
-  const formatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'SAR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  });
+  const formatter = createCurrencyFormatter('en-US');
 
   const financialData = useMemo(() => {
-    const approvedAmount = wirs
+    const approvedAmount = roundToTwoDecimals(wirs
       .filter(w => w.result === 'A')
-      .reduce((sum, w) => sum + (w.calculatedAmount || w.value || 0), 0);
+      .reduce((sum, w) => sum + (w.calculatedAmount || w.value || 0), 0));
     
-    const conditionalAmount = wirs
+    const conditionalAmount = roundToTwoDecimals(wirs
       .filter(w => w.result === 'B')
-      .reduce((sum, w) => sum + (w.calculatedAmount || w.value || 0), 0);
+      .reduce((sum, w) => sum + (w.calculatedAmount || w.value || 0), 0));
 
-    const actualSpending = approvedAmount + conditionalAmount;
-    const variance = totalBOQValue - actualSpending;
-    const variancePercentage = totalBOQValue > 0 ? (variance / totalBOQValue) * 100 : 0;
+    const actualSpending = roundToTwoDecimals(approvedAmount + conditionalAmount);
+    const variance = roundToTwoDecimals(totalBOQValue - actualSpending);
+    const variancePercentage = roundToTwoDecimals(totalBOQValue > 0 ? (variance / totalBOQValue) * 100 : 0);
 
     return {
-      budget: totalBOQValue,
+      budget: roundToTwoDecimals(totalBOQValue),
       actualSpending,
       approvedAmount,
       conditionalAmount,
       variance,
       variancePercentage,
-      utilizationRate: totalBOQValue > 0 ? (actualSpending / totalBOQValue) * 100 : 0
+      utilizationRate: roundToTwoDecimals(totalBOQValue > 0 ? (actualSpending / totalBOQValue) * 100 : 0)
     };
   }, [wirs, totalBOQValue]);
 
   const budgetBreakdown = [
-    { name: 'Approved', value: financialData.approvedAmount, color: 'hsl(var(--success))' },
-    { name: 'Conditional', value: financialData.conditionalAmount, color: 'hsl(var(--warning))' },
-    { name: 'Remaining', value: Math.max(0, financialData.variance), color: 'hsl(var(--muted))' }
+    { name: 'Approved', value: roundToTwoDecimals(financialData.approvedAmount), color: 'hsl(var(--success))' },
+    { name: 'Conditional', value: roundToTwoDecimals(financialData.conditionalAmount), color: 'hsl(var(--warning))' },
+    { name: 'Remaining', value: roundToTwoDecimals(Math.max(0, financialData.variance)), color: 'hsl(var(--muted))' }
   ];
 
   const categoryBreakdown = useMemo(() => {
