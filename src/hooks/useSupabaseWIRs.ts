@@ -155,8 +155,8 @@ export const useSupabaseWIRs = () => {
         description: wir.description,
         description_ar: wir.descriptionAr,
         submittal_date: wir.submittalDate,
-        start_task_on_site: wir.startTaskOnSite,
-        received_date: wir.receivedDate,
+        start_task_on_site: wir.startTaskOnSite || null,
+        received_date: wir.receivedDate || null,
         status: wir.status,
         result: wir.result,
         status_conditions: wir.statusConditions,
@@ -229,9 +229,9 @@ export const useSupabaseWIRs = () => {
         if (updates.wirNumber !== undefined) updateData.wir_number = updates.wirNumber;
         if (updates.description !== undefined) updateData.description = updates.description;
         if (updates.descriptionAr !== undefined) updateData.description_ar = updates.descriptionAr;
-        if (updates.submittalDate !== undefined) updateData.submittal_date = updates.submittalDate;
-        if (updates.startTaskOnSite !== undefined) updateData.start_task_on_site = updates.startTaskOnSite;
-        if (updates.receivedDate !== undefined) updateData.received_date = updates.receivedDate;
+        if (updates.submittalDate !== undefined && updates.submittalDate !== '') updateData.submittal_date = updates.submittalDate;
+        if (updates.startTaskOnSite !== undefined) updateData.start_task_on_site = updates.startTaskOnSite || null;
+        if (updates.receivedDate !== undefined) updateData.received_date = updates.receivedDate || null;
         if (updates.status !== undefined) updateData.status = updates.status;
         if (updates.result !== undefined) updateData.result = updates.result;
         if (updates.statusConditions !== undefined) updateData.status_conditions = updates.statusConditions;
