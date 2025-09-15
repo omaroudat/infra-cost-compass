@@ -12,7 +12,11 @@ interface RiskItem {
   level: string;
   description: string;
   riskPercentage?: number;
-  items: string[];
+  items: Array<{
+    name: string;
+    percentage: number;
+    value?: number;
+  }>;
 }
 
 interface ProjectProgressProps {
@@ -102,7 +106,14 @@ const ProjectProgress: React.FC<ProjectProgressProps> = ({ wirs, boqItems, compl
         level: 'medium',
         description: `${lowProgressItems.length} high-value items with less than 30% completion`,
         riskPercentage: lowProgressRate,
-        items: lowProgressItems.slice(0, 5).map(item => item.name)
+        items: lowProgressItems
+          .map(item => ({
+            name: item.name,
+            percentage: 100 - item.progress, // Risk percentage (inverse of completion)
+            value: item.budget
+          }))
+          .sort((a, b) => b.percentage - a.percentage)
+          .slice(0, 5)
       });
     }
 
@@ -110,12 +121,37 @@ const ProjectProgress: React.FC<ProjectProgressProps> = ({ wirs, boqItems, compl
     const rejectedWirs = wirs.filter(w => w.result === 'C');
     const rejectionRate = wirs.length > 0 ? (rejectedWirs.length / wirs.length) * 100 : 0;
     if (rejectedWirs.length > wirs.length * 0.1) {
+      // Group rejected WIRs by BOQ item to calculate impact
+      const rejectedByBOQ = rejectedWirs.reduce((acc, wir) => {
+        const key = wir.boqItemId;
+        if (!acc[key]) {
+          acc[key] = {
+            description: wir.description,
+            count: 0,
+            totalValue: 0,
+            boqItemId: key
+          };
+        }
+        acc[key].count += 1;
+        acc[key].totalValue += (wir.calculatedAmount || wir.value || 0);
+        return acc;
+      }, {} as Record<string, any>);
+
+      const totalRejectedValue = Object.values(rejectedByBOQ).reduce((sum: number, item: any) => sum + item.totalValue, 0);
+      
       risks.push({
         type: 'Quality Issues',
         level: 'high',
         description: `${rejectedWirs.length} rejected WIRs (${rejectionRate.toFixed(1)}% risk rate)`,
         riskPercentage: rejectionRate,
-        items: rejectedWirs.slice(0, 5).map(w => w.description)
+        items: Object.values(rejectedByBOQ)
+          .map((item: any) => ({
+            name: item.description,
+            percentage: totalRejectedValue > 0 ? ((item.totalValue / totalRejectedValue) * 100) : 0,
+            value: item.totalValue
+          }))
+          .sort((a, b) => b.percentage - a.percentage)
+          .slice(0, 5)
       });
     }
 
@@ -123,12 +159,37 @@ const ProjectProgress: React.FC<ProjectProgressProps> = ({ wirs, boqItems, compl
     const conditionalWirs = wirs.filter(w => w.result === 'B');
     const conditionalRate = wirs.length > 0 ? (conditionalWirs.length / wirs.length) * 100 : 0;
     if (conditionalWirs.length > 10) {
+      // Group conditional WIRs by BOQ item to calculate impact
+      const conditionalByBOQ = conditionalWirs.reduce((acc, wir) => {
+        const key = wir.boqItemId;
+        if (!acc[key]) {
+          acc[key] = {
+            description: wir.description,
+            count: 0,
+            totalValue: 0,
+            boqItemId: key
+          };
+        }
+        acc[key].count += 1;
+        acc[key].totalValue += (wir.calculatedAmount || wir.value || 0);
+        return acc;
+      }, {} as Record<string, any>);
+
+      const totalConditionalValue = Object.values(conditionalByBOQ).reduce((sum: number, item: any) => sum + item.totalValue, 0);
+      
       risks.push({
         type: 'Pending Reviews',
         level: 'medium',
         description: `${conditionalWirs.length} WIRs awaiting final approval`,
         riskPercentage: conditionalRate,
-        items: conditionalWirs.slice(0, 5).map(w => w.description)
+        items: Object.values(conditionalByBOQ)
+          .map((item: any) => ({
+            name: item.description,
+            percentage: totalConditionalValue > 0 ? ((item.totalValue / totalConditionalValue) * 100) : 0,
+            value: item.totalValue
+          }))
+          .sort((a, b) => b.percentage - a.percentage)
+          .slice(0, 5)
       });
     }
 
@@ -373,12 +434,24 @@ const ProjectProgress: React.FC<ProjectProgressProps> = ({ wirs, boqItems, compl
                         </div>
                         <div className="space-y-1">
                           <p className="text-xs font-medium text-muted-foreground">Affected Items:</p>
-                          <div className="pl-3 space-y-1">
+                          <div className="pl-3 space-y-2">
                             {risk.items.map((item, i) => (
-                              <p key={i} className="text-xs text-muted-foreground flex items-start">
-                                <span className="mr-2">•</span>
-                                <span>{item}</span>
-                              </p>
+                              <div key={i} className="flex items-center justify-between">
+                                <div className="flex items-start flex-1">
+                                  <span className="mr-2 text-muted-foreground">•</span>
+                                  <span className="text-xs text-muted-foreground flex-1">{item.name}</span>
+                                </div>
+                                <div className="flex items-center gap-2 ml-2">
+                                  <span className="text-xs font-medium text-foreground">
+                                    {item.percentage.toFixed(1)}%
+                                  </span>
+                                  {item.value && (
+                                    <span className="text-xs text-muted-foreground">
+                                      ({formatter.format(item.value)})
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                             ))}
                           </div>
                         </div>
