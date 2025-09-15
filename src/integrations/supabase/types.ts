@@ -371,6 +371,7 @@ export type Database = {
           status: Database["public"]["Enums"]["wir_status"]
           status_conditions: string | null
           submittal_date: string
+          type_of_rock: string | null
           updated_at: string | null
           value: number
           wir_number: string
@@ -406,6 +407,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["wir_status"]
           status_conditions?: string | null
           submittal_date: string
+          type_of_rock?: string | null
           updated_at?: string | null
           value: number
           wir_number: string
@@ -441,6 +443,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["wir_status"]
           status_conditions?: string | null
           submittal_date?: string
+          type_of_rock?: string | null
           updated_at?: string | null
           value?: number
           wir_number?: string
