@@ -85,10 +85,6 @@ const Login = () => {
             </Button>
           </CardFooter>
         </form>
-        <div className="p-4 text-center text-sm text-slate-400">
-          <div className="mb-2">Demo Credentials:</div>
-          <div>Username: Admin / Password: Admin123</div>
-        </div>
       </Card>
     </div>
   );
