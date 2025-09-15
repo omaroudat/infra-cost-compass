@@ -14,12 +14,16 @@ const ManagementDashboard = () => {
 
   // Calculate key metrics
   const metrics = useMemo(() => {
+    // Calculate total BOQ value from leaf items only (to avoid double counting)
     const totalBOQValue = boqItems.reduce((sum, item) => {
       if (item.children && item.children.length > 0) {
+        // For parent items, sum children
         return sum + item.children.reduce((childSum, child) => 
           childSum + (child.quantity * child.unitRate), 0);
+      } else {
+        // For leaf items without children
+        return sum + (item.quantity * item.unitRate);
       }
-      return sum + (item.quantity * item.unitRate);
     }, 0);
 
     const approvedWirs = wirs.filter(w => w.result === 'A');

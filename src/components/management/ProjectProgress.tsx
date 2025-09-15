@@ -7,6 +7,14 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Target, Calendar, AlertTriangle, CheckCircle, Clock, TrendingUp } from 'lucide-react';
 import { WIR, BOQItem } from '../../types';
 
+interface RiskItem {
+  type: string;
+  level: string;
+  description: string;
+  riskPercentage?: number;
+  items: string[];
+}
+
 interface ProjectProgressProps {
   wirs: WIR[];
   boqItems: BOQItem[];
@@ -25,7 +33,7 @@ const ProjectProgress: React.FC<ProjectProgressProps> = ({ wirs, boqItems, compl
   const boqProgress = useMemo(() => {
     const leafItems = boqItems.filter(item => !item.children || item.children.length === 0);
     
-    return leafItems.slice(0, 8).map(item => {
+    return leafItems.map(item => {
       const itemWirs = wirs.filter(w => w.boqItemId === item.id);
       const approvedWirs = itemWirs.filter(w => w.result === 'A');
       const conditionalWirs = itemWirs.filter(w => w.result === 'B');
@@ -83,38 +91,44 @@ const ProjectProgress: React.FC<ProjectProgressProps> = ({ wirs, boqItems, compl
 
   // Risk assessment
   const riskItems = useMemo(() => {
-    const risks = [];
+    const risks: RiskItem[] = [];
     
     // Low completion items
     const lowProgressItems = boqProgress.filter(item => item.progress < 30 && item.budget > 1000000);
+    const lowProgressRate = boqProgress.length > 0 ? (lowProgressItems.length / boqProgress.length) * 100 : 0;
     if (lowProgressItems.length > 0) {
       risks.push({
         type: 'Low Progress',
         level: 'medium',
         description: `${lowProgressItems.length} high-value items with less than 30% completion`,
-        items: lowProgressItems.slice(0, 3).map(item => item.name)
+        riskPercentage: lowProgressRate,
+        items: lowProgressItems.slice(0, 5).map(item => item.name)
       });
     }
 
     // High rejection rate
     const rejectedWirs = wirs.filter(w => w.result === 'C');
+    const rejectionRate = wirs.length > 0 ? (rejectedWirs.length / wirs.length) * 100 : 0;
     if (rejectedWirs.length > wirs.length * 0.1) {
       risks.push({
         type: 'Quality Issues',
         level: 'high',
-        description: `${rejectedWirs.length} rejected WIRs (${((rejectedWirs.length / wirs.length) * 100).toFixed(1)}%)`,
-        items: rejectedWirs.slice(0, 3).map(w => w.description.substring(0, 40) + '...')
+        description: `${rejectedWirs.length} rejected WIRs (${rejectionRate.toFixed(1)}% risk rate)`,
+        riskPercentage: rejectionRate,
+        items: rejectedWirs.slice(0, 5).map(w => w.description)
       });
     }
 
     // Pending conditionals
     const conditionalWirs = wirs.filter(w => w.result === 'B');
+    const conditionalRate = wirs.length > 0 ? (conditionalWirs.length / wirs.length) * 100 : 0;
     if (conditionalWirs.length > 10) {
       risks.push({
         type: 'Pending Reviews',
         level: 'medium',
         description: `${conditionalWirs.length} WIRs awaiting final approval`,
-        items: conditionalWirs.slice(0, 3).map(w => w.description.substring(0, 40) + '...')
+        riskPercentage: conditionalRate,
+        items: conditionalWirs.slice(0, 5).map(w => w.description)
       });
     }
 
@@ -349,12 +363,24 @@ const ProjectProgress: React.FC<ProjectProgressProps> = ({ wirs, boqItems, compl
                             {risk.level.toUpperCase()}
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground">{risk.description}</p>
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm text-muted-foreground">{risk.description}</p>
+                          {risk.riskPercentage && (
+                            <Badge variant="outline" className="text-xs">
+                              {risk.riskPercentage.toFixed(1)}% Risk
+                            </Badge>
+                          )}
+                        </div>
                         <div className="space-y-1">
                           <p className="text-xs font-medium text-muted-foreground">Affected Items:</p>
-                          {risk.items.map((item, i) => (
-                            <p key={i} className="text-xs text-muted-foreground ml-2">• {item}</p>
-                          ))}
+                          <div className="pl-3 space-y-1">
+                            {risk.items.map((item, i) => (
+                              <p key={i} className="text-xs text-muted-foreground flex items-start">
+                                <span className="mr-2">•</span>
+                                <span>{item}</span>
+                              </p>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     ))
