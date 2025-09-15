@@ -475,6 +475,7 @@ const Dashboard = () => {
                     <TableHead className="font-semibold text-slate-700">Description</TableHead>
                     <TableHead className="font-semibold text-slate-700">Contractor</TableHead>
                     <TableHead className="font-semibold text-slate-700">Engineer</TableHead>
+                    <TableHead className="font-semibold text-slate-700">Length (m)</TableHead>
                     <TableHead className="font-semibold text-slate-700">Status</TableHead>
                     <TableHead className="font-semibold text-slate-700 text-right">Amount</TableHead>
                   </TableRow>
@@ -496,6 +497,7 @@ const Dashboard = () => {
                         </TableCell>
                         <TableCell className="text-slate-700">{wir.contractor}</TableCell>
                         <TableCell className="text-slate-700">{wir.engineer}</TableCell>
+                        <TableCell className="text-right font-medium">{wir.lengthOfLine?.toFixed(2) || '0.00'}</TableCell>
                         <TableCell>
                           <span className={`px-3 py-1 text-xs font-semibold rounded-full 
                             ${wir.result === 'A' ? 'bg-green-100 text-green-800' : 

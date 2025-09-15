@@ -181,7 +181,7 @@ const Reports = () => {
       // WIR Details Sheet
       const wirHeaders = [
         'WIR Number', 'Description', 'Contractor', 'Engineer', 
-        'Region', 'Value (SAR)', 'Result', 'Status', 'Submittal Date'
+        'Region', 'Length (m)', 'Value (SAR)', 'Result', 'Status', 'Submittal Date'
       ];
       
       const wirData = [
@@ -192,6 +192,7 @@ const Reports = () => {
           wir.contractor || '',
           wir.engineer || '',
           wir.region || '',
+          wir.lengthOfLine || 0,
           wir.calculatedAmount || wir.value || 0,
           wir.result === 'A' ? 'Approved' : wir.result === 'B' ? 'Conditional' : wir.result === 'C' ? 'Rejected' : 'Pending',
           wir.status,
@@ -268,7 +269,7 @@ const Reports = () => {
       if (pendingWirs.length > 0) {
         const pendingHeaders = [
           'WIR Number', 'Description', 'Contractor', 'Engineer', 
-          'Region', 'Value (SAR)', 'Days Pending', 'Submittal Date'
+          'Region', 'Length (m)', 'Value (SAR)', 'Days Pending', 'Submittal Date'
         ];
         
         const pendingData = [
@@ -283,6 +284,7 @@ const Reports = () => {
               wir.contractor || '',
               wir.engineer || '',
               wir.region || '',
+              wir.lengthOfLine || 0,
               wir.calculatedAmount || wir.value || 0,
               daysPending,
               wir.submittalDate ? formatDate(wir.submittalDate) : ''
@@ -596,6 +598,7 @@ const Reports = () => {
                       <TableHead>Contractor</TableHead>
                       <TableHead>Engineer</TableHead>
                       <TableHead>Region</TableHead>
+                      <TableHead>Length (m)</TableHead>
                       <TableHead>Value</TableHead>
                       <TableHead>Submittal Date</TableHead>
                       <TableHead>Status</TableHead>
@@ -610,6 +613,7 @@ const Reports = () => {
                           <TableCell>{wir.contractor}</TableCell>
                           <TableCell>{wir.engineer}</TableCell>
                           <TableCell>{wir.region}</TableCell>
+                          <TableCell className="text-right">{wir.lengthOfLine?.toFixed(2) || '0.00'}</TableCell>
                           <TableCell>{formatCurrency(wir.value)}</TableCell>
                           <TableCell>{formatDate(wir.submittalDate)}</TableCell>
                           <TableCell>
@@ -621,7 +625,7 @@ const Reports = () => {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={8} className="text-center text-gray-500 py-8">
+                        <TableCell colSpan={9} className="text-center text-gray-500 py-8">
                           No pending WIRs found
                         </TableCell>
                       </TableRow>
@@ -808,6 +812,7 @@ const Reports = () => {
                         <TableHead className="font-semibold text-slate-700">BOQ Item</TableHead>
                         <TableHead className="font-semibold text-slate-700">Contractor</TableHead>
                         <TableHead className="font-semibold text-slate-700">Engineer</TableHead>
+                        <TableHead className="font-semibold text-slate-700">Length (m)</TableHead>
                         <TableHead className="font-semibold text-slate-700">Status</TableHead>
                         <TableHead className="font-semibold text-slate-700">Submittal Date</TableHead>
                         <TableHead className="font-semibold text-slate-700 text-right">Amount</TableHead>
@@ -840,6 +845,7 @@ const Reports = () => {
                             </TableCell>
                             <TableCell className="text-slate-700">{wir.contractor}</TableCell>
                             <TableCell className="text-slate-700">{wir.engineer}</TableCell>
+                            <TableCell className="text-right font-medium">{wir.lengthOfLine?.toFixed(2) || '0.00'}</TableCell>
                             <TableCell>
                               <span className={`px-3 py-1 text-xs font-semibold rounded-full ${statusClass}`}>
                                 {wir.result === 'A' ? 'Approved' : 

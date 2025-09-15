@@ -47,6 +47,7 @@ export const RelatedWIRsTable: React.FC<RelatedWIRsTableProps> = ({
               <TableHead className="font-semibold text-slate-700">{t('progress.wirId')}</TableHead>
               <TableHead className="font-semibold text-slate-700">{t('progress.contractor')}</TableHead>
               <TableHead className="font-semibold text-slate-700">{t('progress.engineer')}</TableHead>
+              <TableHead className="font-semibold text-slate-700">Length (m)</TableHead>
               <TableHead className="font-semibold text-slate-700">{t('progress.wirValue')}</TableHead>
               <TableHead className="font-semibold text-slate-700">{t('progress.status')}</TableHead>
               <TableHead className="font-semibold text-slate-700">{t('progress.result')}</TableHead>
@@ -64,6 +65,7 @@ export const RelatedWIRsTable: React.FC<RelatedWIRsTableProps> = ({
                   <TableCell className="font-medium text-slate-900">{wir.id.slice(0, 8)}...</TableCell>
                   <TableCell className="text-slate-700">{wir.contractor}</TableCell>
                   <TableCell className="text-slate-700">{wir.engineer}</TableCell>
+                  <TableCell className="text-right font-medium">{wir.lengthOfLine?.toFixed(2) || '0.00'}</TableCell>
                   <TableCell className="font-medium text-slate-900">{numberFormatter.format(wir.value || 0)}</TableCell>
                   <TableCell>
                     <Badge variant={
