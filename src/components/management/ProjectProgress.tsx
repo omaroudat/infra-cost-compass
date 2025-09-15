@@ -97,14 +97,14 @@ const ProjectProgress: React.FC<ProjectProgressProps> = ({ wirs, boqItems, compl
   const riskItems = useMemo(() => {
     const risks: RiskItem[] = [];
     
-    // Low completion items
-    const lowProgressItems = boqProgress.filter(item => item.progress < 30 && item.budget > 1000000);
+    // Low completion items - more inclusive thresholds
+    const lowProgressItems = boqProgress.filter(item => item.progress < 60 && item.budget > 100000); // Reduced from 30% to 60% and 1M to 100K
     const lowProgressRate = boqProgress.length > 0 ? (lowProgressItems.length / boqProgress.length) * 100 : 0;
     if (lowProgressItems.length > 0) {
       risks.push({
         type: 'Low Progress',
         level: 'medium',
-        description: `${lowProgressItems.length} high-value items with less than 30% completion`,
+        description: `${lowProgressItems.length} items with less than 60% completion`,
         riskPercentage: lowProgressRate,
         items: lowProgressItems
           .map(item => ({
@@ -113,14 +113,14 @@ const ProjectProgress: React.FC<ProjectProgressProps> = ({ wirs, boqItems, compl
             value: item.budget
           }))
           .sort((a, b) => b.percentage - a.percentage)
-          .slice(0, 5)
+          .slice(0, 8) // Show more items
       });
     }
 
-    // High rejection rate
+    // High rejection rate - more inclusive threshold
     const rejectedWirs = wirs.filter(w => w.result === 'C');
     const rejectionRate = wirs.length > 0 ? (rejectedWirs.length / wirs.length) * 100 : 0;
-    if (rejectedWirs.length > wirs.length * 0.1) {
+    if (rejectedWirs.length > wirs.length * 0.05) { // Reduced from 10% to 5%
       // Group rejected WIRs by BOQ item to calculate impact
       const rejectedByBOQ = rejectedWirs.reduce((acc, wir) => {
         const key = wir.boqItemId;
@@ -151,14 +151,14 @@ const ProjectProgress: React.FC<ProjectProgressProps> = ({ wirs, boqItems, compl
             value: item.totalValue
           }))
           .sort((a, b) => b.percentage - a.percentage)
-          .slice(0, 5)
+          .slice(0, 8) // Show more items
       });
     }
 
-    // Pending conditionals
+    // Pending conditionals - more inclusive threshold
     const conditionalWirs = wirs.filter(w => w.result === 'B');
     const conditionalRate = wirs.length > 0 ? (conditionalWirs.length / wirs.length) * 100 : 0;
-    if (conditionalWirs.length > 10) {
+    if (conditionalWirs.length > 3) { // Reduced from 10 to 3
       // Group conditional WIRs by BOQ item to calculate impact
       const conditionalByBOQ = conditionalWirs.reduce((acc, wir) => {
         const key = wir.boqItemId;
@@ -189,7 +189,7 @@ const ProjectProgress: React.FC<ProjectProgressProps> = ({ wirs, boqItems, compl
             value: item.totalValue
           }))
           .sort((a, b) => b.percentage - a.percentage)
-          .slice(0, 5)
+          .slice(0, 8) // Show more items
       });
     }
 
