@@ -61,7 +61,7 @@ const WIRLocationDetailsForm: React.FC<WIRLocationDetailsFormProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <Label htmlFor="zone">Zone *</Label>
               <Input
@@ -92,9 +92,6 @@ const WIRLocationDetailsForm: React.FC<WIRLocationDetailsFormProps> = ({
                 disabled={isResultSubmission}
               />
             </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Label htmlFor="region">Region *</Label>
               <Input
@@ -102,16 +99,6 @@ const WIRLocationDetailsForm: React.FC<WIRLocationDetailsFormProps> = ({
                 value={newWIR.region || ''}
                 onChange={(e) => setNewWIR(prev => ({ ...prev, region: e.target.value }))}
                 placeholder="Enter region"
-                disabled={isResultSubmission}
-              />
-            </div>
-            <div>
-              <Label htmlFor="lineNo">Line Number *</Label>
-              <Input
-                id="lineNo"
-                value={newWIR.lineNo || ''}
-                onChange={(e) => setNewWIR(prev => ({ ...prev, lineNo: e.target.value }))}
-                placeholder="Enter line number"
                 disabled={isResultSubmission}
               />
             </div>

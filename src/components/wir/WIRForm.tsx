@@ -36,7 +36,7 @@ const WIRForm: React.FC<WIRFormProps> = ({
     const required = [
       'description', 'submittalDate', 'status', 
       'contractor', 'engineer', 'region', 'value',
-      'lineNo', 'lengthOfLine', 'diameterOfLine',
+      'lengthOfLine', 'diameterOfLine',
       'manholeFrom', 'manholeTo', 'zone', 'road', 'line'
     ];
     
