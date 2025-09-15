@@ -38,7 +38,8 @@ export const useWIRFormState = () => {
     diameterOfLine: 0,
     lineNo: '',
     attachments: [],
-    wirNumber: generateDefaultWIRNumber()
+    wirNumber: generateDefaultWIRNumber(),
+    typeOfRock: undefined
   });
 
   // Auto-generate WIR number when dialog opens for new WIR
@@ -73,7 +74,8 @@ export const useWIRFormState = () => {
       diameterOfLine: 0,
       lineNo: '',
       attachments: [],
-      wirNumber: generateDefaultWIRNumber()
+      wirNumber: generateDefaultWIRNumber(),
+      typeOfRock: undefined
     });
     setEditingWIR(null);
     setIsSubmittingResult(false);

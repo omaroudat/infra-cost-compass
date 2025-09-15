@@ -76,6 +76,7 @@ export type WIR = {
   selectedBreakdownItems?: string[]; // New field for selected breakdown sub-items
   attachments?: string[]; // New field for linked attachments
   startTaskOnSite?: string; // New field for start task on site date
+  typeOfRock?: 'Rock' | 'Soil'; // New field for type of rock
 };
 
 export type FinancialSummary = {

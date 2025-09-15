@@ -4,6 +4,7 @@ import { WIR, BOQItem } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import BOQItemSelector from './BOQItemSelector';
 import { useAppContext } from '@/context/AppContext';
 
@@ -94,6 +95,23 @@ const WIRBasicInfoForm: React.FC<WIRBasicInfoFormProps> = ({
           readOnly={isResultSubmission}
           className={isResultSubmission ? 'bg-gray-50 cursor-not-allowed' : ''}
         />
+      </div>
+
+      <div>
+        <Label htmlFor="typeOfRock">Type of Rock *</Label>
+        <Select
+          value={newWIR.typeOfRock || ''}
+          onValueChange={(value: 'Rock' | 'Soil') => setNewWIR(prev => ({ ...prev, typeOfRock: value }))}
+          disabled={isResultSubmission}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select type of rock" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Rock">Rock</SelectItem>
+            <SelectItem value="Soil">Soil</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div>

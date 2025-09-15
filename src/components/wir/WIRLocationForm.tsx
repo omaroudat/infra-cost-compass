@@ -28,16 +28,6 @@ const WIRLocationForm: React.FC<WIRLocationFormProps> = ({
         />
       </div>
 
-      <div>
-        <Label htmlFor="lineNo">Line Number *</Label>
-        <Input
-          id="lineNo"
-          value={newWIR.lineNo || ''}
-          onChange={(e) => setNewWIR(prev => ({ ...prev, lineNo: e.target.value }))}
-          placeholder="Enter line number"
-          disabled={isResultSubmission}
-        />
-      </div>
 
       <div>
         <Label htmlFor="lengthOfLine">Length of Line (meters) *</Label>
