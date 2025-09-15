@@ -371,17 +371,18 @@ const WIRTasksDashboard = () => {
                       {getSortIcon('description')}
                     </Button>
                   </TableHead>
-                  <TableHead>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleSort('contractor')}
-                      className="group h-auto p-0 font-semibold justify-start"
-                    >
-                      Contractor
-                      {getSortIcon('contractor')}
-                    </Button>
-                  </TableHead>
+                   <TableHead>
+                     <Button
+                       variant="ghost"
+                       size="sm"
+                       onClick={() => handleSort('contractor')}
+                       className="group h-auto p-0 font-semibold justify-start"
+                     >
+                       Contractor
+                       {getSortIcon('contractor')}
+                     </Button>
+                   </TableHead>
+                   <TableHead className="text-center">Length (m)</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Result</TableHead>
                   <TableHead>Start Task Date</TableHead>
@@ -439,8 +440,11 @@ const WIRTasksDashboard = () => {
                           {wir.description}
                         </div>
                       </TableCell>
-                      <TableCell className="font-medium">{wir.contractor}</TableCell>
-                      <TableCell>
+                       <TableCell className="font-medium">{wir.contractor}</TableCell>
+                       <TableCell className="text-center font-medium">
+                         {wir.lengthOfLine ? `${Number(wir.lengthOfLine).toFixed(1)}` : '-'}
+                       </TableCell>
+                       <TableCell>
                         <Badge variant={getStatusVariant(wir.status)}>
                           {wir.status}
                         </Badge>

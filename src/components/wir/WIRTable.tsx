@@ -41,7 +41,7 @@ const WIRTable: React.FC<WIRTableProps> = ({
 }) => {
   const [printingWIR, setPrintingWIR] = useState<WIR | null>(null);
   const [sortConfig, setSortConfig] = useState<{
-    key: keyof WIR | null;
+    key: keyof WIR | 'lengthOfLine' | null;
     direction: 'asc' | 'desc';
   }>({ key: null, direction: 'asc' });
 
@@ -71,6 +71,12 @@ const WIRTable: React.FC<WIRTableProps> = ({
         return sortConfig.direction === 'asc' ? aNum - bNum : bNum - aNum;
       }
 
+      if (sortConfig.key === 'lengthOfLine') {
+        const aNum = Number(aValue) || 0;
+        const bNum = Number(bValue) || 0;
+        return sortConfig.direction === 'asc' ? aNum - bNum : bNum - aNum;
+      }
+
       const aStr = String(aValue).toLowerCase();
       const bStr = String(bValue).toLowerCase();
       
@@ -80,14 +86,14 @@ const WIRTable: React.FC<WIRTableProps> = ({
     });
   }, [wirs, sortConfig]);
 
-  const handleSort = (key: keyof WIR) => {
+  const handleSort = (key: keyof WIR | 'lengthOfLine') => {
     setSortConfig(prev => ({
       key,
       direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
     }));
   };
 
-  const getSortIcon = (key: keyof WIR) => {
+  const getSortIcon = (key: keyof WIR | 'lengthOfLine') => {
     if (sortConfig.key !== key) {
       return <ArrowUpDown className="h-3 w-3 text-muted-foreground/60" />;
     }
@@ -103,7 +109,7 @@ const WIRTable: React.FC<WIRTableProps> = ({
     align = "left" 
   }: { 
     children: React.ReactNode; 
-    sortKey: keyof WIR; 
+    sortKey: keyof WIR | 'lengthOfLine'; 
     className?: string;
     align?: "left" | "right" | "center";
   }) => (
@@ -247,7 +253,7 @@ const WIRTable: React.FC<WIRTableProps> = ({
           <div className="space-y-2 text-sm">
             <p className="line-clamp-2 text-foreground">{wir.description}</p>
             
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
               <div>
                 <span className="text-muted-foreground">Contractor:</span>
                 <p className="font-medium">{wir.contractor}</p>
@@ -263,6 +269,10 @@ const WIRTable: React.FC<WIRTableProps> = ({
               <div>
                 <span className="text-muted-foreground">Line No:</span>
                 <p className="font-medium">{wir.lineNo}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Length:</span>
+                <p className="font-medium">{wir.lengthOfLine ? `${Number(wir.lengthOfLine).toFixed(1)} m` : '-'}</p>
               </div>
             </div>
             
@@ -372,6 +382,7 @@ const WIRTable: React.FC<WIRTableProps> = ({
                   <SortableHeader sortKey="engineer" className="min-w-[130px]">Engineer</SortableHeader>
                   <SortableHeader sortKey="region" className="min-w-[120px]">Region</SortableHeader>
                   <SortableHeader sortKey="lineNo" className="min-w-[90px]">Line No</SortableHeader>
+                  <SortableHeader sortKey="lengthOfLine" className="min-w-[110px]" align="right">Length (m)</SortableHeader>
                   <SortableHeader sortKey="value" className="min-w-[130px]" align="right">Value</SortableHeader>
                   <SortableHeader sortKey="submittalDate" className="min-w-[110px]">Date</SortableHeader>
                   <SortableHeader sortKey="status" className="min-w-[110px]">Status</SortableHeader>
@@ -413,8 +424,11 @@ const WIRTable: React.FC<WIRTableProps> = ({
                        <TableCell className="py-5 px-4 align-middle font-medium text-sm">{wir.contractor}</TableCell>
                        <TableCell className="py-5 px-4 align-middle font-medium text-sm">{wir.engineer}</TableCell>
                        <TableCell className="py-5 px-4 align-middle font-medium text-sm">{wir.region}</TableCell>
-                       <TableCell className="py-5 px-4 align-middle font-semibold text-sm">{wir.lineNo}</TableCell>
-                        <TableCell className="py-5 px-4 text-right align-middle font-bold text-base text-primary">
+                        <TableCell className="py-5 px-4 align-middle font-semibold text-sm">{wir.lineNo}</TableCell>
+                        <TableCell className="py-5 px-4 text-right align-middle font-medium text-sm">
+                          {wir.lengthOfLine ? `${Number(wir.lengthOfLine).toFixed(1)} m` : '-'}
+                        </TableCell>
+                         <TableCell className="py-5 px-4 text-right align-middle font-bold text-base text-primary">
                           {formatCurrency(wir.calculatedAmount || wir.value)}
                         </TableCell>
                        <TableCell className="py-5 px-4 align-middle font-medium text-sm">{formatDate(wir.submittalDate)}</TableCell>
